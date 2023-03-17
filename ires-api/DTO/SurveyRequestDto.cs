@@ -1,0 +1,20 @@
+﻿namespace ires_api.DTO
+{
+    public class SurveyRequestDto
+    {
+        public int id { get; set; }
+        public int companyid { get; set; }
+        public long custid { get; set; }
+        public string owner { get; set; } = string.Empty;
+        public string titleno { get; set; } = string.Empty;
+        public string surveyno { get; set; } = string.Empty;
+        public DateTime? surveydate { get; set; }
+        public string propertyname { get; set; } = string.Empty;
+        public string address { get; set; } = string.Empty;
+        public string details { get; set; } = string.Empty;
+        public decimal contractprice { get; set; }
+        public int status { get; set; }
+        public long createdbyid { get; set; }
+        public long updatedbyid { get; set; }
+    }
+}
