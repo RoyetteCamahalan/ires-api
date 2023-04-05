@@ -44,8 +44,8 @@ namespace ires_api.Services.Repository
 
         public Client Update(ClientDto requestDto)
         {
-            Client client = _dataContext.clients.Find(requestDto.custid);
-            if(client != null)
+            Client client = GetClientById(requestDto.custid);
+            if (client != null)
             {
                 client.lname = requestDto.lname;
                 client.fname = requestDto.fname;

@@ -23,6 +23,7 @@ namespace ires_api.Models
         public long updatedbyid { get; set; }
         public DateTime? dateupdated { get; set; }
         public List<Survey> surveys { get; set; } = new List<Survey>();
+        public List<Payment> payments { get; set; } = new List<Payment>();
 
     }
 }

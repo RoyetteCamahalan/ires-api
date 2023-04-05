@@ -2,6 +2,7 @@
 using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
+using ires_api.Services.Seeders;
 
 namespace ires_api.Services.Repository
 {
@@ -55,6 +56,9 @@ namespace ires_api.Services.Repository
             };
             _dataContext.employees.Add(employee);
             _dataContext.SaveChanges();
+            BankSeeder bankSeeder = new BankSeeder(_dataContext);
+            bankSeeder.Seed(company.id, false);
+            bankSeeder.Seed(company.id, true);
             return company;
         }
 

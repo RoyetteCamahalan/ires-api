@@ -20,11 +20,19 @@
         {
             totalRecord = rawData.Count();
             totalPages = (totalRecord / pageSize) + (totalRecord % pageSize > 0 ? 1 : 0);
-            data = rawData.Skip((currentPage - 1) * pageSize).Take(pageSize);
-            var pageStart = pageSize * (currentPage - 1);
-            info = string.Format("Showing {0}-{1}{2}", 
-                pageStart + 1, (pageStart + pageSize) < totalRecord ? (pageStart + pageSize) : totalRecord, 
-                totalRecord <= pageSize ? "" : " of " + totalRecord.ToString());
+            if (currentPage > 0)
+            {
+                data = rawData.Skip((currentPage - 1) * pageSize).Take(pageSize);
+                var pageStart = pageSize * (currentPage - 1);
+                info = string.Format("Showing {0}-{1}{2}",
+                    pageStart + 1, (pageStart + pageSize) < totalRecord ? (pageStart + pageSize) : totalRecord,
+                    totalRecord <= pageSize ? "" : " of " + totalRecord.ToString());
+            }
+            else
+            {
+                data = rawData;
+                info = "Showing " + data.Count() + " records";
+            }
         }
     }
 }

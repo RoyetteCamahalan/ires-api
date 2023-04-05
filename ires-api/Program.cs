@@ -1,17 +1,17 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using ires_api.Data;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
 using ires_api.Services.Interface;
 using ires_api.Services.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("corspolicy",builder =>
+    options.AddPolicy("corspolicy", builder =>
     {
         builder.WithOrigins("http://localhost:4000").AllowAnyHeader().AllowAnyMethod();
     });
@@ -34,10 +34,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("IRESConnection")));
 
 builder.Services.AddControllers()
-    .AddNewtonsoftJson(options => {
+    .AddNewtonsoftJson(options =>
+    {
         options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
         //options.SerializerSettings.DateFormatString = "yyyy-MM-dd hh:mm tt";
-        });
+    });
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddScoped<ICompanyService, CompanyRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeRepository>();
@@ -46,6 +47,7 @@ builder.Services.AddScoped<IClientService, ClientRepository>();
 builder.Services.AddScoped<ISurveyService, SurveyRepository>();
 builder.Services.AddScoped<IChargeService, ChargeRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentRepository>();
+builder.Services.AddScoped<IAccountService, AccountRepository>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

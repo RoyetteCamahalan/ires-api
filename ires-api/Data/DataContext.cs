@@ -7,7 +7,7 @@ namespace ires_api.Data
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
-            
+
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,17 +34,61 @@ namespace ires_api.Data
                 .HasOne(o => o.fee)
                 .WithMany(s => s.otherCharges)
                 .HasForeignKey(o => o.chargetype);
+
+            modelBuilder.Entity<PaymentCheck>()
+                .HasOne(c => c.bank)
+                .WithMany(b => b.checks)
+                .HasForeignKey(c => c.bankid);
+
+            modelBuilder.Entity<PaymentCheck>()
+                .HasOne(c => c.payment)
+                .WithOne(b => b.paymentCheck).HasForeignKey<PaymentCheck>(c => c.paymentid);
+
+            modelBuilder.Entity<BankTransfer>()
+                .HasOne(c => c.payment)
+                .WithOne(b => b.bankTransfer).HasForeignKey<BankTransfer>(c => c.paymentid);
+
+            modelBuilder.Entity<BankTransfer>()
+                .HasOne(c => c.bank)
+                .WithMany(b => b.bankTransfers).HasForeignKey(c => c.bankid);
+
+
+            modelBuilder.Entity<PaymentDetail>()
+                .HasOne(c => c.payment)
+                .WithMany(b => b.paymentDetails)
+                .HasForeignKey(c => c.paymentid);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(s => s.client)
+                .WithMany(c => c.payments)
+                .HasForeignKey(e => e.custid);
+
+            modelBuilder.Entity<BankAccount>()
+                .HasOne(s => s.bank)
+                .WithMany(c => c.bankAccounts)
+                .HasForeignKey(e => e.bankid);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(s => s.createdBy)
+                .WithMany(c => c.encodedPayments)
+                .HasForeignKey(e => e.encodedby);
+
         }
+        public DbSet<ApplicationModule> applicationModules { get; set; }
+        public DbSet<Bank> banks { get; set; }
+        public DbSet<BankAccount> bankAccounts { get; set; }
+        public DbSet<BankTransfer> bankTransfers { get; set; }
+        public DbSet<Client> clients { get; set; }
         public DbSet<Company> companies { get; set; }
         public DbSet<Employee> employees { get; set; }
-        public DbSet<Project> projects { get; set; }
-        public DbSet<RentalProperty> rentalProperties { get; set; }
-        public DbSet<ApplicationModule> applicationModules { get; set; }
-        public DbSet<UserPrivilege> userPrivileges { get; set; }
-        public DbSet<Client> clients { get; set; }
         public DbSet<Lot> lots { get; set; }
-        public DbSet<Survey> surveys { get; set; }
         public DbSet<OtherCharge> otherCharges { get; set; }
         public DbSet<Payment> payments { get; set; }
+        public DbSet<PaymentCheck> paymentChecks { get; set; }
+        public DbSet<PaymentDetail> paymentDetails { get; set; }
+        public DbSet<Project> projects { get; set; }
+        public DbSet<RentalProperty> rentalProperties { get; set; }
+        public DbSet<Survey> surveys { get; set; }
+        public DbSet<UserPrivilege> userPrivileges { get; set; }
     }
 }

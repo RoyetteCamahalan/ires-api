@@ -6,8 +6,14 @@ namespace ires_api
 {
     public class AutoMapperProfile : Profile
     {
-        public AutoMapperProfile() {
+        public AutoMapperProfile()
+        {
+            CreateMap<Bank, BankDto>();
+            CreateMap<BankAccount, BankAccountDto>();
+            CreateMap<BankAccount, BankAccountRequestDto>().ReverseMap();
 
+            CreateMap<BankTransfer, BankTransferRequestDto>().ReverseMap();
+            CreateMap<BankTransfer, BankTransfer>().ReverseMap();
             CreateMap<Company, CompanyDto>();
 
             CreateMap<Employee, EmployeeDto>();
@@ -15,7 +21,7 @@ namespace ires_api
             CreateMap<Employee, EmployeeRequestDto>().ReverseMap();
 
             CreateMap<Employee, UserLoginDto>()
-                .ForMember(dest => dest.company, 
+                .ForMember(dest => dest.company,
                 opts => opts.MapFrom(src =>
                 src.company));
 
@@ -31,6 +37,10 @@ namespace ires_api
 
             CreateMap<OtherCharge, OtherChargeDto>();
             CreateMap<OtherCharge, OtherChargeRequestDto>().ReverseMap();
+            CreateMap<Payment, PaymentRequestDto>().ReverseMap();
+            CreateMap<Payment, PaymentDto>();
+            //.ForMember(dest => dest.client, opts => opts.MapFrom(src => src.client));
+            CreateMap<PaymentCheck, PaymentCheckRequestDto>().ReverseMap();
         }
     }
 }

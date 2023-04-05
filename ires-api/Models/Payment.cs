@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ires_api.Models
 {
@@ -16,6 +15,7 @@ namespace ires_api.Models
         public long encodedby { get; set; }
         public long orno { get; set; }
         public int receipttype { get; set; } //See Constants.ReceiptType
+        public int paymentmode { get; set; } //See Constants.PaymentMode
         public decimal totalamount { get; set; }
         public decimal tender { get; set; }
         public decimal change { get; set; }
@@ -27,6 +27,12 @@ namespace ires_api.Models
         public string paidby { get; set; } = string.Empty;
         public string remarks { get; set; } = string.Empty;
         public DateTime? datecreated { get; set; }
+
+        public Client? client { get; set; }
+        public PaymentCheck? paymentCheck { get; set; }
+        public BankTransfer? bankTransfer { get; set; }
+        public List<PaymentDetail> paymentDetails { get; set; } = new List<PaymentDetail>();
+        public Employee? createdBy { get; set; }
 
     }
 }

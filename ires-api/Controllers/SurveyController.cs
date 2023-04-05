@@ -3,7 +3,6 @@ using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers

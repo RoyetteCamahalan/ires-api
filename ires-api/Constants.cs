@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualBasic;
-
-namespace ires_api
+﻿namespace ires_api
 {
     public class Constants
     {
@@ -30,6 +28,21 @@ namespace ires_api
         {
             public const string payment = "P";
             public const string creditMemo = "CN"; //Used also as discount
+        }
+        public class PaymentMode
+        {
+            public const int cash = 0;
+            public const int check = 1;
+            public const int bankTransfer = 2;
+            public const int eWallet = 3;
+        }
+        public class CheckStatus
+        {
+            public const int floating = 0;
+            public const int deposited = 1;
+            public const int hold = 2;
+            public const int replaced = 3;
+            public const int cancelled = 4;
         }
     }
 }

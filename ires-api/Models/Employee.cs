@@ -13,7 +13,7 @@ namespace ires_api.Models
         public string lastname { get; set; } = String.Empty;
         public string middlename { get; set; } = String.Empty;
         public string gender { get; set; } = String.Empty;
-        public string? mobileno { get; set; } 
+        public string? mobileno { get; set; }
         public string? email { get; set; }
         public bool? isactive { get; set; }
         public bool? isappsysadmin { get; set; }
@@ -24,5 +24,6 @@ namespace ires_api.Models
         public DateTime? datecreated { get; set; }
 
         public Company? company { get; set; }
+        public List<Payment>? encodedPayments { get; set; }
     }
 }
