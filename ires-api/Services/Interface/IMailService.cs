@@ -2,6 +2,7 @@
 {
     public interface IMailService
     {
-        public void SendEmail(string subject, List<string> mailTo, string body, bool isHTML = false);
+        public bool SendEmail(string subject, List<string> mailTo, string body, bool isHTML = false);
+        public string GetPublicEmail();
     }
 }

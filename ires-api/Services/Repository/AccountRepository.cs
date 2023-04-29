@@ -24,11 +24,6 @@ namespace ires_api.Services.Repository
             return requestDto;
         }
 
-        public BankAccount GetBankAccountByID(long id)
-        {
-            return _dataContext.bankAccounts.Find(id);
-        }
-
         public ICollection<BankAccount> GetBankAccounts(int companyID, string search)
         {
             return _dataContext.bankAccounts.Include(x => x.bank).Where(x => x.companyid == companyID &&
@@ -55,6 +50,52 @@ namespace ires_api.Services.Repository
                 _dataContext.SaveChanges();
             }
             return bankAccount;
+        }
+
+        public BankAccount GetBankAccountByID(long id)
+        {
+            return _dataContext.bankAccounts.Include(x => x.bank).Where(x => x.accountid == id).FirstOrDefault();
+        }
+
+
+        public Office CreateOffice(Office Office)
+        {
+            Office.accountid = 0;
+            Office.datecreated = DateTime.Now;
+            _dataContext.offices.Add(Office);
+            _dataContext.SaveChanges();
+            return Office;
+        }
+
+        public Office GetOfficeByID(long ID)
+        {
+            return _dataContext.offices.FirstOrDefault(x => x.accountid == ID);
+        }
+
+        public Office GetOfficeByName(int companyID, string name)
+        {
+            return _dataContext.offices.FirstOrDefault(x => x.companyid == companyID && x.accountname == name);
+        }
+
+        public ICollection<Office> GetOffices(int companyID, string search)
+        {
+            return _dataContext.offices.Where(x => x.companyid == companyID && x.accountname.Contains(search))
+                .OrderBy(x => x.accountname).ToList();
+        }
+
+        public Office UpdateOffice(OfficeRequestDto requestDto)
+        {
+            var Office = GetOfficeByID(requestDto.accountid);
+            if (Office != null)
+            {
+                Office.accountname = requestDto.accountname;
+                Office.isactive = requestDto.isactive;
+                Office.memo = requestDto.memo;
+                Office.updatedbyid = requestDto.updatedbyid;
+                Office.dateupdated = DateTime.Now;
+                _dataContext.SaveChanges();
+            }
+            return Office;
         }
     }
 }

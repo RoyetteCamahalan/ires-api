@@ -5,7 +5,13 @@ namespace ires_api
 {
     public class Utility
     {
+        public static string CleanFileName(string input)
+        {
+            string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
+            string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
 
+            return System.Text.RegularExpressions.Regex.Replace(input, invalidRegStr, "_");
+        }
         public static string GetHash(string input)
         {
             MD5 hasher = MD5.Create();

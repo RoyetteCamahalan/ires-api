@@ -9,6 +9,7 @@
         public long encodedby { get; set; }
         public long orno { get; set; }
         public int receipttype { get; set; } //See Constants.ReceiptType
+        public string receiptno { get; set; } = string.Empty;
         public int paymentmode { get; set; } //See Constants.PaymentMode
         public decimal totalamount { get; set; }
         public int status { get; set; } //See Constants.PaymentStatus

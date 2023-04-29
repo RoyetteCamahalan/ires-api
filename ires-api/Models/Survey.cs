@@ -20,7 +20,7 @@ namespace ires_api.Models
         public string details { get; set; } = string.Empty;
         public decimal contractprice { get; set; }
         public decimal balance { get; set; }
-        public int status { get; set; }
+        public int status { get; set; } // See Constants.SurveyStatus
         public long createdbyid { get; set; }
         public DateTime? datecreated { get; set; }
         public long updatedbyid { get; set; }

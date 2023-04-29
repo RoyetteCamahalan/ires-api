@@ -17,6 +17,19 @@
             public const int or = 1; //Official Receipt
             public const int ar = 2; //Acknowledgement Receipt
             public const int pr = 3; //Probationary Receipt
+
+            public static string getReceiptDesc(int receiptType)
+            {
+                switch (receiptType)
+                {
+                    case or:
+                        return "OR";
+                    case pr:
+                        return "PR";
+                    default:
+                        return "AR";
+                }
+            }
         }
         public class PaymentStatus
         {
@@ -43,6 +56,19 @@
             public const int hold = 2;
             public const int replaced = 3;
             public const int cancelled = 4;
+        }
+        public class SurveyStatus
+        {
+            public const int pending = 0;
+            public const int cancelled = 1;
+            public const int surveyed = 2;
+            public const int completed = 3;
+        }
+        public class BillStatus
+        {
+            public const int open = 0;
+            public const int paid = 1;
+            public const int cancelled = 2;
         }
     }
 }

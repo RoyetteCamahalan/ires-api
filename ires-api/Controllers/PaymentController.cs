@@ -84,42 +84,6 @@ namespace ires_api.Controllers
             return Ok(serverResponse);
 
         }
-        [HttpGet("getbanks")]
-        public IActionResult GetBanks(int currentPage, string? search = "")
-        {
-            var serverResponse = new ServerResponse<PaginatorDto<BankDto>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var banks = _paymentService.GetBanks(identity.companyid ?? 0, false, search ?? "");
-            var paginator = new PaginatorDto<BankDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<BankDto>>(banks));
-            serverResponse.Data = paginator;
-            return Ok(serverResponse);
-
-        }
-        [HttpGet("getewallets")]
-        public IActionResult GetEwallets(int currentPage, string? search = "")
-        {
-            var serverResponse = new ServerResponse<PaginatorDto<BankDto>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var banks = _paymentService.GetBanks(identity.companyid ?? 0, true, search ?? "");
-            var paginator = new PaginatorDto<BankDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<BankDto>>(banks));
-            serverResponse.Data = paginator;
-            return Ok(serverResponse);
-
-        }
 
 
         [HttpPost]
@@ -168,6 +132,27 @@ namespace ires_api.Controllers
             }
             serverResponse.Data = _mapper.Map<PaymentRequestDto>(result);
             return Ok(serverResponse);
+        }
+        [HttpPut("voidPayment")]
+        public IActionResult VoidPayment(PaymentRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<bool>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            if (identity == null)
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Unable to process request";
+                return BadRequest(serverResponse);
+            }
+            serverResponse.Success = _paymentService.VoidPayment(requestDto.paymentid);
+            serverResponse.Data = serverResponse.Success;
+            if (!serverResponse.Success)
+            {
+                serverResponse.Message = "Payment not found";
+                return BadRequest(serverResponse);
+            }
+            return Ok(serverResponse);
+
         }
         [HttpGet("getreceiptno")]
         public IActionResult GetReceiptNo(int receiptType)

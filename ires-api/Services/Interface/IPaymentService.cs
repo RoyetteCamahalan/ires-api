@@ -9,10 +9,11 @@ namespace ires_api.Services.Interface
         public ICollection<Payment> GetPayments(int companyID, string search, DateTime startDate, DateTime endDate);
         public Payment GetPayment(long paymentID);
         public ICollection<PaymentDetail> GetPaymentDetails(long paymentID);
+        public ICollection<PaymentDetail> GetSurveyPaymentDetails(long surveyID);
         public ICollection<PayableDto> GetPayables(long clientID, string search);
-        public ICollection<Bank> GetBanks(int companyID, bool isEWallet, string search);
         public long GetReceiptNo(int companyID, int receiptType);
         public bool IsDuplicateReceipt(int companyID, int receiptType, long receiptNo);
         public Payment Create(PaymentRequestDto requestDto);
+        public bool VoidPayment(long paymentID);
     }
 }

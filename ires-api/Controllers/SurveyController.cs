@@ -13,11 +13,13 @@ namespace ires_api.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ISurveyService _surveyService;
+        private readonly IPaymentService _paymentService;
 
-        public SurveyController(IMapper mapper, ISurveyService surveyService)
+        public SurveyController(IMapper mapper, ISurveyService surveyService, IPaymentService paymentService)
         {
             _mapper = mapper;
             _surveyService = surveyService;
+            _paymentService = paymentService;
         }
         [HttpGet]
         public IActionResult Get(int currentPage, string? search = "")
@@ -72,11 +74,40 @@ namespace ires_api.Controllers
         public IActionResult Put([FromBody] SurveyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<SurveyDto>();
-            var employee = _surveyService.Update(requestDto);
-            if (employee == null)
+            var survey = _surveyService.Update(requestDto);
+            if (survey == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
+                return BadRequest(serverResponse);
+            }
+            return Ok(serverResponse);
+        }
+
+        [HttpPut("updatestatus")]
+        public IActionResult UpdateStatus([FromBody] SurveyRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<Boolean>();
+            if (requestDto.status == Constants.SurveyStatus.cancelled)
+            {
+                var paymentDetails = _paymentService.GetSurveyPaymentDetails(requestDto.id);
+                if (paymentDetails.Count() > 0)
+                {
+                    serverResponse.Success = false;
+                    serverResponse.Message = "Please void payment: (";
+                    foreach (var detail in paymentDetails)
+                    {
+                        serverResponse.Message += detail.payment.receiptno + ", ";
+                    }
+                    serverResponse.Message = serverResponse.Message.Substring(0, serverResponse.Message.Length - 2) + ")";
+                    return BadRequest(serverResponse);
+                }
+            }
+            var survey = _surveyService.UpdateStatus(requestDto.id, requestDto.status);
+            if (survey == null)
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Survey not found";
                 return BadRequest(serverResponse);
             }
             return Ok(serverResponse);

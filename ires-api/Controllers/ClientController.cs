@@ -3,7 +3,6 @@ using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -14,11 +13,13 @@ namespace ires_api.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IClientService _clientService;
+        private readonly IMailService _mailService;
 
-        public ClientController(IMapper mapper, IClientService clientService)
+        public ClientController(IMapper mapper, IClientService clientService, IMailService mailService)
         {
             _mapper = mapper;
             _clientService = clientService;
+            _mailService = mailService;
         }
         [HttpGet]
         public IActionResult Get(int currentPage, string? search = "")
@@ -84,6 +85,20 @@ namespace ires_api.Controllers
             if (client == null)
             {
                 serverResponse.Success = false;
+                serverResponse.Message = "Unable to process request";
+                return BadRequest(serverResponse);
+            }
+            return Ok(serverResponse);
+        }
+
+        [HttpPost("sendmail")]
+        [AllowAnonymous]
+        public IActionResult SendMail([FromBody] SendMailRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<Boolean>();
+            serverResponse.Success = _mailService.SendEmail("Message From: " + requestDto.name, new List<string> { _mailService.GetPublicEmail() }, "Message: " + requestDto.message);
+            if (!serverResponse.Success)
+            {
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }

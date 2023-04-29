@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires_api.Models
@@ -16,7 +14,14 @@ namespace ires_api.Models
         public bool? isactive { get; set; }
 
         public bool? isverified { get; set; }
+        public int planid { get; set; }
+        public DateTime? subscriptionexpiry { get; set; }
+        public decimal storage { get; set; }
+        public int surveylimit { get; set; }
+        public int billingcycle { get; set; }
+        public decimal amount { get; set; }
 
         public List<Employee> employees { get; set; } = new List<Employee>();
+        public SubscriptionPlan? subscriptionPlan { get; set; }
     }
 }

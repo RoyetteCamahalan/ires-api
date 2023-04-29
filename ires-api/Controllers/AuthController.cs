@@ -3,7 +3,6 @@ using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -19,12 +18,14 @@ namespace ires_api.Controllers
         private readonly IConfiguration _configuration;
         private readonly IEmployeeService _employeeService;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public AuthController(IConfiguration configuration, IEmployeeService employeeService, IMapper mapper)
+        public AuthController(IConfiguration configuration, IEmployeeService employeeService, IMapper mapper, ILogService logService)
         {
             _configuration = configuration;
             _employeeService = employeeService;
             _mapper = mapper;
+            _logService = logService;
         }
         [HttpPost("login")]
         [AllowAnonymous]
@@ -38,7 +39,8 @@ namespace ires_api.Controllers
                 response.Message = "Invalid login credentials";
                 return BadRequest(response);
             }
-            else if(employee != null && !(employee.company?.isverified ?? false)){
+            else if (employee != null && !(employee.company?.isverified ?? false))
+            {
                 response.Success = false;
                 response.Message = "Your account is unverified. Please check your email.";
                 return BadRequest(response);
@@ -47,12 +49,13 @@ namespace ires_api.Controllers
             response.Data = _mapper.Map<UserLoginDto>(employee);
             response.Data.LoadPrivileges(_mapper, _employeeService.GetUserPrivileges(employee.employeeid));
             response.Data.Token = GenerateToken(employee);
+            _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Authentication", "User logged in : " + response.Data.Token, 0);
             return Ok(response);
         }
 
         private string GenerateToken(Employee employee)
         {
-            var test =_configuration["Jwt:Key"];
+            var test = _configuration["Jwt:Key"];
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? ""));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -73,6 +76,47 @@ namespace ires_api.Controllers
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        [HttpPost("systemoverride")]
+        public IActionResult SystemOverride(UserLoginRequestDto requestDto)
+        {
+            var response = new ServerResponse<UserLoginDto>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            if (identity == null)
+            {
+                response.Success = false;
+                response.Message = "Unable to process request";
+                return BadRequest(response);
+            }
+            var employee = _employeeService.Login(requestDto.username, Utility.GetHash(requestDto.password));
+
+            if (employee == null)
+            {
+                response.Success = false;
+                response.Message = "Invalid login credentials";
+                return BadRequest(response);
+            }
+            else if (employee != null && employee.companyid != (identity.companyid ?? 0))
+            {
+                response.Success = false;
+                response.Message = "Invalid login credentials";
+                return BadRequest(response);
+            }
+            else if (employee != null && !(employee.company?.isverified ?? false))
+            {
+                response.Success = false;
+                response.Message = "Your account is unverified. Please check your email.";
+                return BadRequest(response);
+            }
+            else if (employee != null && !(employee.isappsysadmin ?? false))
+            {
+                response.Success = false;
+                response.Message = "Your account is not an Admin.";
+                return BadRequest(response);
+            }
+
+            response.Data = _mapper.Map<UserLoginDto>(employee);
+            return Ok(response);
         }
     }
 }

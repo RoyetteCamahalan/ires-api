@@ -11,5 +11,11 @@ namespace ires_api.Services.Interface
         public ICollection<BankAccount> GetBankAccounts(int companyID, string search);
         public bool isBankAccountExist(BankAccountRequestDto requestDto);
 
+        public Office CreateOffice(Office Office);
+        public Office UpdateOffice(OfficeRequestDto requestDto);
+        public Office GetOfficeByID(long ID);
+        public Office GetOfficeByName(int companyID, string name);
+        public ICollection<Office> GetOffices(int companyID, string search);
+
     }
 }
