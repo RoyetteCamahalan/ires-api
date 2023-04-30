@@ -61,6 +61,9 @@ namespace ires_api
             //.ForMember(dest => dest.client, opts => opts.MapFrom(src => src.client));
             CreateMap<PaymentCheck, PaymentCheckRequestDto>().ReverseMap();
             CreateMap<SubscriptionPlan, PlanDto>();
+
+            CreateMap<Vendor, VendorDto>();
+            CreateMap<Vendor, VendorRequestDto>().ReverseMap();
         }
     }
 }

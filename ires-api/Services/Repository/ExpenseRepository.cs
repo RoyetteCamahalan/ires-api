@@ -2,6 +2,7 @@
 using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
+using ires_api.Services.Seeders;
 using Microsoft.EntityFrameworkCore;
 
 namespace ires_api.Services.Repository
@@ -54,5 +55,56 @@ namespace ires_api.Services.Repository
             }
             return expenseType;
         }
+
+        #region "Vendor"
+        public Vendor CreateVendor(Vendor vendor)
+        {
+            vendor.vendorid = 0;
+            vendor.datecreated = DateTime.Now;
+            _dataContext.vendors.Add(vendor);
+            _dataContext.SaveChanges();
+            return vendor;
+        }
+
+        public Vendor GetVendorByID(long ID)
+        {
+            return _dataContext.vendors.FirstOrDefault(x => x.vendorid == ID);
+        }
+
+        public Vendor GetVendorByName(int companyID, string name)
+        {
+            return _dataContext.vendors.FirstOrDefault(x => x.companyid == companyID && x.vendorname == name);
+        }
+
+        public ICollection<Vendor> GetVendors(int companyID, string search)
+        {
+            var result = _dataContext.vendors.Where(x => x.companyid == companyID && x.vendorname.Contains(search) && x.tinno.Contains(search))
+                .OrderBy(x => x.vendorname).ToList();
+            if (result.Count == 0 && search == "")
+            {
+                var vendorSeeder = new VendorSeeder(_dataContext);
+                vendorSeeder.Seed(companyID);
+                return GetVendors(companyID, search);
+            }
+            return result;
+        }
+
+        public Vendor UpdateVendor(VendorRequestDto requestDto)
+        {
+            var vendor = GetVendorByID(requestDto.vendorid);
+            if (vendor != null)
+            {
+                vendor.vendorname = requestDto.vendorname;
+                vendor.address = requestDto.address;
+                vendor.contactno = requestDto.contactno;
+                vendor.tinno = requestDto.tinno;
+                vendor.isactive = requestDto.isactive;
+                vendor.updatedbyid = requestDto.updatedbyid;
+                vendor.dateupdated = DateTime.Now;
+                _dataContext.SaveChanges();
+            }
+            return vendor;
+        }
+        #endregion
     }
 }

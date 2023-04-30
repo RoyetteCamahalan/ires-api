@@ -10,5 +10,12 @@ namespace ires_api.Services.Interface
         public ExpenseType GetExpenseTypeByID(long ID);
         public ExpenseType GetExpenseTypeByName(int companyID, string name);
         public ICollection<ExpenseType> GetExpenseTypes(int companyID, string search);
+
+
+        public Vendor CreateVendor(Vendor vendor);
+        public Vendor UpdateVendor(VendorRequestDto requestDto);
+        public Vendor GetVendorByID(long ID);
+        public Vendor GetVendorByName(int companyID, string name);
+        public ICollection<Vendor> GetVendors(int companyID, string search);
     }
 }

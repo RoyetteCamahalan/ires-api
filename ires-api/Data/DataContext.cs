@@ -107,5 +107,6 @@ namespace ires_api.Data
         public DbSet<Survey> surveys { get; set; }
         public DbSet<SubscriptionPlan> subscriptionPlans { get; set; }
         public DbSet<UserPrivilege> userPrivileges { get; set; }
+        public DbSet<Vendor> vendors { get; set; }
     }
 }
