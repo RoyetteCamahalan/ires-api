@@ -4,18 +4,85 @@ using ires_api.Models;
 using ires_api.Services.Interface;
 using ires_api.Services.Seeders;
 using Microsoft.EntityFrameworkCore;
+using System.Data.SqlClient;
 
 namespace ires_api.Services.Repository
 {
     public class ExpenseRepository : IExpenseService
     {
         private readonly DataContext _dataContext;
+        private readonly IAccountService _accountService;
 
-        public ExpenseRepository(DataContext dataContext)
+        public ExpenseRepository(DataContext dataContext, IAccountService accountService)
         {
             _dataContext = dataContext;
+            _accountService = accountService;
+        }
+        public async Task<Expense> Create(Expense data)
+        {
+            data.expenseid = 0;
+            data.transdate = DateTime.Now;
+            data.status = Constants.ExpenseStatus.approved;
+            _dataContext.expenses.Add(data);
+            await _dataContext.SaveChangesAsync();
+            await this.ReComputeAPAsync(data.payeeid);
+            return data;
         }
 
+        public async Task<Expense> GetExpenseByID(long ID)
+        {
+            return await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor).FirstOrDefaultAsync(x => x.expensetypeid == ID);
+        }
+
+        public async Task<ICollection<Expense>> GetExpenses(int companyID, string search)
+        {
+            return await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor)
+                .Where(x => x.companyid == companyID &&
+                    (x.office.accountname.Contains(search) || x.expenseType.expensetypedesc.Contains(search) || x.vendor.vendorname.Contains(search)))
+                .OrderByDescending(x => x.transdate).ToListAsync();
+        }
+
+        public async Task<Expense> Update(ExpenseRequestDto requestDto)
+        {
+            var data = await GetExpenseByID(requestDto.expenseid);
+            if (data != null)
+            {
+                var oldAccountID = data.accountid;
+                var oldAmount = data.amount;
+                data.accountid = requestDto.accountid;
+                data.expensetypeid = requestDto.expensetypeid;
+                data.refno = requestDto.refno;
+                data.refdate = requestDto.refdate;
+                data.amount = requestDto.amount;
+                data.memo = requestDto.memo;
+                data.payeeid = requestDto.payeeid;
+                data.usepettycash = requestDto.usepettycash;
+                data.updatedbyid = requestDto.updatedbyid;
+                data.dateupdated = DateTime.Now;
+                await _dataContext.SaveChangesAsync();
+                if (oldAccountID != requestDto.accountid)
+                {
+                    _accountService.UpdateOfficeBalance(oldAccountID, oldAmount);
+                    _accountService.UpdateOfficeBalance(requestDto.accountid, requestDto.amount * -1);
+                }
+                else
+                    _accountService.UpdateOfficeBalance(requestDto.accountid, oldAmount - requestDto.amount);
+
+            }
+            return data;
+        }
+        public async Task ReComputeAPAsync(long vendorID)
+        {
+            var parameter = new List<SqlParameter>
+            {
+                new SqlParameter("@vendorid", vendorID)
+            };
+            await Task.Run(() =>
+                _dataContext.Database.ExecuteSqlRawAsync("exec spComputeExpense @vendorid", parameter));
+        }
+
+
+        #region "ExpenseTypes"
         public ExpenseType CreateExpenseType(ExpenseType expenseType)
         {
             expenseType.expensetypeid = 0;
@@ -55,6 +122,7 @@ namespace ires_api.Services.Repository
             }
             return expenseType;
         }
+        #endregion
 
         #region "Vendor"
         public Vendor CreateVendor(Vendor vendor)

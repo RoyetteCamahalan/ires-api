@@ -19,6 +19,5 @@ namespace ires_api.Models
         public DateTime? datecreated { get; set; }
         public long updatedbyid { get; set; }
         public DateTime? dateupdated { get; set; }
-
     }
 }

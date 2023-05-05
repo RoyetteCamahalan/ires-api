@@ -16,6 +16,7 @@
         public string transtype { get; set; } = string.Empty; //See Constants.PaymentTransType
         public string paidby { get; set; } = string.Empty;
         public string remarks { get; set; } = string.Empty;
+        public decimal payablebalance { get; set; }
         public ClientDto? client { get; set; }
         public List<PayableDto>? payables { get; set; }
         public EmployeeDto? createdBy { get; set; }

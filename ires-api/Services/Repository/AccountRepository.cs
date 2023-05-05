@@ -97,5 +97,15 @@ namespace ires_api.Services.Repository
             }
             return Office;
         }
+
+        public void UpdateOfficeBalance(long id, decimal addedAmount)
+        {
+            var Office = GetOfficeByID(id);
+            if (Office != null)
+            {
+                Office.pettycashbalance += addedAmount;
+                _dataContext.SaveChanges();
+            }
+        }
     }
 }

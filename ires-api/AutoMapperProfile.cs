@@ -19,6 +19,9 @@ namespace ires_api
 
             CreateMap<Bill, BillDto>();
 
+            CreateMap<CashDisbursement, CashDisbursementDto>();
+            CreateMap<CashDisbursement, CashDisbursementRequestDto>().ReverseMap();
+
             CreateMap<Client, ClientDto>().ReverseMap();
             CreateMap<Company, CompanyDto>()
                 .ForMember(dest => dest.isexpired,

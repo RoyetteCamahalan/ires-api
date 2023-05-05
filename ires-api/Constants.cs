@@ -70,5 +70,21 @@
             public const int paid = 1;
             public const int cancelled = 2;
         }
+        public class DisbursementStatus
+        {
+            public const int approved = 0;
+            public const int @void = 1;
+        }
+        public class DisbursementTransType
+        {
+            public const int cashin = 0;
+            public const int transferout = 1;
+            public const int transferin = 2;
+        }
+        public class ExpenseStatus
+        {
+            public const int approved = 0;
+            public const int @void = 1;
+        }
     }
 }

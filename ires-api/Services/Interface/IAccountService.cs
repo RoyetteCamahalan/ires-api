@@ -13,6 +13,7 @@ namespace ires_api.Services.Interface
 
         public Office CreateOffice(Office Office);
         public Office UpdateOffice(OfficeRequestDto requestDto);
+        public void UpdateOfficeBalance(long id, decimal addedAmount);
         public Office GetOfficeByID(long ID);
         public Office GetOfficeByName(int companyID, string name);
         public ICollection<Office> GetOffices(int companyID, string search);

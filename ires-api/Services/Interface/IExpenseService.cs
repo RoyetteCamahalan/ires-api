@@ -5,6 +5,12 @@ namespace ires_api.Services.Interface
 {
     public interface IExpenseService
     {
+        public Task<Expense> Create(Expense expense);
+        public Task<Expense> Update(ExpenseRequestDto requestDto);
+        public Task<Expense> GetExpenseByID(long ID);
+        public Task<ICollection<Expense>> GetExpenses(int companyID, string search);
+        public Task ReComputeAPAsync(long vendorID);
+
         public ExpenseType CreateExpenseType(ExpenseType expenseType);
         public ExpenseType UpdateExpenseType(ExpenseTypeRequestDto requestDto);
         public ExpenseType GetExpenseTypeByID(long ID);

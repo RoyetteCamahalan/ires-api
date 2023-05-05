@@ -57,10 +57,31 @@ namespace ires_api.Data
                 .HasOne(c => c.bank)
                 .WithMany(b => b.bankTransfers).HasForeignKey(c => c.bankid);
 
+            modelBuilder.Entity<CashDisbursement>()
+                .HasOne(c => c.office).WithMany().HasForeignKey(c => c.accountid);
+
+            modelBuilder.Entity<CashDisbursement>()
+                .HasOne(c => c.refOffice).WithMany().HasForeignKey(c => c.refaccountid).IsRequired(false);
+
             modelBuilder.Entity<Company>()
                 .HasOne(s => s.subscriptionPlan)
                 .WithMany(c => c.companies)
                 .HasForeignKey(e => e.planid);
+
+            modelBuilder.Entity<Expense>()
+                .HasOne(s => s.office)
+                .WithMany()
+                .HasForeignKey(e => e.accountid);
+
+            modelBuilder.Entity<Expense>()
+                .HasOne(s => s.expenseType)
+                .WithMany()
+                .HasForeignKey(e => e.expensetypeid);
+
+            modelBuilder.Entity<Expense>()
+                .HasOne(s => s.vendor)
+                .WithMany()
+                .HasForeignKey(e => e.payeeid);
 
             modelBuilder.Entity<ExpenseType>()
                 .HasOne(s => s.category)
@@ -90,9 +111,11 @@ namespace ires_api.Data
         public DbSet<BankAccount> bankAccounts { get; set; }
         public DbSet<BankTransfer> bankTransfers { get; set; }
         public DbSet<Bill> bills { get; set; }
+        public DbSet<CashDisbursement> cashDisbursements { get; set; }
         public DbSet<Client> clients { get; set; }
         public DbSet<Company> companies { get; set; }
         public DbSet<Employee> employees { get; set; }
+        public DbSet<Expense> expenses { get; set; }
         public DbSet<ExpenseType> expenseTypes { get; set; }
         public DbSet<ExpenseTypeCategory> expenseTypeCategories { get; set; }
         public DbSet<Log> logs { get; set; }
