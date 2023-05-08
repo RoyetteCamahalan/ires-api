@@ -44,6 +44,12 @@ namespace ires_api.Data
                 .HasOne(c => c.payment)
                 .WithOne(b => b.paymentCheck).HasForeignKey<PaymentCheck>(c => c.paymentid);
 
+            modelBuilder.Entity<AccountPayable>()
+                .HasOne(c => c.vendor).WithMany().HasForeignKey(c => c.vendorid);
+
+            modelBuilder.Entity<AccountPayable>()
+                .HasOne(c => c.expenseType).WithMany().HasForeignKey(c => c.expensetypeid);
+
             modelBuilder.Entity<BankAccount>()
                 .HasOne(s => s.bank)
                 .WithMany(c => c.bankAccounts)
@@ -105,6 +111,7 @@ namespace ires_api.Data
                 .HasForeignKey(e => e.encodedby);
 
         }
+        public DbSet<AccountPayable> accountPayables { get; set; }
         public DbSet<ApplicationModule> applicationModules { get; set; }
         public DbSet<Attachment> attachments { get; set; }
         public DbSet<Bank> banks { get; set; }

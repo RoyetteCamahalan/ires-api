@@ -37,17 +37,11 @@ namespace ires_api.Controllers
         }
 
         [HttpGet("getallbanks")]
-        public IActionResult GetAllBanks(int currentPage, string? search = "")
+        public async Task<IActionResult> GetAllBanks(int currentPage, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<BankDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var banks = _bankService.GetAllBanks(identity.companyid ?? 0, search ?? "");
+            var banks = await _bankService.GetAllBanks(identity.companyid ?? 0, search ?? "");
             var paginator = new PaginatorDto<BankDto>(currentPage);
             paginator.Paginate(_mapper.Map<List<BankDto>>(banks));
             serverResponse.Data = paginator;
@@ -55,17 +49,11 @@ namespace ires_api.Controllers
 
         }
         [HttpGet("getbanks")]
-        public IActionResult GetBanks(int currentPage, string? search = "")
+        public async Task<IActionResult> GetBanks(int currentPage, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<BankDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var banks = _bankService.GetBanks(identity.companyid ?? 0, false, search ?? "");
+            var banks = await _bankService.GetBanks(identity.companyid ?? 0, false, search ?? "");
             var paginator = new PaginatorDto<BankDto>(currentPage);
             paginator.Paginate(_mapper.Map<List<BankDto>>(banks));
             serverResponse.Data = paginator;
@@ -73,17 +61,11 @@ namespace ires_api.Controllers
 
         }
         [HttpGet("getewallets")]
-        public IActionResult GetEwallets(int currentPage, string? search = "")
+        public async Task<IActionResult> GetEwallets(int currentPage, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<BankDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var banks = _bankService.GetBanks(identity.companyid ?? 0, true, search ?? "");
+            var banks = await _bankService.GetBanks(identity.companyid ?? 0, true, search ?? "");
             var paginator = new PaginatorDto<BankDto>(currentPage);
             paginator.Paginate(_mapper.Map<List<BankDto>>(banks));
             serverResponse.Data = paginator;
@@ -91,24 +73,18 @@ namespace ires_api.Controllers
 
         }
         [HttpPost]
-        public IActionResult Post([FromBody] BankRequestDto requestDto)
+        public async Task<IActionResult> Post([FromBody] BankRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<BankDto>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var bank = _bankService.GetBankByName(requestDto.companyid, requestDto.name);
+            var bank = await _bankService.GetBankByName(requestDto.companyid, requestDto.name);
             if (bank != null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Bank already registered.";
                 return BadRequest(serverResponse);
             }
-            var result = _bankService.Create(requestDto);
+            var result = await _bankService.Create(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
@@ -121,11 +97,11 @@ namespace ires_api.Controllers
         }
 
         [HttpPut]
-        public IActionResult Put([FromBody] BankRequestDto requestDto)
+        public async Task<IActionResult> Put([FromBody] BankRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<BankDto>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = _bankService.Update(requestDto);
+            var result = await _bankService.Update(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;

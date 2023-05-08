@@ -77,10 +77,10 @@ namespace ires_api.Services.Repository
             return _dataContext.offices.FirstOrDefault(x => x.companyid == companyID && x.accountname == name);
         }
 
-        public ICollection<Office> GetOffices(int companyID, string search)
+        public async Task<ICollection<Office>> GetOffices(int companyID, string search, bool viewAll)
         {
-            return _dataContext.offices.Where(x => x.companyid == companyID && x.accountname.Contains(search))
-                .OrderBy(x => x.accountname).ToList();
+            return await _dataContext.offices.Where(x => x.companyid == companyID && (x.isactive || viewAll) && x.accountname.Contains(search))
+                .OrderBy(x => x.accountname).ToListAsync();
         }
 
         public Office UpdateOffice(OfficeRequestDto requestDto)

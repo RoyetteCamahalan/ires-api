@@ -4,7 +4,6 @@ using ires_api.Models;
 using ires_api.Services.Interface;
 using ires_api.Services.Seeders;
 using Microsoft.EntityFrameworkCore;
-using System.Data.SqlClient;
 
 namespace ires_api.Services.Repository
 {
@@ -73,44 +72,40 @@ namespace ires_api.Services.Repository
         }
         public async Task ReComputeAPAsync(long vendorID)
         {
-            var parameter = new List<SqlParameter>
-            {
-                new SqlParameter("@vendorid", vendorID)
-            };
             await Task.Run(() =>
-                _dataContext.Database.ExecuteSqlRawAsync("exec spComputeExpense @vendorid", parameter));
+                _dataContext.Database.ExecuteSqlRawAsync("exec spComputeExpense @vendorid = {0}", vendorID));
         }
 
 
         #region "ExpenseTypes"
-        public ExpenseType CreateExpenseType(ExpenseType expenseType)
+        public async Task<ExpenseType> CreateExpenseType(ExpenseType expenseType)
         {
             expenseType.expensetypeid = 0;
             expenseType.datecreated = DateTime.Now;
             _dataContext.expenseTypes.Add(expenseType);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return expenseType;
         }
 
-        public ExpenseType GetExpenseTypeByID(long ID)
+        public async Task<ExpenseType> GetExpenseTypeByID(long ID)
         {
-            return _dataContext.expenseTypes.Include(x => x.category).FirstOrDefault(x => x.expensetypeid == ID);
+            return await _dataContext.expenseTypes.Include(x => x.category).FirstOrDefaultAsync(x => x.expensetypeid == ID);
         }
 
-        public ExpenseType GetExpenseTypeByName(int companyID, string name)
+        public async Task<ExpenseType> GetExpenseTypeByName(int companyID, string name)
         {
-            return _dataContext.expenseTypes.FirstOrDefault(x => x.companyid == companyID && x.expensetypedesc == name);
+            return await _dataContext.expenseTypes.FirstOrDefaultAsync(x => x.companyid == companyID && x.expensetypedesc == name);
         }
 
-        public ICollection<ExpenseType> GetExpenseTypes(int companyID, string search)
+        public async Task<ICollection<ExpenseType>> GetExpenseTypes(int companyID, bool viewAll, string search)
         {
-            return _dataContext.expenseTypes.Include(x => x.category).Where(x => x.companyid == companyID && x.expensetypedesc.Contains(search))
-                .OrderBy(x => x.expensetypedesc).ToList();
+            return await _dataContext.expenseTypes.Include(x => x.category).Where(x => x.companyid == companyID && (x.isactive || viewAll) && x.expensetypedesc.Contains(search))
+                .OrderBy(x => x.expensetypedesc).ToListAsync();
         }
 
-        public ExpenseType UpdateExpenseType(ExpenseTypeRequestDto requestDto)
+        public async Task<ExpenseType> UpdateExpenseType(ExpenseTypeRequestDto requestDto)
         {
-            var expenseType = GetExpenseTypeByID(requestDto.expensetypeid);
+            var expenseType = await GetExpenseTypeByID(requestDto.expensetypeid);
             if (expenseType != null)
             {
                 expenseType.expensetypedesc = requestDto.expensetypedesc;
@@ -118,48 +113,50 @@ namespace ires_api.Services.Repository
                 expenseType.isactive = requestDto.isactive;
                 expenseType.updatedbyid = requestDto.updatedbyid;
                 expenseType.dateupdated = DateTime.Now;
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
             return expenseType;
         }
         #endregion
 
         #region "Vendor"
-        public Vendor CreateVendor(Vendor vendor)
+        public async Task<Vendor> CreateVendor(Vendor vendor)
         {
             vendor.vendorid = 0;
             vendor.datecreated = DateTime.Now;
             _dataContext.vendors.Add(vendor);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return vendor;
         }
 
-        public Vendor GetVendorByID(long ID)
+        public async Task<Vendor> GetVendorByID(long ID)
         {
-            return _dataContext.vendors.FirstOrDefault(x => x.vendorid == ID);
+            return await _dataContext.vendors.FirstOrDefaultAsync(x => x.vendorid == ID);
         }
 
-        public Vendor GetVendorByName(int companyID, string name)
+        public async Task<Vendor> GetVendorByName(int companyID, string name)
         {
-            return _dataContext.vendors.FirstOrDefault(x => x.companyid == companyID && x.vendorname == name);
+            return await _dataContext.vendors.FirstOrDefaultAsync(x => x.companyid == companyID && x.vendorname == name);
         }
 
-        public ICollection<Vendor> GetVendors(int companyID, string search)
+        public async Task<ICollection<Vendor>> GetVendors(int companyID, bool viewAll, string search)
         {
-            var result = _dataContext.vendors.Where(x => x.companyid == companyID && x.vendorname.Contains(search) && x.tinno.Contains(search))
-                .OrderBy(x => x.vendorname).ToList();
-            if (result.Count == 0 && search == "")
+            var result = await _dataContext.vendors.Where(x => x.companyid == companyID
+                && ((x.isactive || viewAll))
+                && (x.vendorname.Contains(search) || x.tinno.Contains(search)))
+                .OrderBy(x => x.vendorname).ToListAsync();
+            if (result.Count == 0 && search == "" && viewAll)
             {
                 var vendorSeeder = new VendorSeeder(_dataContext);
-                vendorSeeder.Seed(companyID);
-                return GetVendors(companyID, search);
+                await vendorSeeder.Seed(companyID);
+                return await GetVendors(companyID, viewAll, search);
             }
             return result;
         }
 
-        public Vendor UpdateVendor(VendorRequestDto requestDto)
+        public async Task<Vendor> UpdateVendor(VendorRequestDto requestDto)
         {
-            var vendor = GetVendorByID(requestDto.vendorid);
+            var vendor = await GetVendorByID(requestDto.vendorid);
             if (vendor != null)
             {
                 vendor.vendorname = requestDto.vendorname;
@@ -169,9 +166,70 @@ namespace ires_api.Services.Repository
                 vendor.isactive = requestDto.isactive;
                 vendor.updatedbyid = requestDto.updatedbyid;
                 vendor.dateupdated = DateTime.Now;
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
             return vendor;
+        }
+
+        public async Task<AccountPayable> CreateAccountPayable(AccountPayable data)
+        {
+            data.chargeid = 0;
+            data.datecreated = DateTime.Now;
+            data.dateposted = data.datecreated;
+            _dataContext.accountPayables.Add(data);
+            await _dataContext.SaveChangesAsync();
+            return data;
+        }
+
+        public async Task<AccountPayable> UpdateAccountPayable(AccountPayableRequestDto requestDto)
+        {
+            var data = await GetAccountPayableByID(requestDto.chargeid);
+            if (data != null)
+            {
+                var oldVendorID = data.vendorid;
+                data.vendorid = requestDto.vendorid;
+                data.actualdate = requestDto.actualdate;
+                data.expensetypeid = requestDto.expensetypeid;
+                data.refno = requestDto.refno;
+                data.memo = requestDto.memo;
+                data.amount = requestDto.amount;
+                data.updatedbyid = requestDto.updatedbyid;
+                data.dateupdated = DateTime.Now;
+                await _dataContext.SaveChangesAsync();
+                if (oldVendorID != data.vendorid)
+                    await ReComputeAPAsync(oldVendorID);
+                await ReComputeAPAsync(data.vendorid);
+            }
+            return data;
+        }
+
+        public async Task<AccountPayable> GetAccountPayableByID(long id)
+        {
+            return await _dataContext.accountPayables.Include(x => x.expenseType).Include(x => x.vendor).FirstOrDefaultAsync(x => x.chargeid == id);
+        }
+
+        public async Task<bool> VoidAccountPayable(long id)
+        {
+            var data = await GetAccountPayableByID(id);
+            if (data != null)
+            {
+                data.status = Constants.AccountPayableStatus.@void;
+                data.balance = 0;
+                data.runningbalance = 0;
+                await _dataContext.SaveChangesAsync();
+                await ReComputeAPAsync(data.vendorid);
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<ICollection<AccountPayable>> GetAccountPayables(int companyID, string search, DateTime startDate, DateTime endDate)
+        {
+            return await _dataContext.accountPayables.Include(x => x.expenseType).Include(x => x.vendor)
+                .Where(x => x.companyid == companyID && x.actualdate >= startDate && x.actualdate <= endDate
+                    && (x.vendor.vendorname.Contains(search) || x.refno.Contains(search) || x.memo.Contains(search)))
+                .OrderByDescending(x => x.datecreated)
+                .ToListAsync();
         }
         #endregion
     }

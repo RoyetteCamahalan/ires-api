@@ -4,6 +4,7 @@ using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using ires_api.Services.Seeders;
+using Microsoft.EntityFrameworkCore;
 
 namespace ires_api.Services.Repository
 {
@@ -17,58 +18,58 @@ namespace ires_api.Services.Repository
             _dataContext = dataContext;
             _mapper = mapper;
         }
-        public Bank Create(BankRequestDto requestDto)
+        public async Task<Bank> Create(BankRequestDto requestDto)
         {
             Bank bank = _mapper.Map<Bank>(requestDto);
             bank.bankid = 0;
             _dataContext.banks.Add(bank);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return bank;
         }
 
-        public ICollection<Bank> GetAllBanks(int companyID, string search)
+        public async Task<ICollection<Bank>> GetAllBanks(int companyID, string search)
         {
             var banks = _dataContext.banks.Where(x => x.companyid == companyID && x.name.Contains(search)).OrderBy(x => x.name).ToList();
             if (banks.Count() == 0 && search == "")
             {
                 BankSeeder bankSeeder = new BankSeeder(_dataContext);
-                bankSeeder.Seed(companyID, true);
-                bankSeeder.Seed(companyID, false);
-                return GetAllBanks(companyID, search);
+                await bankSeeder.Seed(companyID, true);
+                await bankSeeder.Seed(companyID, false);
+                return await GetAllBanks(companyID, search);
             }
             return banks;
         }
 
-        public Bank GetBankByID(long bankID)
+        public async Task<Bank> GetBankByID(long bankID)
         {
-            return _dataContext.banks.Find(bankID);
+            return await _dataContext.banks.FindAsync(bankID);
         }
 
-        public Bank GetBankByName(int companyID, string name)
+        public async Task<Bank> GetBankByName(int companyID, string name)
         {
-            return _dataContext.banks.Where(x => x.companyid == companyID && x.name == name).FirstOrDefault();
+            return await _dataContext.banks.Where(x => x.companyid == companyID && x.name == name).FirstOrDefaultAsync();
         }
 
-        public ICollection<Bank> GetBanks(int companyID, bool isEWallet, string search)
+        public async Task<ICollection<Bank>> GetBanks(int companyID, bool isEWallet, string search)
         {
             var banks = _dataContext.banks.Where(x => x.companyid == companyID && x.isewallet == isEWallet && x.name.Contains(search)).ToList();
             if (banks.Count() == 0 && search == "")
             {
                 BankSeeder bankSeeder = new BankSeeder(_dataContext);
-                bankSeeder.Seed(companyID, isEWallet);
-                return GetBanks(companyID, isEWallet, search);
+                await bankSeeder.Seed(companyID, isEWallet);
+                return await GetBanks(companyID, isEWallet, search);
             }
             return banks;
         }
 
-        public Bank Update(BankRequestDto requestDto)
+        public async Task<Bank> Update(BankRequestDto requestDto)
         {
-            Bank bank = GetBankByID(requestDto.bankid);
+            Bank bank = await GetBankByID(requestDto.bankid);
             if (bank != null)
             {
                 bank.name = requestDto.name;
                 bank.isewallet = requestDto.isewallet;
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
             return bank;
         }

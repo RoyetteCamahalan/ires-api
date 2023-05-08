@@ -5,10 +5,10 @@ namespace ires_api.Services.Interface
 {
     public interface ICompanyService
     {
-        public ICollection<Company> GetCompanies();
-        public Company GetCompanyByID(int id);
-        public Company GetCompanyByName(string name);
-        public Company Register(CompanyRequestDto requestDto);
-        public bool Verify(int id);
+        public Task<ICollection<Company>> GetCompanies();
+        public Task<Company> GetCompanyByID(int id);
+        public Task<Company> GetCompanyByName(string name);
+        public Task<Company> RegisterAsync(CompanyRequestDto requestDto);
+        public Task<bool> Verify(int id);
     }
 }

@@ -5,11 +5,11 @@ namespace ires_api.Services.Interface
 {
     public interface IBankService
     {
-        public Bank Create(BankRequestDto requestDto);
-        public Bank Update(BankRequestDto requestDto);
-        public Bank GetBankByID(long bankID);
-        public Bank GetBankByName(int companyID, string name);
-        public ICollection<Bank> GetBanks(int companyID, bool isEWallet, string search);
-        public ICollection<Bank> GetAllBanks(int companyID, string search);
+        public Task<Bank> Create(BankRequestDto requestDto);
+        public Task<Bank> Update(BankRequestDto requestDto);
+        public Task<Bank> GetBankByID(long bankID);
+        public Task<Bank> GetBankByName(int companyID, string name);
+        public Task<ICollection<Bank>> GetBanks(int companyID, bool isEWallet, string search);
+        public Task<ICollection<Bank>> GetAllBanks(int companyID, string search);
     }
 }

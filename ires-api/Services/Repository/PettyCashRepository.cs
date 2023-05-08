@@ -47,6 +47,7 @@ namespace ires_api.Services.Repository
             return await _dataContext.cashDisbursements.Include(x => x.office).Include(x => x.refOffice)
                 .Where(x => x.companyid == companyID && x.refdate >= startDate && x.refdate <= endDate
                     && (x.office.accountname.Contains(search) || x.refno.Contains(search)))
+                .OrderByDescending(x => x.datecreated)
                 .ToListAsync();
         }
 

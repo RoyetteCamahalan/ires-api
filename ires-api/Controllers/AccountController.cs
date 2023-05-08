@@ -117,7 +117,7 @@ namespace ires_api.Controllers
         }
 
         [HttpGet("getoffices")]
-        public IActionResult GetOffices(int currentPage, string? search = "")
+        public async Task<IActionResult> GetOffices(int currentPage, bool viewAll, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<OfficeDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
@@ -127,7 +127,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            var result = _accountService.GetOffices(identity.companyid ?? 0, search ?? "");
+            var result = await _accountService.GetOffices(identity.companyid ?? 0, search ?? "", viewAll);
             var paginator = new PaginatorDto<OfficeDto>(currentPage);
             paginator.Paginate(_mapper.Map<List<OfficeDto>>(result));
             serverResponse.Data = paginator;

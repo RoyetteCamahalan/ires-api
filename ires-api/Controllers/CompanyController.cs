@@ -43,10 +43,10 @@ namespace ires_api.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public IActionResult register([FromBody] CompanyRequestDto requestDto)
+        public async Task<IActionResult> register([FromBody] CompanyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<CompanyDto>();
-            var company = _companyService.GetCompanyByName(requestDto.name);
+            var company = await _companyService.GetCompanyByName(requestDto.name);
             if (company != null)
             {
                 serverResponse.Success = false;
@@ -59,7 +59,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Email already in use.";
                 return BadRequest(serverResponse);
             }
-            company = _companyService.Register(requestDto);
+            company = await _companyService.RegisterAsync(requestDto);
             requestDto.id = company.id;
             this.sendConfirmationEmail(requestDto);
             serverResponse.Data = _mapper.Map<CompanyDto>(company);
@@ -70,19 +70,19 @@ namespace ires_api.Controllers
         {
             var html = System.IO.File.ReadAllText(@"./Templates/ConfirmationEmail.html");
             var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", _configuration["uiBaseURL"] + "company/confirmation/" + Utility.URLEncrypt(requestDto.id.ToString()));
-            _mailService.SendEmail("Email Confirmation", new List<string> { requestDto.email }, body, true);
+            _mailService.SendEmailAsync("Email Confirmation", new List<string> { requestDto.email }, body, true);
         }
 
 
         [HttpPost("verify")]
         [AllowAnonymous]
-        public IActionResult verify(StringDto slug)
+        public async Task<IActionResult> verify(StringDto slug)
         {
             var serverResponse = new ServerResponse<string>();
             try
             {
                 int id = Convert.ToInt32(Utility.URLDecrypt(slug.value));
-                var verified = _companyService.Verify(id);
+                var verified = await _companyService.Verify(id);
                 if (!verified)
                     throw new Exception("null");
 

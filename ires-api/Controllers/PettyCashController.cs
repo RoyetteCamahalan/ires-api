@@ -12,12 +12,14 @@ namespace ires_api.Controllers
     public class PettyCashController : ControllerBase
     {
         private readonly IPettyCashService _pettyCashService;
+        private readonly IAccountService _accountService;
         private readonly ILogService _logService;
         private readonly IMapper _mapper;
 
-        public PettyCashController(IPettyCashService pettyCashService, ILogService logService, IMapper mapper)
+        public PettyCashController(IPettyCashService pettyCashService, IAccountService accountService, ILogService logService, IMapper mapper)
         {
             _pettyCashService = pettyCashService;
+            _accountService = accountService;
             _logService = logService;
             _mapper = mapper;
         }
@@ -53,6 +55,16 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<CashDisbursementDto>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
+            if (requestDto.transtype == Constants.DisbursementTransType.transferout)
+            {
+                var office = _accountService.GetOfficeByID(requestDto.accountid);
+                if (office.pettycashbalance < requestDto.amount)
+                {
+                    serverResponse.Success = false;
+                    serverResponse.Message = "Insufficient petty cash balance";
+                    return BadRequest(serverResponse);
+                }
+            }
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.createdbyid = identity.employeeid;
             var result = await _pettyCashService.Create(_mapper.Map<CashDisbursement>(requestDto));

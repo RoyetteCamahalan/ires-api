@@ -9,6 +9,10 @@ namespace ires_api
         public AutoMapperProfile()
         {
             CreateMap<Attachment, AttachmentDto>();
+
+            CreateMap<AccountPayable, AccountPayableDto>();
+            CreateMap<AccountPayable, AccountPayableRequestDto>().ReverseMap();
+
             CreateMap<Bank, BankDto>();
             CreateMap<Bank, BankRequestDto>().ReverseMap();
             CreateMap<BankAccount, BankAccountDto>();

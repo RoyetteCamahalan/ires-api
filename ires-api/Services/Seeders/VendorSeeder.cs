@@ -12,14 +12,14 @@ namespace ires_api.Services.Seeders
             _dataContext = dataContext;
         }
 
-        public void Seed(int companyID)
+        public async Task Seed(int companyID)
         {
             List<Vendor> vendors = new()
             {
                 new Vendor{ vendorname="N/A", companyid = companyID, isactive = true },
             };
             _dataContext.vendors.AddRange(vendors);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
         }
     }
 }

@@ -16,7 +16,7 @@ namespace ires_api.Services.Interface
         public void UpdateOfficeBalance(long id, decimal addedAmount);
         public Office GetOfficeByID(long ID);
         public Office GetOfficeByName(int companyID, string name);
-        public ICollection<Office> GetOffices(int companyID, string search);
+        public Task<ICollection<Office>> GetOffices(int companyID, string search, bool viewAll);
 
     }
 }

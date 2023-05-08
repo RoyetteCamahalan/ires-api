@@ -86,5 +86,10 @@
             public const int approved = 0;
             public const int @void = 1;
         }
+        public class AccountPayableStatus
+        {
+            public const int approved = 0;
+            public const int @void = 1;
+        }
     }
 }

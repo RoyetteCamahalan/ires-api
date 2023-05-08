@@ -3,6 +3,7 @@ using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using ires_api.Services.Seeders;
+using Microsoft.EntityFrameworkCore;
 
 namespace ires_api.Services.Repository
 {
@@ -14,22 +15,22 @@ namespace ires_api.Services.Repository
         {
             _dataContext = dataContext;
         }
-        public ICollection<Company> GetCompanies()
+        public async Task<ICollection<Company>> GetCompanies()
         {
-            return _dataContext.companies.ToList();
+            return await _dataContext.companies.ToListAsync();
         }
 
-        public Company GetCompanyByID(int id)
+        public async Task<Company> GetCompanyByID(int id)
         {
-            return _dataContext.companies.Find(id);
+            return await _dataContext.companies.FindAsync(id);
         }
 
-        public Company GetCompanyByName(string name)
+        public async Task<Company> GetCompanyByName(string name)
         {
-            return _dataContext.companies.Where(x => x.name == name).FirstOrDefault();
+            return await _dataContext.companies.Where(x => x.name == name).FirstOrDefaultAsync();
         }
 
-        public Company Register(CompanyRequestDto requestDto)
+        public async Task<Company> RegisterAsync(CompanyRequestDto requestDto)
         {
             Company company = new Company
             {
@@ -55,20 +56,20 @@ namespace ires_api.Services.Repository
 
             };
             _dataContext.employees.Add(employee);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             BankSeeder bankSeeder = new BankSeeder(_dataContext);
-            bankSeeder.Seed(company.id, false);
-            bankSeeder.Seed(company.id, true);
+            await bankSeeder.Seed(company.id, false);
+            await bankSeeder.Seed(company.id, true);
             return company;
         }
 
-        public bool Verify(int id)
+        public async Task<bool> Verify(int id)
         {
-            var company = GetCompanyByID(id);
+            var company = await GetCompanyByID(id);
             if (company == null)
                 return false;
             company.isverified = true;
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return true;
         }
     }

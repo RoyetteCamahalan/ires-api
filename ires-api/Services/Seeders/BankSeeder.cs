@@ -11,7 +11,7 @@ namespace ires_api.Services.Seeders
         {
             _dataContext = dataContext;
         }
-        public void Seed(int companyID, bool isewallet)
+        public async Task Seed(int companyID, bool isewallet)
         {
             List<Bank> banks = new List<Bank> {
                 new Bank{ name="BDO UNIBANK INC", companyid = companyID, isewallet= false },
@@ -63,7 +63,7 @@ namespace ires_api.Services.Seeders
                 new Bank{ name="PAYMAYA", companyid = companyID, isewallet= true },
             };
             _dataContext.AddRange(banks.Where(x => x.isewallet == isewallet));
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
         }
     }
 }
