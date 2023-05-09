@@ -11,15 +11,130 @@ namespace ires_api.Controllers
     public class ExpenseController : ControllerBase
     {
         private readonly IExpenseService _expenseService;
+        private readonly IAccountService _accountService;
         private readonly ILogService _logService;
         private readonly IMapper _mapper;
 
-        public ExpenseController(IExpenseService expenseService, ILogService logService, IMapper mapper)
+        public ExpenseController(IExpenseService expenseService, IAccountService accountService, ILogService logService, IMapper mapper)
         {
             _expenseService = expenseService;
+            _accountService = accountService;
             _logService = logService;
             _mapper = mapper;
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Get(long id)
+        {
+            var serverResponse = new ServerResponse<ExpenseDto>();
+            var result = await _expenseService.GetExpenseByID(id);
+            if (result == null)
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Record not found";
+                return BadRequest(serverResponse);
+            }
+            serverResponse.Data = _mapper.Map<ExpenseDto>(result);
+            return Ok(serverResponse);
+        }
+
+        [HttpGet("getall")]
+        public async Task<IActionResult> GetAll(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
+        {
+            var serverResponse = new ServerResponse<PaginatorDto<ExpenseDto>>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var result = await _expenseService.GetExpenses(identity.companyid ?? 0, search ?? "", startDate, endDate);
+            var paginator = new PaginatorDto<ExpenseDto>(currentPage);
+            paginator.Paginate(_mapper.Map<List<ExpenseDto>>(result));
+            serverResponse.Data = paginator;
+            return Ok(serverResponse);
+
+        }
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] ExpenseRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<ExpenseDto>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            if (requestDto.usepettycash)
+            {
+                var office = await _accountService.GetOfficeByID(requestDto.accountid);
+                if (office.pettycashbalance < requestDto.amount)
+                {
+                    serverResponse.Success = false;
+                    serverResponse.Message = "Insufficient petty cash balance";
+                    return BadRequest(serverResponse);
+                }
+            }
+            requestDto.companyid = identity.companyid ?? 0;
+            requestDto.createdbyid = identity.employeeid;
+            var result = await _expenseService.Create(_mapper.Map<Expense>(requestDto));
+            if (result == null)
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Unable to process request";
+                return BadRequest(serverResponse);
+            }
+            serverResponse.Data = _mapper.Map<ExpenseDto>(result);
+            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Expense", "Create New Record : " + result.expenseid, 0);
+            return Ok(serverResponse);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] ExpenseRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<ExpenseDto>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+
+            if (requestDto.usepettycash)
+            {
+                var expense = await _expenseService.GetExpenseByID(requestDto.expenseid);
+                decimal forDeduction;
+                if (expense.accountid == requestDto.accountid)
+                    forDeduction = requestDto.amount - expense.amount;
+                else
+                    forDeduction = requestDto.amount;
+
+                var office = await _accountService.GetOfficeByID(requestDto.accountid);
+                if (office.pettycashbalance < forDeduction && forDeduction > 0)
+                {
+                    serverResponse.Success = false;
+                    serverResponse.Message = "Insufficient petty cash balance";
+                    return BadRequest(serverResponse);
+                }
+            }
+            requestDto.updatedbyid = identity.employeeid;
+            var result = await _expenseService.Update(requestDto);
+            if (result == null)
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Unable to process request";
+                return BadRequest(serverResponse);
+            }
+            serverResponse.Data = _mapper.Map<ExpenseDto>(result);
+            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Expense", "Update Record ID : " + requestDto.expenseid, 0);
+            return Ok(serverResponse);
+        }
+
+        [HttpPut("voidexpense")]
+        public async Task<IActionResult> VoidExpense([FromBody] IDRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<bool>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            serverResponse.Success = await _expenseService.VoidExpense(requestDto.id);
+            serverResponse.Data = serverResponse.Success;
+            if (!serverResponse.Success)
+            {
+                serverResponse.Message = "Record not found";
+                return BadRequest(serverResponse);
+            }
+            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Expense", "Void Record : " + requestDto.id, 0);
+            return Ok(serverResponse);
+        }
+
+
+
+
         [HttpGet("getexpensetype")]
         public async Task<IActionResult> GetExpenseType(long id)
         {

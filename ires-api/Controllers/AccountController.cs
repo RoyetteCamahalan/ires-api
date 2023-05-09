@@ -23,7 +23,7 @@ namespace ires_api.Controllers
         }
 
         [HttpGet("getbankaccounts")]
-        public IActionResult GetBankAccounts(int currentPage, string? search = "")
+        public async Task<IActionResult> GetBankAccounts(int currentPage, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<BankAccountDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
@@ -33,7 +33,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            var bankAccounts = _accountService.GetBankAccounts(identity.companyid ?? 0, search ?? "");
+            var bankAccounts = await _accountService.GetBankAccounts(identity.companyid ?? 0, search ?? "");
             var paginator = new PaginatorDto<BankAccountDto>(currentPage);
             paginator.Paginate(_mapper.Map<List<BankAccountDto>>(bankAccounts));
             serverResponse.Data = paginator;
@@ -43,10 +43,10 @@ namespace ires_api.Controllers
 
         [HttpGet("getbankaccount/{id}")]
         [AllowAnonymous]
-        public IActionResult Get(long id)
+        public async Task<IActionResult> Get(long id)
         {
             var serverResponse = new ServerResponse<BankAccountDto>();
-            var bankAccount = _accountService.GetBankAccountByID(id);
+            var bankAccount = await _accountService.GetBankAccountByID(id);
             if (bankAccount == null)
             {
                 serverResponse.Success = false;
@@ -57,17 +57,17 @@ namespace ires_api.Controllers
         }
 
         [HttpPost("createbankaccount")]
-        public IActionResult Post([FromBody] BankAccountRequestDto requestDto)
+        public async Task<IActionResult> Post([FromBody] BankAccountRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<BankAccountRequestDto>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (_accountService.isBankAccountExist(requestDto))
+            if (await _accountService.isBankAccountExist(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Bank account already exist";
                 return BadRequest(serverResponse);
             }
-            var result = _accountService.CreateBankAccount(_mapper.Map<BankAccount>(requestDto));
+            var result = await _accountService.CreateBankAccountAsync(_mapper.Map<BankAccount>(requestDto));
             if (result == null)
             {
                 serverResponse.Success = false;
@@ -80,10 +80,10 @@ namespace ires_api.Controllers
         }
 
         [HttpPut("updatebankaccount")]
-        public IActionResult Put([FromBody] BankAccountRequestDto requestDto)
+        public async Task<IActionResult> Put([FromBody] BankAccountRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<BankAccountRequestDto>();
-            var result = _accountService.UpdateBankAccount(requestDto);
+            var result = await _accountService.UpdateBankAccountAsync(requestDto);
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (result == null)
             {
@@ -101,10 +101,10 @@ namespace ires_api.Controllers
 
 
         [HttpGet("getoffice")]
-        public IActionResult GetOffice(long id)
+        public async Task<IActionResult> GetOffice(long id)
         {
             var serverResponse = new ServerResponse<OfficeDto>();
-            var result = _accountService.GetOfficeByID(id);
+            var result = await _accountService.GetOfficeByID(id);
             if (result == null)
             {
                 serverResponse.Success = false;
@@ -121,12 +121,6 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<PaginatorDto<OfficeDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
             var result = await _accountService.GetOffices(identity.companyid ?? 0, search ?? "", viewAll);
             var paginator = new PaginatorDto<OfficeDto>(currentPage);
             paginator.Paginate(_mapper.Map<List<OfficeDto>>(result));
@@ -135,11 +129,11 @@ namespace ires_api.Controllers
 
         }
         [HttpPost("createoffice")]
-        public IActionResult CreateOffice([FromBody] OfficeRequestDto requestDto)
+        public async Task<IActionResult> CreateOffice([FromBody] OfficeRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<OfficeDto>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = _accountService.GetOfficeByName(requestDto.companyid, requestDto.accountname);
+            var result = await _accountService.GetOfficeByName(requestDto.companyid, requestDto.accountname);
             if (result != null)
             {
                 serverResponse.Success = false;
@@ -148,7 +142,7 @@ namespace ires_api.Controllers
             }
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.createdbyid = identity.employeeid;
-            result = _accountService.CreateOffice(_mapper.Map<Office>(requestDto));
+            result = await _accountService.CreateOfficeAsync(_mapper.Map<Office>(requestDto));
             if (result == null)
             {
                 serverResponse.Success = false;
@@ -161,12 +155,12 @@ namespace ires_api.Controllers
         }
 
         [HttpPut("updateoffice")]
-        public IActionResult UpdateOffice([FromBody] OfficeRequestDto requestDto)
+        public async Task<IActionResult> UpdateOffice([FromBody] OfficeRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<OfficeDto>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             requestDto.updatedbyid = identity.employeeid;
-            var result = _accountService.UpdateOffice(requestDto);
+            var result = await _accountService.UpdateOfficeAsync(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;

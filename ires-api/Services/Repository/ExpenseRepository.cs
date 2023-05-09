@@ -20,23 +20,26 @@ namespace ires_api.Services.Repository
         public async Task<Expense> Create(Expense data)
         {
             data.expenseid = 0;
+            data.transno = (await _dataContext.expenses.MaxAsync(x => (long?)x.transno) ?? 0) + 1;
             data.transdate = DateTime.Now;
             data.status = Constants.ExpenseStatus.approved;
             _dataContext.expenses.Add(data);
             await _dataContext.SaveChangesAsync();
+            if (data.usepettycash)
+                await _accountService.UpdateOfficeBalanceAsync(data.accountid, data.amount * -1);
             await this.ReComputeAPAsync(data.payeeid);
             return data;
         }
 
         public async Task<Expense> GetExpenseByID(long ID)
         {
-            return await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor).FirstOrDefaultAsync(x => x.expensetypeid == ID);
+            return await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor).FirstOrDefaultAsync(x => x.expenseid == ID);
         }
 
-        public async Task<ICollection<Expense>> GetExpenses(int companyID, string search)
+        public async Task<ICollection<Expense>> GetExpenses(int companyID, string search, DateTime startDate, DateTime endDate)
         {
             return await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor)
-                .Where(x => x.companyid == companyID &&
+                .Where(x => x.companyid == companyID && x.refdate >= startDate && x.refdate <= endDate &&
                     (x.office.accountname.Contains(search) || x.expenseType.expensetypedesc.Contains(search) || x.vendor.vendorname.Contains(search)))
                 .OrderByDescending(x => x.transdate).ToListAsync();
         }
@@ -47,7 +50,9 @@ namespace ires_api.Services.Repository
             if (data != null)
             {
                 var oldAccountID = data.accountid;
+                var oldVendorID = data.payeeid;
                 var oldAmount = data.amount;
+                var oldUsePettyCash = data.usepettycash;
                 data.accountid = requestDto.accountid;
                 data.expensetypeid = requestDto.expensetypeid;
                 data.refno = requestDto.refno;
@@ -59,16 +64,40 @@ namespace ires_api.Services.Repository
                 data.updatedbyid = requestDto.updatedbyid;
                 data.dateupdated = DateTime.Now;
                 await _dataContext.SaveChangesAsync();
-                if (oldAccountID != requestDto.accountid)
-                {
-                    _accountService.UpdateOfficeBalance(oldAccountID, oldAmount);
-                    _accountService.UpdateOfficeBalance(requestDto.accountid, requestDto.amount * -1);
-                }
-                else
-                    _accountService.UpdateOfficeBalance(requestDto.accountid, oldAmount - requestDto.amount);
+                if (oldAccountID != requestDto.accountid && oldUsePettyCash)
+                    await _accountService.UpdateOfficeBalanceAsync(oldAccountID, oldAmount);
+
+                if (oldVendorID != requestDto.payeeid)
+                    await ReComputeAPAsync(oldVendorID);
+
+                if (oldAccountID == requestDto.accountid && oldUsePettyCash && !requestDto.usepettycash)
+                    await _accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount);
+                else if (oldAccountID == requestDto.accountid && !oldUsePettyCash && requestDto.usepettycash)
+                    await _accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount * -1);
+                else if (oldAccountID == requestDto.accountid && oldUsePettyCash && requestDto.usepettycash)
+                    await _accountService.UpdateOfficeBalanceAsync(requestDto.accountid, oldAmount - requestDto.amount);
+                else if (oldAccountID != requestDto.accountid && requestDto.usepettycash)
+                    await _accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount * -1);
 
             }
             return data;
+        }
+        public async Task<bool> VoidExpense(long id)
+        {
+            var data = await GetExpenseByID(id);
+            if (data != null)
+            {
+                data.status = Constants.ExpenseStatus.@void;
+                data.balance = 0;
+                data.runningbalance = 0;
+                await _dataContext.SaveChangesAsync();
+                if (data.usepettycash)
+                    await _accountService.UpdateOfficeBalanceAsync(data.accountid, data.amount);
+
+                await ReComputeAPAsync(data.payeeid);
+                return true;
+            }
+            return false;
         }
         public async Task ReComputeAPAsync(long vendorID)
         {

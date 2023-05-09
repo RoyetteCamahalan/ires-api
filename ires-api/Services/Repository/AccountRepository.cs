@@ -15,30 +15,30 @@ namespace ires_api.Services.Repository
             _dataContext = dataContext;
         }
 
-        public BankAccount CreateBankAccount(BankAccount requestDto)
+        public async Task<BankAccount> CreateBankAccountAsync(BankAccount requestDto)
         {
             requestDto.accountid = 0;
             requestDto.datecreated = DateTime.Now;
             _dataContext.bankAccounts.Add(requestDto);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return requestDto;
         }
 
-        public ICollection<BankAccount> GetBankAccounts(int companyID, string search)
+        public async Task<ICollection<BankAccount>> GetBankAccounts(int companyID, string search)
         {
-            return _dataContext.bankAccounts.Include(x => x.bank).Where(x => x.companyid == companyID &&
+            return await _dataContext.bankAccounts.Include(x => x.bank).Where(x => x.companyid == companyID &&
                 (x.accountname.Contains(search) || x.accountno.Contains(search) || (x.bank.name ?? "").Contains(search)))
-                .OrderByDescending(x => x.accountname).ToList();
+                .OrderByDescending(x => x.accountname).ToListAsync();
         }
 
-        public bool isBankAccountExist(BankAccountRequestDto requestDto)
+        public async Task<bool> isBankAccountExist(BankAccountRequestDto requestDto)
         {
-            return _dataContext.bankAccounts.Where(x => x.companyid == requestDto.companyid && x.bankid == requestDto.bankid && x.accountname == requestDto.accountname).Count() > 0;
+            return await _dataContext.bankAccounts.Where(x => x.companyid == requestDto.companyid && x.bankid == requestDto.bankid && x.accountname == requestDto.accountname).CountAsync() > 0;
         }
 
-        public BankAccount UpdateBankAccount(BankAccountRequestDto requestDto)
+        public async Task<BankAccount> UpdateBankAccountAsync(BankAccountRequestDto requestDto)
         {
-            BankAccount bankAccount = GetBankAccountByID(requestDto.accountid);
+            BankAccount bankAccount = await GetBankAccountByID(requestDto.accountid);
             if (bankAccount != null)
             {
                 bankAccount.accountname = requestDto.accountname;
@@ -47,34 +47,34 @@ namespace ires_api.Services.Repository
                 bankAccount.bankpreferredbranch = requestDto.bankpreferredbranch;
                 bankAccount.isactive = requestDto.isactive;
 
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
             return bankAccount;
         }
 
-        public BankAccount GetBankAccountByID(long id)
+        public async Task<BankAccount> GetBankAccountByID(long id)
         {
-            return _dataContext.bankAccounts.Include(x => x.bank).Where(x => x.accountid == id).FirstOrDefault();
+            return await _dataContext.bankAccounts.Include(x => x.bank).Where(x => x.accountid == id).FirstOrDefaultAsync();
         }
 
 
-        public Office CreateOffice(Office Office)
+        public async Task<Office> CreateOfficeAsync(Office Office)
         {
             Office.accountid = 0;
             Office.datecreated = DateTime.Now;
             _dataContext.offices.Add(Office);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return Office;
         }
 
-        public Office GetOfficeByID(long ID)
+        public async Task<Office> GetOfficeByID(long ID)
         {
-            return _dataContext.offices.FirstOrDefault(x => x.accountid == ID);
+            return await _dataContext.offices.FirstOrDefaultAsync(x => x.accountid == ID);
         }
 
-        public Office GetOfficeByName(int companyID, string name)
+        public async Task<Office> GetOfficeByName(int companyID, string name)
         {
-            return _dataContext.offices.FirstOrDefault(x => x.companyid == companyID && x.accountname == name);
+            return await _dataContext.offices.FirstOrDefaultAsync(x => x.companyid == companyID && x.accountname == name);
         }
 
         public async Task<ICollection<Office>> GetOffices(int companyID, string search, bool viewAll)
@@ -83,9 +83,9 @@ namespace ires_api.Services.Repository
                 .OrderBy(x => x.accountname).ToListAsync();
         }
 
-        public Office UpdateOffice(OfficeRequestDto requestDto)
+        public async Task<Office> UpdateOfficeAsync(OfficeRequestDto requestDto)
         {
-            var Office = GetOfficeByID(requestDto.accountid);
+            var Office = await GetOfficeByID(requestDto.accountid);
             if (Office != null)
             {
                 Office.accountname = requestDto.accountname;
@@ -93,18 +93,18 @@ namespace ires_api.Services.Repository
                 Office.memo = requestDto.memo;
                 Office.updatedbyid = requestDto.updatedbyid;
                 Office.dateupdated = DateTime.Now;
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
             return Office;
         }
 
-        public void UpdateOfficeBalance(long id, decimal addedAmount)
+        public async Task UpdateOfficeBalanceAsync(long id, decimal addedAmount)
         {
-            var Office = GetOfficeByID(id);
+            var Office = await GetOfficeByID(id);
             if (Office != null)
             {
                 Office.pettycashbalance += addedAmount;
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
         }
     }

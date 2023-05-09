@@ -57,7 +57,7 @@ namespace ires_api.Controllers
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (requestDto.transtype == Constants.DisbursementTransType.transferout)
             {
-                var office = _accountService.GetOfficeByID(requestDto.accountid);
+                var office = await _accountService.GetOfficeByID(requestDto.accountid);
                 if (office.pettycashbalance < requestDto.amount)
                 {
                     serverResponse.Success = false;

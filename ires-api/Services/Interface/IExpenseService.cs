@@ -8,7 +8,8 @@ namespace ires_api.Services.Interface
         public Task<Expense> Create(Expense expense);
         public Task<Expense> Update(ExpenseRequestDto requestDto);
         public Task<Expense> GetExpenseByID(long ID);
-        public Task<ICollection<Expense>> GetExpenses(int companyID, string search);
+        public Task<ICollection<Expense>> GetExpenses(int companyID, string search, DateTime startDate, DateTime endDate);
+        public Task<bool> VoidExpense(long id);
         public Task ReComputeAPAsync(long vendorID);
 
         public Task<ExpenseType> CreateExpenseType(ExpenseType expenseType);

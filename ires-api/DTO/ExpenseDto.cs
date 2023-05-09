@@ -4,6 +4,7 @@
     {
         public long expenseid { get; set; }
         public int companyid { get; set; }
+        public long transno { get; set; }
         public long accountid { get; set; }
         public long expensetypeid { get; set; }
         public string refno { get; set; } = string.Empty;

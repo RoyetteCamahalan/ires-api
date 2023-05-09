@@ -10,6 +10,7 @@ namespace ires_api.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long expenseid { get; set; }
         public int companyid { get; set; }
+        public long transno { get; set; }
         public long accountid { get; set; }
 
         [Column("expensetype")]
@@ -21,8 +22,8 @@ namespace ires_api.Models
         public DateTime? transdate { get; set; }
         public int status { get; set; }
         public long payeeid { get; set; }
-        public decimal balance { get; set; }
-        public decimal runningbalance { get; set; }
+        public decimal balance { get; set; } = 0;
+        public decimal runningbalance { get; set; } = 0;
         public bool usepettycash { get; set; }
         public long createdbyid { get; set; }
         public long updatedbyid { get; set; }

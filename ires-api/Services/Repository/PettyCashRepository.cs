@@ -24,7 +24,7 @@ namespace ires_api.Services.Repository
             await _dataContext.SaveChangesAsync();
             if (cashDisbursement.transtype == Constants.DisbursementTransType.transferout)
             {
-                _accountService.UpdateOfficeBalance(cashDisbursement.accountid, cashDisbursement.amount * -1);
+                await _accountService.UpdateOfficeBalanceAsync(cashDisbursement.accountid, cashDisbursement.amount * -1);
                 var refDisbursement = await _dataContext.cashDisbursements.AsNoTracking().FirstOrDefaultAsync(x => x.disbursementid == cashDisbursement.disbursementid);
                 refDisbursement.disbursementid = 0;
                 refDisbursement.accountid = cashDisbursement.refaccountid;
@@ -35,10 +35,10 @@ namespace ires_api.Services.Repository
                 await _dataContext.SaveChangesAsync();
                 cashDisbursement.refdisbursementid = refDisbursement.disbursementid;
                 await _dataContext.SaveChangesAsync();
-                _accountService.UpdateOfficeBalance(refDisbursement.accountid, refDisbursement.amount);
+                await _accountService.UpdateOfficeBalanceAsync(refDisbursement.accountid, refDisbursement.amount);
             }
             else
-                _accountService.UpdateOfficeBalance(cashDisbursement.accountid, cashDisbursement.amount);
+                await _accountService.UpdateOfficeBalanceAsync(cashDisbursement.accountid, cashDisbursement.amount);
             return cashDisbursement;
         }
 
@@ -66,9 +66,9 @@ namespace ires_api.Services.Repository
                     await VoidDisbursement(data.refdisbursementid, true);
 
                 if (data.transtype == Constants.DisbursementTransType.transferout)
-                    _accountService.UpdateOfficeBalance(data.accountid, data.amount);
+                    await _accountService.UpdateOfficeBalanceAsync(data.accountid, data.amount);
                 else
-                    _accountService.UpdateOfficeBalance(data.accountid, data.amount * -1);
+                    await _accountService.UpdateOfficeBalanceAsync(data.accountid, data.amount * -1);
                 await _dataContext.SaveChangesAsync();
                 return true;
             }

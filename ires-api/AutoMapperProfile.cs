@@ -45,6 +45,9 @@ namespace ires_api
                 opts => opts.MapFrom(src =>
                 src.company));
 
+            CreateMap<Expense, ExpenseDto>();
+            CreateMap<Expense, ExpenseRequestDto>().ReverseMap();
+
             CreateMap<ExpenseType, ExpenseTypeDto>();
             CreateMap<ExpenseType, ExpenseTypeRequestDto>().ReverseMap();
 
