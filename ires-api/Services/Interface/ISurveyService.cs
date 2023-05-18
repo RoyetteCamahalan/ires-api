@@ -5,11 +5,13 @@ namespace ires_api.Services.Interface
 {
     public interface ISurveyService
     {
-        public Survey Create(Survey survey);
-        public Survey Update(SurveyRequestDto requestDto);
-        public Survey UpdateStatus(long ID, int status);
-        public ICollection<Survey> GetSurveys(long companyID, string search);
-        public Survey GetSurveyByID(long id);
+        public Task<Survey> Create(Survey survey);
+        public Task<Survey> Update(SurveyRequestDto requestDto);
+        public Task<Survey> UpdateStatus(long ID, int status);
+        public Task<ICollection<Survey>> GetSurveys(long companyID, string search);
+        public Task<Survey> GetSurveyByID(long id);
+        public Task<int> CountPending(long companyID);
+        public Task<int> CountCompleted(long companyID);
 
     }
 }

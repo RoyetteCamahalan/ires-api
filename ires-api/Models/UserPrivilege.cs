@@ -14,6 +14,10 @@ namespace ires_api.Models
         public bool canedit { get; set; } = false;
         public bool canview { get; set; } = false;
         public bool canverify { get; set; } = false;
-        public bool? canaccess { get; set; }
+        public bool canaccess { get; set; } = false;
+        public bool canvoid { get; set; } = false;
+        public long createdbyid { get; set; }
+        public DateTime? datecreated { get; set; }
+        public Module? module { get; set; }
     }
 }

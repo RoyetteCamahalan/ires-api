@@ -53,6 +53,8 @@ namespace ires_api
 
             CreateMap<ExpenseTypeCategory, ExpenseTypeCategoryDto>();
 
+            CreateMap<Module, ModuleDto>();
+
             CreateMap<Office, OfficeDto>();
             CreateMap<Office, OfficeRequestDto>().ReverseMap();
 

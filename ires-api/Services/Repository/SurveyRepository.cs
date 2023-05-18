@@ -14,32 +14,43 @@ namespace ires_api.Services.Repository
         {
             _dataContext = dataContext;
         }
-        public Survey Create(Survey survey)
+
+        public async Task<int> CountCompleted(long companyID)
+        {
+            return await _dataContext.surveys.Where(x => x.companyid == companyID && x.status == Constants.SurveyStatus.completed).CountAsync();
+        }
+
+        public async Task<int> CountPending(long companyID)
+        {
+            return await _dataContext.surveys.Where(x => x.companyid == companyID && x.status == Constants.SurveyStatus.pending).CountAsync();
+        }
+
+        public async Task<Survey> Create(Survey survey)
         {
             survey.id = 0;
             survey.datecreated = DateTime.Now;
             survey.client = null;
             survey.balance = survey.contractprice;
             _dataContext.surveys.Add(survey);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return survey;
         }
 
-        public Survey GetSurveyByID(long id)
+        public async Task<Survey> GetSurveyByID(long id)
         {
-            return _dataContext.surveys.Include(x => x.client).Single(x => x.id == id);
+            return await _dataContext.surveys.Include(x => x.client).SingleAsync(x => x.id == id);
         }
 
-        public ICollection<Survey> GetSurveys(long companyID, string search)
+        public async Task<ICollection<Survey>> GetSurveys(long companyID, string search)
         {
-            return _dataContext.surveys.Include(x => x.client).Where(x => x.companyid == companyID &&
+            return await _dataContext.surveys.Include(x => x.client).Where(x => x.companyid == companyID &&
                 (x.propertyname.Contains(search) || x.address.Contains(search) || (x.client.fname ?? "").Contains(search) || (x.client.lname ?? "").Contains(search)))
-                .OrderByDescending(x => x.datecreated).ToList();
+                .OrderByDescending(x => x.datecreated).ToListAsync();
         }
 
-        public Survey Update(SurveyRequestDto requestDto)
+        public async Task<Survey> Update(SurveyRequestDto requestDto)
         {
-            Survey survey = GetSurveyByID(requestDto.id);
+            Survey survey = await GetSurveyByID(requestDto.id);
             if (survey != null)
             {
                 survey.custid = requestDto.custid;
@@ -50,27 +61,27 @@ namespace ires_api.Services.Repository
                 survey.propertyname = requestDto.propertyname;
                 survey.address = requestDto.address;
                 survey.details = requestDto.details;
-                survey.balance = survey.balance + (requestDto.contractprice - survey.contractprice);
+                survey.balance += (requestDto.contractprice - survey.contractprice);
                 survey.contractprice = requestDto.contractprice;
                 survey.updatedbyid = requestDto.updatedbyid;
                 survey.dateupdated = DateTime.Now;
                 if (survey.balance > 0 && survey.status == Constants.SurveyStatus.completed)
                     survey.status = Constants.SurveyStatus.surveyed;
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
             return survey;
         }
 
-        public Survey UpdateStatus(long ID, int status)
+        public async Task<Survey> UpdateStatus(long ID, int status)
         {
-            Survey survey = GetSurveyByID(ID);
+            Survey survey = await GetSurveyByID(ID);
             if (survey != null)
             {
                 if (status == Constants.SurveyStatus.surveyed && survey.balance <= 0)
                     status = Constants.SurveyStatus.completed;
 
                 survey.status = status;
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
             return survey;
         }

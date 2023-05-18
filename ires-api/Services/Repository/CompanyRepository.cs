@@ -38,6 +38,7 @@ namespace ires_api.Services.Repository
                 name = requestDto.name,
                 address = requestDto.address,
                 contactno = requestDto.contactno,
+                planid = requestDto.planid,
                 isactive = false,
                 isverified = false
             };
@@ -53,7 +54,6 @@ namespace ires_api.Services.Repository
                 userpass = Utility.GetHash("password"),
                 isappsysadmin = true,
                 datecreated = DateTime.Now
-
             };
             _dataContext.employees.Add(employee);
             await _dataContext.SaveChangesAsync();

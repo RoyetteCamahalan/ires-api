@@ -3,7 +3,6 @@ using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -15,24 +14,18 @@ namespace ires_api.Controllers
         private readonly IMapper _mapper;
         private readonly IEmployeeService _employeeService;
 
-        public EmployeeController(IMapper mapper, IEmployeeService employeeService) 
+        public EmployeeController(IMapper mapper, IEmployeeService employeeService)
         {
             _mapper = mapper;
             _employeeService = employeeService;
         }
 
         [HttpGet]
-        public IActionResult Get(int currentPage, string? search = "")
+        public async Task<IActionResult> Get(int currentPage, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<EmployeeDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if(identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            List<EmployeeDto> employeeDtos = _mapper.Map <List<EmployeeDto>>(_employeeService.GetEmployees(identity.companyid ?? 0, search ?? ""));
+            List<EmployeeDto> employeeDtos = _mapper.Map<List<EmployeeDto>>(await _employeeService.GetEmployees(identity.companyid ?? 0, search ?? ""));
             var paginator = new PaginatorDto<EmployeeDto>(currentPage);
             paginator.Paginate(employeeDtos);
             serverResponse.Data = paginator;
@@ -42,11 +35,11 @@ namespace ires_api.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public IActionResult Get(long id)
+        public async Task<IActionResult> Get(long id)
         {
             var serverResponse = new ServerResponse<EmployeeDto>();
-            var employee = _employeeService.GetEmployeeById(id);
-            if(employee == null)
+            var employee = await _employeeService.GetEmployeeById(id);
+            if (employee == null)
             {
                 serverResponse.Success = false;
                 return BadRequest(serverResponse);
@@ -56,16 +49,17 @@ namespace ires_api.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] EmployeeRequestDto requestDto)
+        public async Task<IActionResult> Post([FromBody] EmployeeRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<EmployeeDto>();
-            var employee = _employeeService.GetEmployeeByEmail(requestDto.email ?? "");
-            if(employee != null) {
+            var employee = await _employeeService.GetEmployeeByEmail(requestDto.email ?? "");
+            if (employee != null)
+            {
                 serverResponse.Success = false;
                 serverResponse.Message = "Email already registered.";
                 return BadRequest(serverResponse);
             }
-            employee = _employeeService.GetEmployeeByUsername(requestDto.username ?? "");
+            employee = await _employeeService.GetEmployeeByUsername(requestDto.username ?? "");
             if (employee != null)
             {
                 serverResponse.Success = false;
@@ -73,8 +67,8 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             requestDto.userpass = Utility.GetHash(requestDto.userpass ?? "password");
-            var result = _employeeService.Create(_mapper.Map<Employee>(requestDto));
-            if(result == null)
+            var result = await _employeeService.CreateAsync(_mapper.Map<Employee>(requestDto));
+            if (result == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
@@ -85,16 +79,25 @@ namespace ires_api.Controllers
         }
 
         [HttpPut]
-        public IActionResult Put([FromBody] EmployeeRequestDto requestDto)
+        public async Task<IActionResult> Put([FromBody] EmployeeRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<EmployeeDto>();
-            var employee = _employeeService.Update(requestDto);
+            var employee = await _employeeService.UpdateAsync(requestDto);
             if (employee == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
+            return Ok(serverResponse);
+        }
+
+        [HttpGet("getpriviligesbymodule")]
+        public async Task<IActionResult> GetPriviligesByModule(long id)
+        {
+            var serverResponse = new ServerResponse<List<UserAccessDto>>();
+            var result = await _employeeService.GetUserPrivilegesByModule(id);
+            serverResponse.Data = result.ToList();
             return Ok(serverResponse);
         }
     }

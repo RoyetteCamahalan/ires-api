@@ -29,10 +29,10 @@ namespace ires_api.Controllers
         }
         [HttpPost("login")]
         [AllowAnonymous]
-        public IActionResult login(UserLoginRequestDto requestDto)
+        public async Task<IActionResult> login(UserLoginRequestDto requestDto)
         {
             var response = new ServerResponse<UserLoginDto>();
-            var employee = _employeeService.Login(requestDto.username, Utility.GetHash(requestDto.password));
+            var employee = await _employeeService.LoginAsync(requestDto.username, Utility.GetHash(requestDto.password));
             if (employee == null)
             {
                 response.Success = false;
@@ -47,7 +47,8 @@ namespace ires_api.Controllers
             }
 
             response.Data = _mapper.Map<UserLoginDto>(employee);
-            response.Data.LoadPrivileges(_mapper, _employeeService.GetUserPrivileges(employee.employeeid));
+            response.Data.userPrivileges = await _employeeService.GetUserPrivilegesByModule(employee.employeeid);
+            //response.Data.LoadPrivileges(_mapper, await _employeeService.GetUserPrivileges(employee.employeeid));
             response.Data.Token = GenerateToken(employee);
             _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Authentication", "User logged in : " + response.Data.Token, 0);
             return Ok(response);
@@ -55,7 +56,6 @@ namespace ires_api.Controllers
 
         private string GenerateToken(Employee employee)
         {
-            var test = _configuration["Jwt:Key"];
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? ""));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -78,7 +78,7 @@ namespace ires_api.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
         [HttpPost("systemoverride")]
-        public IActionResult SystemOverride(UserLoginRequestDto requestDto)
+        public async Task<IActionResult> SystemOverride(UserLoginRequestDto requestDto)
         {
             var response = new ServerResponse<UserLoginDto>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
@@ -88,7 +88,7 @@ namespace ires_api.Controllers
                 response.Message = "Unable to process request";
                 return BadRequest(response);
             }
-            var employee = _employeeService.Login(requestDto.username, Utility.GetHash(requestDto.password));
+            var employee = await _employeeService.LoginAsync(requestDto.username, Utility.GetHash(requestDto.password));
 
             if (employee == null)
             {

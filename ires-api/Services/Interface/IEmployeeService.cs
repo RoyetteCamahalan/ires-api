@@ -5,14 +5,18 @@ namespace ires_api.Services.Interface
 {
     public interface IEmployeeService
     {
-        public ICollection<Employee> GetEmployees(long companyID, string search);
-        public Employee GetEmployeeById(long id);
-        public Employee GetEmployeeByEmail(string email);
-        public Employee GetEmployeeByUsername(string username);
-        public Employee Login(string username, string userpass);
-        public List<UserPrivilege> GetUserPrivileges(long id);
+        public Task<ICollection<Employee>> GetEmployees(long companyID, string search);
+        public Task<Employee> GetEmployeeById(long id);
+        public Task<Employee> GetEmployeeByEmail(string email);
+        public Task<Employee> GetEmployeeByUsername(string username);
+        public Task<Employee> LoginAsync(string username, string userpass);
 
-        public Employee Create(Employee employee);
-        public Employee Update(EmployeeRequestDto requestDto);
+        public Task<Employee> CreateAsync(Employee employee);
+        public Task<Employee> UpdateAsync(EmployeeRequestDto requestDto);
+
+        public Task<ICollection<UserPrivilege>> GetUserPrivileges(long id);
+        public Task<ICollection<UserPrivilege>> GetUserAllPrivileges(long id);
+        public Task<ICollection<UserAccessDto>> GetUserPrivilegesByModule(long id);
+        public Task<bool> CreateUserPrivileges(List<UserPrivilege> userPrivileges, long createdByID);
     }
 }

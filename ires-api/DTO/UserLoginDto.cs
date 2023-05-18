@@ -1,7 +1,4 @@
-﻿using AutoMapper;
-using ires_api.Models;
-
-namespace ires_api.DTO
+﻿namespace ires_api.DTO
 {
     public class UserLoginDto
     {
@@ -13,16 +10,17 @@ namespace ires_api.DTO
         public string Token { get; set; } = string.Empty;
         public int? companyid { get; set; }
         public CompanyDto? company { get; set; }
+        public ICollection<UserAccessDto>? userPrivileges { get; set; }
 
-        public List<UserPrivilegeDto>? userPrivileges { get; set; }
+        //public List<UserPrivilegeDto>? userPrivileges { get; set; }
 
-        public void LoadPrivileges(IMapper mapper, List<UserPrivilege> up)
-        {
-            userPrivileges = new List<UserPrivilegeDto>();
-            foreach(var userPrivilege in up)
-            {
-                userPrivileges.Add(mapper.Map<UserPrivilegeDto>(userPrivilege));
-            }
-        }
+        //public void LoadPrivileges(IMapper mapper, ICollection<UserPrivilege> up)
+        //{
+        //    userPrivileges = new List<UserPrivilegeDto>();
+        //    foreach (var userPrivilege in up)
+        //    {
+        //        userPrivileges.Add(mapper.Map<UserPrivilegeDto>(userPrivilege));
+        //    }
+        //}
     }
 }

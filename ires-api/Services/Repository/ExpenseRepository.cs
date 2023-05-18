@@ -39,7 +39,7 @@ namespace ires_api.Services.Repository
         public async Task<ICollection<Expense>> GetExpenses(int companyID, string search, DateTime startDate, DateTime endDate)
         {
             return await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor)
-                .Where(x => x.companyid == companyID && x.refdate >= startDate && x.refdate <= endDate &&
+                .Where(x => x.companyid == companyID && x.refdate >= startDate.Date && x.refdate <= endDate.Date &&
                     (x.office.accountname.Contains(search) || x.expenseType.expensetypedesc.Contains(search) || x.vendor.vendorname.Contains(search)))
                 .OrderByDescending(x => x.transdate).ToListAsync();
         }
@@ -198,6 +198,11 @@ namespace ires_api.Services.Repository
                 await _dataContext.SaveChangesAsync();
             }
             return vendor;
+        }
+
+        public async Task<int> CountVendors(int companyID)
+        {
+            return await _dataContext.vendors.Where(x => x.companyid == companyID).CountAsync();
         }
 
         public async Task<AccountPayable> CreateAccountPayable(AccountPayable data)

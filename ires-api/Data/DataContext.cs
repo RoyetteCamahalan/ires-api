@@ -110,9 +110,18 @@ namespace ires_api.Data
                 .WithMany(c => c.encodedPayments)
                 .HasForeignKey(e => e.encodedby);
 
+            modelBuilder.Entity<PlanModule>()
+                .HasOne(s => s.module)
+                .WithMany()
+                .HasForeignKey(e => e.moduleid);
+
+            modelBuilder.Entity<UserPrivilege>()
+                .HasOne(s => s.module)
+                .WithMany()
+                .HasForeignKey(e => e.moduleid);
+
         }
         public DbSet<AccountPayable> accountPayables { get; set; }
-        public DbSet<ApplicationModule> applicationModules { get; set; }
         public DbSet<Attachment> attachments { get; set; }
         public DbSet<Bank> banks { get; set; }
         public DbSet<BankAccount> bankAccounts { get; set; }
@@ -127,11 +136,13 @@ namespace ires_api.Data
         public DbSet<ExpenseTypeCategory> expenseTypeCategories { get; set; }
         public DbSet<Log> logs { get; set; }
         public DbSet<Lot> lots { get; set; }
+        public DbSet<Module> modules { get; set; }
         public DbSet<Office> offices { get; set; }
         public DbSet<OtherCharge> otherCharges { get; set; }
         public DbSet<Payment> payments { get; set; }
         public DbSet<PaymentCheck> paymentChecks { get; set; }
         public DbSet<PaymentDetail> paymentDetails { get; set; }
+        public DbSet<PlanModule> planModules { get; set; }
         public DbSet<Project> projects { get; set; }
         public DbSet<RentalProperty> rentalProperties { get; set; }
         public DbSet<Survey> surveys { get; set; }

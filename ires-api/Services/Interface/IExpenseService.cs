@@ -23,6 +23,7 @@ namespace ires_api.Services.Interface
         public Task<Vendor> UpdateVendor(VendorRequestDto requestDto);
         public Task<Vendor> GetVendorByID(long ID);
         public Task<Vendor> GetVendorByName(int companyID, string name);
+        public Task<int> CountVendors(int companyID);
         public Task<ICollection<Vendor>> GetVendors(int companyID, bool viewAll, string search);
 
 

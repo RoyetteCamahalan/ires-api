@@ -22,17 +22,11 @@ namespace ires_api.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
+        public async Task<IActionResult> Get(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<PaymentDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var payments = _paymentService.GetPayments(identity.companyid ?? 0, search ?? "", startDate, endDate);
+            var payments = await _paymentService.GetPayments(identity.companyid ?? 0, search ?? "", startDate, endDate);
             var paginator = new PaginatorDto<PaymentDto>(currentPage);
             paginator.Paginate(_mapper.Map<List<PaymentDto>>(payments));
             serverResponse.Data = paginator;
@@ -41,7 +35,7 @@ namespace ires_api.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult Get(long id)
+        public async Task<IActionResult> Get(long id)
         {
             var serverResponse = new ServerResponse<PaymentDto>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
@@ -51,7 +45,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            var payment = _paymentService.GetPayment(id);
+            var payment = await _paymentService.GetPayment(id);
             var paymentDto = _mapper.Map<PaymentDto>(payment);
             paymentDto.payables = new List<PayableDto>();
             foreach (var item in payment.paymentDetails)
@@ -63,7 +57,7 @@ namespace ires_api.Controllers
                 };
                 if (detail.payableType == Constants.AppModules.survey)
                 {
-                    var survey = _surveyService.GetSurveyByID(item.surveyid);
+                    var survey = await _surveyService.GetSurveyByID(item.surveyid);
                     detail.payableID = item.surveyid;
                     detail.description = "Survey Fee - " + survey.propertyname + " (" + (survey.surveydate ?? DateTime.Now).ToString(Constants.dateFormat) + ")";
                 }
@@ -74,10 +68,10 @@ namespace ires_api.Controllers
 
         }
         [HttpGet("getpayables")]
-        public IActionResult GetPayables(long clientID, int currentPage, string? search = "")
+        public async Task<IActionResult> GetPayables(long clientID, int currentPage, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<PayableDto>>();
-            var payableDtos = _paymentService.GetPayables(clientID, search ?? "");
+            var payableDtos = await _paymentService.GetPayables(clientID, search ?? "");
             var paginator = new PaginatorDto<PayableDto>(currentPage);
             paginator.Paginate(payableDtos);
             serverResponse.Data = paginator;
@@ -87,10 +81,10 @@ namespace ires_api.Controllers
 
 
         [HttpPost]
-        public IActionResult Post([FromBody] PaymentRequestDto requestDto)
+        public async Task<IActionResult> Post([FromBody] PaymentRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<PaymentRequestDto>();
-            var payableDtos = _paymentService.GetPayables(requestDto.custid, "");
+            var payableDtos = await _paymentService.GetPayables(requestDto.custid, "");
             if (requestDto.payables.Count == 0)
             {
                 serverResponse.Success = false;
@@ -111,7 +105,7 @@ namespace ires_api.Controllers
                     item.balance = payable.balance;
                 }
             }
-            if (_paymentService.IsDuplicateReceipt(requestDto.companyid, requestDto.receipttype, requestDto.orno))
+            if (await _paymentService.IsDuplicateReceipt(requestDto.companyid, requestDto.receipttype, requestDto.orno))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Duplicated receipt number";
@@ -123,7 +117,7 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
 
-            var result = _paymentService.Create(requestDto);
+            var result = await _paymentService.Create(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
@@ -134,17 +128,11 @@ namespace ires_api.Controllers
             return Ok(serverResponse);
         }
         [HttpPut("voidPayment")]
-        public IActionResult VoidPayment(PaymentRequestDto requestDto)
+        public async Task<IActionResult> VoidPayment(PaymentRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Success = _paymentService.VoidPayment(requestDto.paymentid);
+            serverResponse.Success = await _paymentService.VoidPayment(requestDto.paymentid);
             serverResponse.Data = serverResponse.Success;
             if (!serverResponse.Success)
             {
@@ -155,7 +143,7 @@ namespace ires_api.Controllers
 
         }
         [HttpGet("getreceiptno")]
-        public IActionResult GetReceiptNo(int receiptType)
+        public async Task<IActionResult> GetReceiptNo(int receiptType)
         {
             var serverResponse = new ServerResponse<long>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
@@ -165,7 +153,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            var receiptNo = _paymentService.GetReceiptNo(identity.companyid ?? 0, receiptType);
+            var receiptNo = await _paymentService.GetReceiptNo(identity.companyid ?? 0, receiptType);
             serverResponse.Data = receiptNo;
             return Ok(serverResponse);
 

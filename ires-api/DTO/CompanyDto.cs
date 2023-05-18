@@ -7,7 +7,7 @@
         public string? address { get; set; }
         public string? contactno { get; set; }
         public DateTime? subscriptionexpiry { get; set; }
-
+        public int planid { get; set; }
         public bool isexpired { get; set; }
     }
 }

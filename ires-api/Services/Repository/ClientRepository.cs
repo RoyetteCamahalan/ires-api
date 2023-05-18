@@ -3,6 +3,7 @@ using ires_api.Data;
 using ires_api.DTO;
 using ires_api.Models;
 using ires_api.Services.Interface;
+using Microsoft.EntityFrameworkCore;
 
 namespace ires_api.Services.Repository
 {
@@ -16,35 +17,40 @@ namespace ires_api.Services.Repository
             _dataContext = dataContext;
             _mapper = mapper;
         }
-        public Client Create(ClientDto requestDto)
+        public async Task<Client> Create(ClientDto requestDto)
         {
             Client client = _mapper.Map<Client>(requestDto);
             client.custid = 0;
             client.datecreated = DateTime.Now;
             _dataContext.clients.Add(client);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return client;
         }
 
-        public Client GetClientById(long id)
+        public async Task<Client> GetClientById(long id)
         {
-            return _dataContext.clients.Find(id);
+            return await _dataContext.clients.FindAsync(id);
         }
 
-        public Client GetClientByName(int companyid, string lname, string fname)
+        public async Task<Client> GetClientByName(int companyid, string lname, string fname)
         {
-            return _dataContext.clients.Where(x => x.companyid == companyid && x.lname == lname && x.fname == fname).FirstOrDefault();
+            return await _dataContext.clients.Where(x => x.companyid == companyid && x.lname == lname && x.fname == fname).FirstOrDefaultAsync();
         }
 
-        public ICollection<Client> GetClients(int companyid, string search)
+        public async Task<ICollection<Client>> GetClients(int companyid, string search)
         {
-            return _dataContext.clients.Where(x => x.companyid == companyid && (x.lname.Contains(search) || x.fname.Contains(search)))
-                .OrderBy(x => x.lname + x.fname).ToList();
+            return await _dataContext.clients.Where(x => x.companyid == companyid && (x.lname.Contains(search) || x.fname.Contains(search)))
+                .OrderBy(x => x.lname + x.fname).ToListAsync();
         }
 
-        public Client Update(ClientDto requestDto)
+        public async Task<int> GetCountClientAsync(int companyid)
         {
-            Client client = GetClientById(requestDto.custid);
+            return await _dataContext.clients.Where(x => x.companyid == companyid).CountAsync();
+        }
+
+        public async Task<Client> Update(ClientDto requestDto)
+        {
+            Client client = await GetClientById(requestDto.custid);
             if (client != null)
             {
                 client.lname = requestDto.lname;
@@ -57,7 +63,7 @@ namespace ires_api.Services.Repository
                 client.email = requestDto.email;
                 client.updatedbyid = requestDto.updatedbyid;
                 client.dateupdated = DateTime.Now;
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
             return client;
         }

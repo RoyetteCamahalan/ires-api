@@ -87,5 +87,9 @@ namespace ires_api.Services.Repository
                 _dataContext.Database.ExecuteSqlRawAsync("exec spPettyCash @operation, @soperation, @search", parameter));
         }
 
+        public async Task<decimal> TotalPettyCashBalance(int companyID)
+        {
+            return await _dataContext.offices.Where(x => x.companyid == companyID && x.isactive).Select(x => x.pettycashbalance).SumAsync();
+        }
     }
 }

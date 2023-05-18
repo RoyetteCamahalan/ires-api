@@ -22,17 +22,11 @@ namespace ires_api.Controllers
             _paymentService = paymentService;
         }
         [HttpGet]
-        public IActionResult Get(int currentPage, string? search = "")
+        public async Task<IActionResult> Get(int currentPage, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<SurveyDto>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            List<SurveyDto> surveyDtos = _mapper.Map<List<SurveyDto>>(_surveyService.GetSurveys(identity.companyid ?? 0, search ?? ""));
+            List<SurveyDto> surveyDtos = _mapper.Map<List<SurveyDto>>(await _surveyService.GetSurveys(identity.companyid ?? 0, search ?? ""));
             var paginator = new PaginatorDto<SurveyDto>(currentPage);
             paginator.Paginate(surveyDtos);
             serverResponse.Data = paginator;
@@ -42,10 +36,10 @@ namespace ires_api.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public IActionResult Get(long id)
+        public async Task<IActionResult> Get(long id)
         {
             var serverResponse = new ServerResponse<SurveyDto>();
-            var survey = _surveyService.GetSurveyByID(id);
+            var survey = await _surveyService.GetSurveyByID(id);
             if (survey == null)
             {
                 serverResponse.Success = false;
@@ -56,14 +50,14 @@ namespace ires_api.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] SurveyRequestDto requestDto)
+        public async Task<IActionResult> Post([FromBody] SurveyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<SurveyDto>();
-            var result = _surveyService.Create(_mapper.Map<Survey>(requestDto));
+            var result = await _surveyService.Create(_mapper.Map<Survey>(requestDto));
             if (result == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
+                serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = _mapper.Map<SurveyDto>(result);
@@ -71,26 +65,26 @@ namespace ires_api.Controllers
         }
 
         [HttpPut]
-        public IActionResult Put([FromBody] SurveyRequestDto requestDto)
+        public async Task<IActionResult> Put([FromBody] SurveyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<SurveyDto>();
-            var survey = _surveyService.Update(requestDto);
+            var survey = await _surveyService.Update(requestDto);
             if (survey == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
+                serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
             return Ok(serverResponse);
         }
 
         [HttpPut("updatestatus")]
-        public IActionResult UpdateStatus([FromBody] SurveyRequestDto requestDto)
+        public async Task<IActionResult> UpdateStatus([FromBody] SurveyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<Boolean>();
             if (requestDto.status == Constants.SurveyStatus.cancelled)
             {
-                var paymentDetails = _paymentService.GetSurveyPaymentDetails(requestDto.id);
+                var paymentDetails = await _paymentService.GetSurveyPaymentDetails(requestDto.id);
                 if (paymentDetails.Count() > 0)
                 {
                     serverResponse.Success = false;
