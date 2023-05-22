@@ -34,6 +34,27 @@ namespace ires_api.Controllers
 
         }
 
+        [HttpGet("getcollection")]
+        public async Task<IActionResult> GetCollection(DateTime startDate, DateTime endDate)
+        {
+            var serverResponse = new ServerResponse<PaymentCollectionDto>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var payments = await _paymentService.GetPayments(identity.companyid ?? 0, "", startDate, endDate);
+            payments = payments.Where(x => x.status != Constants.PaymentStatus.@void).ToList();
+            var collection = new PaymentCollectionDto
+            {
+                payments = _mapper.Map<List<PaymentDto>>(payments),
+                totalCash = payments.Where(x => x.paymentmode == Constants.PaymentMode.cash).Select(x => x.totalamount).Sum(),
+                totalCheck = payments.Where(x => x.paymentmode == Constants.PaymentMode.check).Select(x => x.totalamount).Sum(),
+                totalBankTransfer = payments.Where(x => x.paymentmode == Constants.PaymentMode.bankTransfer).Select(x => x.totalamount).Sum(),
+                totalWallet = payments.Where(x => x.paymentmode == Constants.PaymentMode.eWallet).Select(x => x.totalamount).Sum()
+            };
+            collection.totalPayment = collection.totalCash + collection.totalCheck + collection.totalBankTransfer + collection.totalWallet;
+            serverResponse.Data = collection;
+            return Ok(serverResponse);
+
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(long id)
         {

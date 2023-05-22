@@ -90,7 +90,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> SendMail([FromBody] SendMailRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<Boolean>();
-            serverResponse.Success = await _mailService.SendEmailAsync("Message From: " + requestDto.name, new List<string> { _mailService.GetPublicEmail() }, "Message: " + requestDto.message);
+            serverResponse.Success = await _mailService.SendEmailAsync("Message From: " + requestDto.name, new List<string> { _mailService.GetPublicEmail() }, "Email: " + requestDto.email + " Message: " + requestDto.message);
             if (!serverResponse.Success)
             {
                 serverResponse.Message = "Unable to process request";

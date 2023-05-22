@@ -21,10 +21,10 @@ namespace ires_api.Controllers
             _mapper = mapper;
         }
         [HttpGet]
-        public IActionResult Get(long bankID)
+        public async Task<IActionResult> Get(long bankID)
         {
             var serverResponse = new ServerResponse<BankDto>();
-            var banks = _bankService.GetBankByID(bankID);
+            var banks = await _bankService.GetBankByID(bankID);
             if (banks == null)
             {
                 serverResponse.Success = false;

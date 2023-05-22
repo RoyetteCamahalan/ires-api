@@ -53,7 +53,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Company is already registered.";
                 return BadRequest(serverResponse);
             }
-            if (_employeeService.GetEmployeeByEmail(requestDto.email) != null)
+            if (await _employeeService.GetEmployeeByEmail(requestDto.email) != null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Email already in use.";
@@ -69,7 +69,7 @@ namespace ires_api.Controllers
         private void sendConfirmationEmail(CompanyRequestDto requestDto)
         {
             var html = System.IO.File.ReadAllText(@"./Templates/ConfirmationEmail.html");
-            var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", _configuration["uiBaseURL"] + "company/confirmation/" + Utility.URLEncrypt(requestDto.id.ToString()));
+            var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", _configuration["uiBaseURL"] + "/company/confirmation?ref=" + Utility.URLEncrypt(requestDto.id.ToString()));
             _mailService.SendEmailAsync("Email Confirmation", new List<string> { requestDto.email }, body, true);
         }
 

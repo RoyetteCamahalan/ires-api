@@ -1,4 +1,5 @@
-﻿using ires_api.Services.Interface;
+﻿using ires_api.DTO;
+using ires_api.Services.Interface;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
@@ -19,15 +20,16 @@ namespace ires_api.Services.Repository
 
         public string GetPublicEmail()
         {
-            return _configuration["MailSettings:Mail"];
+            return _configuration["MailSettings:Info:Mail"];
         }
 
         public async Task<bool> SendEmailAsync(string subject, List<string> mailTo, string body, bool isHTML = false)
         {
             try
             {
+                var mailSetting = new MailSetting(_configuration, "NoReply");
                 var mail = new MimeMessage();
-                mail.From.Add(MailboxAddress.Parse(_configuration["MailSettings:Mail"]));
+                mail.From.Add(MailboxAddress.Parse(mailSetting.Mail));
                 foreach (string receiver in mailTo)
                 {
                     mail.To.Add(MailboxAddress.Parse(receiver));
@@ -39,8 +41,8 @@ namespace ires_api.Services.Repository
                     mail.Body = new TextPart(TextFormat.Plain) { Text = body };
 
                 using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(_configuration["MailSettings:Host"], Convert.ToInt32(_configuration["MailSettings:Port"]), SecureSocketOptions.StartTls);
-                await smtp.AuthenticateAsync(_configuration["MailSettings:Mail"], _configuration["MailSettings:Password"]);
+                await smtp.ConnectAsync(mailSetting.Host, mailSetting.Port, SecureSocketOptions.None);
+                await smtp.AuthenticateAsync(mailSetting.Mail, mailSetting.Password);
                 await smtp.SendAsync(mail);
                 await smtp.DisconnectAsync(true);
             }

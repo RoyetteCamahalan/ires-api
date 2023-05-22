@@ -17,15 +17,36 @@ namespace ires_api.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IEmployeeService _employeeService;
+        private readonly ICompanyService _companyService;
         private readonly IMapper _mapper;
         private readonly ILogService _logService;
 
-        public AuthController(IConfiguration configuration, IEmployeeService employeeService, IMapper mapper, ILogService logService)
+        public AuthController(IConfiguration configuration, IEmployeeService employeeService, ICompanyService companyService, IMapper mapper, ILogService logService)
         {
             _configuration = configuration;
             _employeeService = employeeService;
+            _companyService = companyService;
             _mapper = mapper;
             _logService = logService;
+        }
+        [HttpGet("testconnection")]
+        [AllowAnonymous]
+        public IActionResult TestConnection()
+        {
+            var response = new ServerResponse<string>();
+            response.Data = "api is ok";
+            //response.Data = _configuration.GetValue<string>("uiBaseURL");
+            return Ok(response);
+        }
+        [HttpGet("testdbconnection")]
+        [AllowAnonymous]
+        public async Task<IActionResult> TestDBConnection()
+        {
+            var response = new ServerResponse<Object>();
+            var companies = await _companyService.GetCompanies();
+            var data = new { companyCount = companies.Count };
+            response.Data = data;
+            return Ok(response);
         }
         [HttpPost("login")]
         [AllowAnonymous]
@@ -47,7 +68,7 @@ namespace ires_api.Controllers
             }
 
             response.Data = _mapper.Map<UserLoginDto>(employee);
-            response.Data.userPrivileges = await _employeeService.GetUserPrivilegesByModule(employee.employeeid);
+            //response.Data.userPrivileges = await _employeeService.GetUserPrivilegesByModule(employee.employeeid);
             //response.Data.LoadPrivileges(_mapper, await _employeeService.GetUserPrivileges(employee.employeeid));
             response.Data.Token = GenerateToken(employee);
             _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Authentication", "User logged in : " + response.Data.Token, 0);
