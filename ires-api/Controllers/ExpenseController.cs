@@ -51,6 +51,23 @@ namespace ires_api.Controllers
             return Ok(serverResponse);
 
         }
+
+        [HttpGet("getexpensereport")]
+        public async Task<IActionResult> GetExpenseReport(DateTime startDate, DateTime endDate)
+        {
+            var serverResponse = new ServerResponse<ExpenseReportDto>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var result = await _expenseService.GetExpenses(identity.companyid ?? 0, "", startDate, endDate);
+            result = result.Where(x => x.status != Constants.ExpenseStatus.@void).ToList();
+            var expenseReport = new ExpenseReportDto
+            {
+                totalExpense = result.Select(x => x.amount).Sum(),
+                expenses = _mapper.Map<List<ExpenseDto>>(result)
+            };
+            serverResponse.Data = expenseReport;
+            return Ok(serverResponse);
+
+        }
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ExpenseRequestDto requestDto)
         {

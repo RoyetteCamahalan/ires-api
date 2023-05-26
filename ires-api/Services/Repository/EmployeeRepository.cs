@@ -26,7 +26,7 @@ namespace ires_api.Services.Repository
 
         public async Task<Employee> GetEmployeeByEmail(string email)
         {
-            return await _dataContext.employees.Where(x => x.email == email).FirstOrDefaultAsync();
+            return await _dataContext.employees.Include(x => x.company).Where(x => x.email == email).FirstOrDefaultAsync();
         }
 
         public async Task<Employee> GetEmployeeById(long id)
@@ -70,6 +70,32 @@ namespace ires_api.Services.Repository
                 await _dataContext.SaveChangesAsync();
             }
             return employee;
+        }
+
+        public async Task ChangePassword(long id, string newPassword)
+        {
+            var data = await GetEmployeeById(id);
+            data.userpass = newPassword;
+            data.passwordresettoken = "";
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task<string> CreatePasswordResetToken(long id)
+        {
+            var employee = await GetEmployeeById(id);
+            var token = Utility.RandomString(16);
+            while (await _dataContext.employees.AnyAsync(x => x.passwordresettoken == token))
+            {
+                token = Utility.RandomString(16);
+            }
+            employee.passwordresettoken = token;
+            await _dataContext.SaveChangesAsync();
+            return token;
+        }
+
+        public async Task<Employee> GetPasswordToken(string token)
+        {
+            return await _dataContext.employees.Where(x => x.passwordresettoken == token).FirstOrDefaultAsync();
         }
 
         public async Task<UserPrivilege> GetUserPrivilegeByID(long id)

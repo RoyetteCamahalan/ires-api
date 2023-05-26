@@ -22,6 +22,7 @@ namespace ires_api.Models
         public string? designation { get; set; }
         public long? createdbyid { get; set; }
         public DateTime? datecreated { get; set; }
+        public string passwordresettoken { get; set; } = string.Empty;
 
         public Company? company { get; set; }
         public List<Payment>? encodedPayments { get; set; }

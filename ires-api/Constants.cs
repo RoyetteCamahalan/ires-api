@@ -70,6 +70,11 @@
             public const int paid = 1;
             public const int cancelled = 2;
         }
+        public class BillCycle
+        {
+            public const int monthly = 1;
+            public const int yearly = 2;
+        }
         public class DisbursementStatus
         {
             public const int approved = 0;
@@ -85,6 +90,11 @@
         {
             public const int approved = 0;
             public const int @void = 1;
+        }
+        public class ExpenseTypeCategory
+        {
+            public const int operating = 1;
+            public const int nonoperating = 2;
         }
         public class AccountPayableStatus
         {

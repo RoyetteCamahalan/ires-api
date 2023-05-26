@@ -14,7 +14,7 @@
         public bool? isactive { get; set; }
         public bool? isappsysadmin { get; set; }
         public string? username { get; set; }
-        public string? userpass { get; set; }
+        public string userpass { get; set; } = string.Empty;
         public string? designation { get; set; }
         public long? createdbyid { get; set; }
     }

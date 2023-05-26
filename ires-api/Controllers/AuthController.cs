@@ -20,14 +20,16 @@ namespace ires_api.Controllers
         private readonly ICompanyService _companyService;
         private readonly IMapper _mapper;
         private readonly ILogService _logService;
+        private readonly IMailService _mailService;
 
-        public AuthController(IConfiguration configuration, IEmployeeService employeeService, ICompanyService companyService, IMapper mapper, ILogService logService)
+        public AuthController(IConfiguration configuration, IEmployeeService employeeService, ICompanyService companyService, IMapper mapper, ILogService logService, IMailService mailService)
         {
             _configuration = configuration;
             _employeeService = employeeService;
             _companyService = companyService;
             _mapper = mapper;
             _logService = logService;
+            _mailService = mailService;
         }
         [HttpGet("testconnection")]
         [AllowAnonymous]
@@ -138,6 +140,60 @@ namespace ires_api.Controllers
 
             response.Data = _mapper.Map<UserLoginDto>(employee);
             return Ok(response);
+        }
+
+        [HttpGet("sendpasswordresetlink")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SendPasswordResetLink(string email)
+        {
+            var response = new ServerResponse<UserLoginDto>();
+            var employee = await _employeeService.GetEmployeeByEmail(email);
+            if (employee == null)
+            {
+                response.Success = false;
+                response.Message = "Sorry, we couldn't find you email in our list";
+                return BadRequest(response);
+            }
+            if (!(employee.isactive ?? false) || !(employee.company.isverified ?? false))
+            {
+                response.Success = false;
+                response.Message = "Sorry, your account is not active or unverified";
+                return BadRequest(response);
+            }
+            string token = await _employeeService.CreatePasswordResetToken(employee.employeeid);
+
+            var html = System.IO.File.ReadAllText(@"./Templates/PasswordReset.html");
+            var body = html.Replace("{0}", employee.firstname).Replace("{1}", _configuration["uiBaseURL"] + "/resetpassword?token=" + token);
+            _mailService.SendEmailAsync("Reset your HexaByt Password", new List<string> { email }, body, true);
+            _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Profile", "Reset Password link request :" + token, 0);
+
+            return Ok(response);
+        }
+        [HttpGet("validatepasswordresettoken")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ValidatePasswordResetToken(string token)
+        {
+            var response = new ServerResponse<UserLoginDto>();
+            var employee = await _employeeService.GetPasswordToken(token);
+            response.Success = employee != null;
+            return Ok(response);
+        }
+
+        [HttpPut("resetpassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] PasswordRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<EmployeeDto>();
+            var employee = await _employeeService.GetPasswordToken(requestDto.token);
+            if (employee == null)
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Sorry, your password reset link is expired";
+                return BadRequest(serverResponse);
+            }
+            await _employeeService.ChangePassword(employee.employeeid, Utility.GetHash(requestDto.newuserpass));
+            _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Profile", "Password Reset via token :" + requestDto.token, 0);
+            return Ok(serverResponse);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace ires_api.Services.Repository
             return _configuration["MailSettings:Info:Mail"];
         }
 
-        public async Task<bool> SendEmailAsync(string subject, List<string> mailTo, string body, bool isHTML = false)
+        public bool SendEmailAsync(string subject, List<string> mailTo, string body, bool isHTML = false)
         {
             try
             {
@@ -40,11 +40,15 @@ namespace ires_api.Services.Repository
                 else
                     mail.Body = new TextPart(TextFormat.Plain) { Text = body };
 
-                using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(mailSetting.Host, mailSetting.Port, SecureSocketOptions.None);
-                await smtp.AuthenticateAsync(mailSetting.Mail, mailSetting.Password);
-                await smtp.SendAsync(mail);
-                await smtp.DisconnectAsync(true);
+                Task.Run(async () =>
+                {
+                    using var smtp = new SmtpClient();
+                    await smtp.ConnectAsync(mailSetting.Host, mailSetting.Port, SecureSocketOptions.None);
+                    await smtp.AuthenticateAsync(mailSetting.Mail, mailSetting.Password);
+                    await smtp.SendAsync(mail);
+                    await smtp.DisconnectAsync(true);
+                });
+
             }
             catch (Exception ex)
             {

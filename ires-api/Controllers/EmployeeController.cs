@@ -13,11 +13,13 @@ namespace ires_api.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IEmployeeService _employeeService;
+        private readonly ILogService _logService;
 
-        public EmployeeController(IMapper mapper, IEmployeeService employeeService)
+        public EmployeeController(IMapper mapper, IEmployeeService employeeService, ILogService logService)
         {
             _mapper = mapper;
             _employeeService = employeeService;
+            _logService = logService;
         }
 
         [HttpGet]
@@ -89,6 +91,31 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
+            return Ok(serverResponse);
+        }
+
+        [HttpPut("changepassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] PasswordRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<EmployeeDto>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var employee = await _employeeService.GetEmployeeById(identity.employeeid);
+            if (employee.userpass != Utility.GetHash(requestDto.userpass))
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Old Password is incorrect";
+                serverResponse.errorCode = 1;
+                return BadRequest(serverResponse);
+            }
+            else if (employee.userpass == Utility.GetHash(requestDto.newuserpass))
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "New password should not be the same as your old password";
+                serverResponse.errorCode = 1;
+                return BadRequest(serverResponse);
+            }
+            await _employeeService.ChangePassword(identity.employeeid, Utility.GetHash(requestDto.newuserpass));
+            _logService.SaveLog(employee.companyid, identity.employeeid, 0, "Profile", "Password Changed", 0);
             return Ok(serverResponse);
         }
 

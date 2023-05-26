@@ -10,9 +10,12 @@ namespace ires_api.Services.Interface
         public Task<Employee> GetEmployeeByEmail(string email);
         public Task<Employee> GetEmployeeByUsername(string username);
         public Task<Employee> LoginAsync(string username, string userpass);
+        public Task<string> CreatePasswordResetToken(long id);
+        public Task<Employee> GetPasswordToken(string token);
 
         public Task<Employee> CreateAsync(Employee employee);
         public Task<Employee> UpdateAsync(EmployeeRequestDto requestDto);
+        public Task ChangePassword(long id, string newPassword);
 
         public Task<ICollection<UserPrivilege>> GetUserPrivileges(long id);
         public Task<ICollection<UserPrivilege>> GetUserAllPrivileges(long id);

@@ -5,3 +5,6 @@ dotnet_diagnostic.CS8602.severity = none
 
 # CA5379: Ensure Key Derivation Function algorithm is sufficiently strong
 dotnet_diagnostic.CA5379.severity = none
+
+# CS8600: Converting null literal or possible null value to non-nullable type.
+dotnet_diagnostic.CS8600.severity = none

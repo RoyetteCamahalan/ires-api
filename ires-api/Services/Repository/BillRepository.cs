@@ -112,16 +112,37 @@ namespace ires_api.Services.Repository
         public bool UpgradePlan(int companyID, int planID)
         {
             var company = _dataContext.companies.Find(companyID);
+
             var plan = GetPlanByID(planID);
-            if (planID > company.planid && plan != null)
+            if (company.amount == 0 && plan.monthlysubscription > 0)
             {
-                company.planid = planID;
-                company.amount = plan.monthlysubscription;
-                company.subscriptionexpiry = DateTime.Now.AddDays(30);
-                _dataContext.SaveChanges();
-                return true;
+                company.subscriptionexpiry = DateTime.Now.AddDays(15);
+                var bill = new Bill
+                {
+                    companyid = companyID,
+                    billdate = DateTime.Now,
+                    datefrom = DateTime.Now,
+                    duedate = company.subscriptionexpiry,
+                    status = Constants.BillStatus.open,
+                };
+                if (company.billingcycle == Constants.BillCycle.monthly)
+                {
+                    bill.dateend = DateTime.Now.AddMonths(1);
+                    bill.amount = plan.monthlysubscription;
+                }
+                else if (company.billingcycle == Constants.BillCycle.yearly)
+                {
+                    bill.dateend = DateTime.Now.AddYears(1);
+                    bill.amount = plan.monthlysubscription * 12;
+                }
+                bill.balance = bill.amount;
+                bill.particular = "Subscription for " + (bill.datefrom ?? DateTime.Now).ToString("MMM dd, yyyy") + " - " + (bill.datefrom ?? DateTime.Now).ToString("MMM dd, yyyy");
+                _dataContext.bills.Add(bill);
             }
-            return false;
+            company.planid = planID;
+            company.amount = plan.monthlysubscription;
+            _dataContext.SaveChanges();
+            return true;
         }
 
         public SubscriptionPlan GetPlanByID(long planID)
