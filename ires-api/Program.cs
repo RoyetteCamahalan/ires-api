@@ -40,6 +40,7 @@ builder.Services.AddControllers()
         //options.SerializerSettings.DateFormatString = "yyyy-MM-dd hh:mm tt";
     });
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddScoped<IAppService, AppRepository>();
 builder.Services.AddScoped<ICompanyService, CompanyRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeRepository>();
 builder.Services.AddScoped<IMailService, MailRepository>();

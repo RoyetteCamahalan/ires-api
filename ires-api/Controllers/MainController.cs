@@ -1,4 +1,6 @@
-﻿using ires_api.Models;
+﻿using AutoMapper;
+using ires_api.DTO;
+using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,15 +10,19 @@ namespace ires_api.Controllers
     [ApiController]
     public class MainController : ControllerBase
     {
+        private readonly IAppService _appService;
+        private readonly IMapper _mapper;
         private readonly ISurveyService _surveyService;
         private readonly IClientService _clientService;
         private readonly IPaymentService _paymentService;
         private readonly IExpenseService _expenseService;
         private readonly IPettyCashService _pettyCashService;
 
-        public MainController(ISurveyService surveyService, IClientService clientService, IPaymentService paymentService, IExpenseService expenseService,
+        public MainController(IAppService appService, IMapper mapper, ISurveyService surveyService, IClientService clientService, IPaymentService paymentService, IExpenseService expenseService,
             IPettyCashService pettyCashService)
         {
+            _appService = appService;
+            _mapper = mapper;
             _surveyService = surveyService;
             _clientService = clientService;
             _paymentService = paymentService;
@@ -52,5 +58,24 @@ namespace ires_api.Controllers
             var serverResponse = new ServerResponse<Object> { Data = data };
             return Ok(serverResponse);
         }
+        [HttpGet("getnotifications")]
+        public async Task<IActionResult> GetNotifications()
+        {
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var result = (await _appService.GetNotifications(identity.employeeid));
+            var serverResponse = new ServerResponse<List<NotificationDto>>
+            {
+                Data = _mapper.Map<List<NotificationDto>>(result)
+            };
+            return Ok(serverResponse);
+        }
+        [HttpPut("readnotification")]
+        public async Task<IActionResult> ReadNotification(IDRequestDto requestDto)
+        {
+            await _appService.MarkAsReadNotif(requestDto.id);
+            return Ok(new ServerResponse<string>());
+        }
+
+
     }
 }

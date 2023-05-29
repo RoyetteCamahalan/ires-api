@@ -55,6 +55,8 @@ namespace ires_api
 
             CreateMap<Module, ModuleDto>();
 
+            CreateMap<Notification, NotificationDto>();
+
             CreateMap<Office, OfficeDto>();
             CreateMap<Office, OfficeRequestDto>().ReverseMap();
 

@@ -127,6 +127,7 @@ namespace ires_api.Data
         public DbSet<BankAccount> bankAccounts { get; set; }
         public DbSet<BankTransfer> bankTransfers { get; set; }
         public DbSet<Bill> bills { get; set; }
+        public DbSet<Booking> bookings { get; set; }
         public DbSet<CashDisbursement> cashDisbursements { get; set; }
         public DbSet<Client> clients { get; set; }
         public DbSet<Company> companies { get; set; }
@@ -137,6 +138,7 @@ namespace ires_api.Data
         public DbSet<Log> logs { get; set; }
         public DbSet<Lot> lots { get; set; }
         public DbSet<Module> modules { get; set; }
+        public DbSet<Notification> notifications { get; set; }
         public DbSet<Office> offices { get; set; }
         public DbSet<OtherCharge> otherCharges { get; set; }
         public DbSet<Payment> payments { get; set; }

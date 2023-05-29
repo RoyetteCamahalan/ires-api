@@ -35,8 +35,10 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public IActionResult TestConnection()
         {
-            var response = new ServerResponse<string>();
-            response.Data = "api is ok";
+            var response = new ServerResponse<string>
+            {
+                Data = "api is ok"
+            };
             //response.Data = _configuration.GetValue<string>("uiBaseURL");
             return Ok(response);
         }
