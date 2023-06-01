@@ -76,6 +76,16 @@ namespace ires_api.Controllers
             return Ok(new ServerResponse<string>());
         }
 
+        [HttpGet("getcalendarevents")]
+        public async Task<IActionResult> GetCalendarEvents(DateTime startDate, DateTime endDate)
+        {
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var serverResponse = new ServerResponse<ICollection<EventDto>>
+            {
+                Data = await _appService.GetEvents(identity.companyid ?? 0, startDate.Date, endDate.Date)
+            };
+            return Ok(serverResponse);
+        }
 
     }
 }
