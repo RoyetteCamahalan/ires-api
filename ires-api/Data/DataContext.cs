@@ -63,6 +63,30 @@ namespace ires_api.Data
                 .HasOne(c => c.bank)
                 .WithMany(b => b.bankTransfers).HasForeignKey(c => c.bankid);
 
+            modelBuilder.Entity<Booking>()
+                .HasOne(c => c.car).WithMany().HasForeignKey(c => c.carid);
+            modelBuilder.Entity<Booking>()
+                .HasOne(c => c.client).WithMany().HasForeignKey(c => c.clientid);
+
+            modelBuilder.Entity<Car>()
+                .HasOne(c => c.carType).WithMany().HasForeignKey(c => c.typeid);
+
+            modelBuilder.Entity<CarMaintenance>()
+                .HasOne(c => c.car).WithMany().HasForeignKey(c => c.carid);
+            modelBuilder.Entity<CarMaintenance>()
+                .HasOne(c => c.maintenanceType).WithMany().HasForeignKey(c => c.typeid);
+
+            modelBuilder.Entity<CarType>().HasData(
+                    new CarType { id = 1, name = "Hatchback", isactive = true },
+                    new CarType { id = 2, name = "Sedan", isactive = true },
+                    new CarType { id = 3, name = "Minivan", isactive = true },
+                    new CarType { id = 4, name = "Crossover", isactive = true },
+                    new CarType { id = 5, name = "Pickup", isactive = true },
+                    new CarType { id = 6, name = "SUV", isactive = true },
+                    new CarType { id = 7, name = "Van", isactive = true },
+                    new CarType { id = 8, name = "Others", isactive = true }
+                );
+
             modelBuilder.Entity<CashDisbursement>()
                 .HasOne(c => c.office).WithMany().HasForeignKey(c => c.accountid);
 
@@ -94,6 +118,12 @@ namespace ires_api.Data
                 .WithMany(c => c.expenseTypes)
                 .HasForeignKey(e => e.expensetypecat);
 
+            modelBuilder.Entity<MaintenanceType>().HasData(
+                    new MaintenanceType { id = 1, name = "Repair and Maintenance", isactive = true },
+                    new MaintenanceType { id = 2, name = "Registration Renewal", isactive = true },
+                    new MaintenanceType { id = 3, name = "Personal Use", isactive = true },
+                    new MaintenanceType { id = 4, name = "Others", isactive = true }
+                );
 
             modelBuilder.Entity<PaymentDetail>()
                 .HasOne(c => c.payment)
@@ -129,6 +159,9 @@ namespace ires_api.Data
         public DbSet<Bill> bills { get; set; }
         public DbSet<Booking> bookings { get; set; }
         public DbSet<CashDisbursement> cashDisbursements { get; set; }
+        public DbSet<Car> cars { get; set; }
+        public DbSet<CarMaintenance> carMaintenances { get; set; }
+        public DbSet<CarType> carTypes { get; set; }
         public DbSet<Client> clients { get; set; }
         public DbSet<Company> companies { get; set; }
         public DbSet<Employee> employees { get; set; }
@@ -137,6 +170,7 @@ namespace ires_api.Data
         public DbSet<ExpenseTypeCategory> expenseTypeCategories { get; set; }
         public DbSet<Log> logs { get; set; }
         public DbSet<Lot> lots { get; set; }
+        public DbSet<MaintenanceType> maintenanceTypes { get; set; }
         public DbSet<Module> modules { get; set; }
         public DbSet<Notification> notifications { get; set; }
         public DbSet<Office> offices { get; set; }

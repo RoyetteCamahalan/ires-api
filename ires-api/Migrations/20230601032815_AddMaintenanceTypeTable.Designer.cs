@@ -12,8 +12,8 @@ using ires_api.Data;
 namespace ires_api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230529072142_AddBookingTable")]
-    partial class AddBookingTable
+    [Migration("20230601032815_AddMaintenanceTypeTable")]
+    partial class AddMaintenanceTypeTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -317,21 +317,180 @@ namespace ires_api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
 
+                    b.Property<long>("carid")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("clientid")
                         .HasColumnType("bigint");
 
                     b.Property<int>("companyid")
                         .HasColumnType("int");
 
+                    b.Property<string>("drivername")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
                     b.Property<DateTime>("enddate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("isselfdrive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("noofdays")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("rate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ratetype")
+                        .HasColumnType("int");
+
+                    b.Property<string>("remarks")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("startdate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("totalrate")
+                        .HasColumnType("decimal(18,2)");
+
                     b.HasKey("id");
 
+                    b.HasIndex("carid");
+
+                    b.HasIndex("clientid");
+
                     b.ToTable("bookings");
+                });
+
+            modelBuilder.Entity("ires_api.Models.Car", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<int>("companyid")
+                        .HasColumnType("int");
+
+                    b.Property<long>("createdbyid")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("datecreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("dateupdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("isactive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("model")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("platenumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("typeid")
+                        .HasColumnType("int");
+
+                    b.Property<long>("updatedbyid")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("year")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("typeid");
+
+                    b.ToTable("cars");
+                });
+
+            modelBuilder.Entity("ires_api.Models.CarType", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<bool>("isactive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("cartypes");
+
+                    b.HasData(
+                        new
+                        {
+                            id = 1,
+                            isactive = true,
+                            name = "Hatchback"
+                        },
+                        new
+                        {
+                            id = 2,
+                            isactive = true,
+                            name = "Sedan"
+                        },
+                        new
+                        {
+                            id = 3,
+                            isactive = true,
+                            name = "Minivan"
+                        },
+                        new
+                        {
+                            id = 4,
+                            isactive = true,
+                            name = "Crossover"
+                        },
+                        new
+                        {
+                            id = 5,
+                            isactive = true,
+                            name = "Pickup"
+                        },
+                        new
+                        {
+                            id = 6,
+                            isactive = true,
+                            name = "SUV"
+                        },
+                        new
+                        {
+                            id = 7,
+                            isactive = true,
+                            name = "Van"
+                        },
+                        new
+                        {
+                            id = 8,
+                            isactive = true,
+                            name = "Others"
+                        });
                 });
 
             modelBuilder.Entity("ires_api.Models.CashDisbursement", b =>
@@ -805,6 +964,53 @@ namespace ires_api.Migrations
                     b.HasKey("lot_id");
 
                     b.ToTable("lot");
+                });
+
+            modelBuilder.Entity("ires_api.Models.MaintenanceType", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<bool>("isactive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("maintenancetypes");
+
+                    b.HasData(
+                        new
+                        {
+                            id = 1,
+                            isactive = true,
+                            name = "Repair and Maintenance"
+                        },
+                        new
+                        {
+                            id = 2,
+                            isactive = true,
+                            name = "Registration Renewal"
+                        },
+                        new
+                        {
+                            id = 3,
+                            isactive = true,
+                            name = "Personal Use"
+                        },
+                        new
+                        {
+                            id = 4,
+                            isactive = true,
+                            name = "Others"
+                        });
                 });
 
             modelBuilder.Entity("ires_api.Models.Module", b =>
@@ -1570,6 +1776,36 @@ namespace ires_api.Migrations
                     b.Navigation("bank");
 
                     b.Navigation("payment");
+                });
+
+            modelBuilder.Entity("ires_api.Models.Booking", b =>
+                {
+                    b.HasOne("ires_api.Models.Car", "car")
+                        .WithMany()
+                        .HasForeignKey("carid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ires_api.Models.Client", "client")
+                        .WithMany()
+                        .HasForeignKey("clientid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("car");
+
+                    b.Navigation("client");
+                });
+
+            modelBuilder.Entity("ires_api.Models.Car", b =>
+                {
+                    b.HasOne("ires_api.Models.CarType", "carType")
+                        .WithMany()
+                        .HasForeignKey("typeid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("carType");
                 });
 
             modelBuilder.Entity("ires_api.Models.CashDisbursement", b =>
