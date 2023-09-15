@@ -97,7 +97,7 @@ namespace ires_api.Controllers
                     return BadRequest(serverResponse);
                 }
             }
-            var survey = _surveyService.UpdateStatus(requestDto.id, requestDto.status);
+            var survey = await _surveyService.UpdateStatus(requestDto.id, requestDto.status);
             if (survey == null)
             {
                 serverResponse.Success = false;

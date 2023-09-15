@@ -144,12 +144,12 @@ namespace ires_api.Controllers
             return Ok(response);
         }
 
-        [HttpGet("sendpasswordresetlink")]
+        [HttpPost("sendpasswordresetlink")]
         [AllowAnonymous]
-        public async Task<IActionResult> SendPasswordResetLink(string email)
+        public async Task<IActionResult> SendPasswordResetLink(StringDto stringDto)
         {
             var response = new ServerResponse<UserLoginDto>();
-            var employee = await _employeeService.GetEmployeeByEmail(email);
+            var employee = await _employeeService.GetEmployeeByEmail(stringDto.value);
             if (employee == null)
             {
                 response.Success = false;
@@ -166,7 +166,7 @@ namespace ires_api.Controllers
 
             var html = System.IO.File.ReadAllText(@"./Templates/PasswordReset.html");
             var body = html.Replace("{0}", employee.firstname).Replace("{1}", _configuration["uiBaseURL"] + "/resetpassword?token=" + token);
-            _mailService.SendEmailAsync("Reset your HexaByt Password", new List<string> { email }, body, true);
+            _mailService.SendEmailAsync("Reset your HexaByt Password", new List<string> { stringDto.value }, body, true);
             _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Profile", "Reset Password link request :" + token, 0);
 
             return Ok(response);

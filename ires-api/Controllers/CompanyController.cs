@@ -60,19 +60,29 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             company = await _companyService.RegisterAsync(requestDto);
-            requestDto.id = company.id;
-            this.sendConfirmationEmail(requestDto);
+            this.sendConfirmationEmail(company.id, requestDto.email);
             serverResponse.Data = _mapper.Map<CompanyDto>(company);
             return Ok(serverResponse);
         }
 
-        private void sendConfirmationEmail(CompanyRequestDto requestDto)
+        private void sendConfirmationEmail(int id, string email)
         {
             var html = System.IO.File.ReadAllText(@"./Templates/ConfirmationEmail.html");
-            var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", _configuration["uiBaseURL"] + "/company/confirmation?ref=" + Utility.URLEncrypt(requestDto.id.ToString()));
-            _mailService.SendEmailAsync("Email Confirmation", new List<string> { requestDto.email }, body, true);
+            var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", _configuration["uiBaseURL"] + "/company/confirmation?ref=" + Utility.URLEncrypt(id.ToString()));
+            _mailService.SendEmailAsync("Email Confirmation", new List<string> { email }, body, true);
         }
 
+        [HttpPost("resendconfirmation")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResendConfirmationAsync(IDRequestDto requestDto)
+        {
+            var employees = await _employeeService.GetEmployees(requestDto.id, "");
+            if (employees.Count > 0)
+            {
+                sendConfirmationEmail((int)requestDto.id, employees.First().email);
+            }
+            return Ok(new ServerResponse<Boolean> { Data = true });
+        }
 
         [HttpPost("verify")]
         [AllowAnonymous]

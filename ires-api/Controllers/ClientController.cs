@@ -67,7 +67,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ClientDto>(client);
+            serverResponse.Data = _mapper.Map<ClientDto>(result);
             return Ok(serverResponse);
         }
 

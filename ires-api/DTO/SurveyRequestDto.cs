@@ -11,6 +11,7 @@
         public DateTime? surveydate { get; set; }
         public string propertyname { get; set; } = string.Empty;
         public string address { get; set; } = string.Empty;
+        public decimal landarea { get; set; }
         public string details { get; set; } = string.Empty;
         public decimal contractprice { get; set; }
         public int status { get; set; }
