@@ -1,5 +1,5 @@
 ﻿using ires_api.Data;
-using ires_api.DTO;
+using ires_api.DTO.Survey;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.EntityFrameworkCore;

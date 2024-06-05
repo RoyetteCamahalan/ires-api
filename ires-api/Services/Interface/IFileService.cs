@@ -1,4 +1,4 @@
-﻿using ires_api.DTO;
+﻿using ires_api.DTO.Attachment;
 using ires_api.Models;
 
 namespace ires_api.Services.Interface

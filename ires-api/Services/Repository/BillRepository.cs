@@ -1,5 +1,5 @@
 ﻿using ires_api.Data;
-using ires_api.DTO;
+using ires_api.DTO.Payment;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.EntityFrameworkCore;

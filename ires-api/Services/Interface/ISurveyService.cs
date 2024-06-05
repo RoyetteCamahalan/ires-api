@@ -1,4 +1,4 @@
-﻿using ires_api.DTO;
+﻿using ires_api.DTO.Survey;
 using ires_api.Models;
 
 namespace ires_api.Services.Interface

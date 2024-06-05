@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ires_api.DTO;
+using ires_api.DTO.OtherCharge;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.AspNetCore.Authorization;

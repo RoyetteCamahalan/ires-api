@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using ires_api.Data;
-using ires_api.DTO;
+using ires_api.DTO.Project;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;

@@ -1,4 +1,5 @@
-﻿using ires_api.DTO;
+﻿using ires_api.DTO.BankAccount;
+using ires_api.DTO.Office;
 using ires_api.Models;
 
 namespace ires_api.Services.Interface

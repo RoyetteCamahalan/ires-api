@@ -1,4 +1,7 @@
-﻿using ires_api.DTO;
+﻿using ires_api.DTO.AccountPayable;
+using ires_api.DTO.Expense;
+using ires_api.DTO.ExpenseType;
+using ires_api.DTO.Vendor;
 using ires_api.Models;
 
 namespace ires_api.Services.Interface

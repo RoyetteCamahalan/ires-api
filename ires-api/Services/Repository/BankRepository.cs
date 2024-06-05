@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using ires_api.Data;
-using ires_api.DTO;
+using ires_api.DTO.Bank;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using ires_api.Services.Seeders;

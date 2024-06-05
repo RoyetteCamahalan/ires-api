@@ -1,4 +1,6 @@
-﻿namespace ires_api.DTO
+﻿using ires_api.DTO.Survey;
+
+namespace ires_api.DTO
 {
     public class EventDto
     {

@@ -1,5 +1,22 @@
 ﻿using AutoMapper;
 using ires_api.DTO;
+using ires_api.DTO.AccountPayable;
+using ires_api.DTO.Attachment;
+using ires_api.DTO.Bank;
+using ires_api.DTO.BankAccount;
+using ires_api.DTO.CashDisbursement;
+using ires_api.DTO.Client;
+using ires_api.DTO.Company;
+using ires_api.DTO.Employee;
+using ires_api.DTO.Expense;
+using ires_api.DTO.ExpenseType;
+using ires_api.DTO.Office;
+using ires_api.DTO.OtherCharge;
+using ires_api.DTO.Payment;
+using ires_api.DTO.Project;
+using ires_api.DTO.Survey;
+using ires_api.DTO.User;
+using ires_api.DTO.Vendor;
 using ires_api.Models;
 
 namespace ires_api
