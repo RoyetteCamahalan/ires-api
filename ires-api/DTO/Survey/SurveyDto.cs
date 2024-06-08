@@ -1,4 +1,4 @@
-﻿using ires_api.Models;
+﻿using ires_api.DTO.Client;
 
 namespace ires_api.DTO.Survey
 {
@@ -20,6 +20,6 @@ namespace ires_api.DTO.Survey
         public int status { get; set; }
         public long createdbyid { get; set; }
         public long updatedbyid { get; set; }
-        public Client? client { get; set; }
+        public ClientDto? client { get; set; }
     }
 }

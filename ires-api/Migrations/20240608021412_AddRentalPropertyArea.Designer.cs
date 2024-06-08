@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires_api.Data;
 
@@ -11,9 +12,11 @@ using ires_api.Data;
 namespace ires_api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240608021412_AddRentalPropertyArea")]
+    partial class AddRentalPropertyArea
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1549,7 +1552,7 @@ namespace ires_api.Migrations
                     b.ToTable("property");
                 });
 
-            modelBuilder.Entity("ires_api.Models.RentalContract", b =>
+            modelBuilder.Entity("ires_api.Models.RentalContracts", b =>
                 {
                     b.Property<long>("contractid")
                         .ValueGeneratedOnAdd()
@@ -1584,12 +1587,6 @@ namespace ires_api.Migrations
                     b.Property<decimal>("deposit")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("ewtpercentage")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("monthlypenalty")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("montlyrent")
                         .HasColumnType("decimal(18,2)");
 
@@ -1599,8 +1596,8 @@ namespace ires_api.Migrations
                     b.Property<int>("noofmonthdeposit")
                         .HasColumnType("int");
 
-                    b.Property<int>("penaltyextension")
-                        .HasColumnType("int");
+                    b.Property<long>("propertyid")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("status")
                         .HasColumnType("int");
@@ -1618,39 +1615,9 @@ namespace ires_api.Migrations
 
                     b.HasIndex("custid");
 
-                    b.ToTable("rentalcontracts");
-                });
-
-            modelBuilder.Entity("ires_api.Models.RentalContractDetail", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<long>("contractid")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("createdbyid")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("datecreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("deleted_at")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("propertyid")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("contractid");
-
                     b.HasIndex("propertyid");
 
-                    b.ToTable("rentalcontractdetails");
+                    b.ToTable("rentalcontracts");
                 });
 
             modelBuilder.Entity("ires_api.Models.RentalProperty", b =>
@@ -2143,22 +2110,11 @@ namespace ires_api.Migrations
                     b.Navigation("module");
                 });
 
-            modelBuilder.Entity("ires_api.Models.RentalContract", b =>
+            modelBuilder.Entity("ires_api.Models.RentalContracts", b =>
                 {
                     b.HasOne("ires_api.Models.Client", "client")
                         .WithMany()
                         .HasForeignKey("custid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("client");
-                });
-
-            modelBuilder.Entity("ires_api.Models.RentalContractDetail", b =>
-                {
-                    b.HasOne("ires_api.Models.RentalContract", "rentalContract")
-                        .WithMany("rentalContractDetails")
-                        .HasForeignKey("contractid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2168,7 +2124,7 @@ namespace ires_api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("rentalContract");
+                    b.Navigation("client");
 
                     b.Navigation("rentalProperty");
                 });
@@ -2254,11 +2210,6 @@ namespace ires_api.Migrations
             modelBuilder.Entity("ires_api.Models.Project", b =>
                 {
                     b.Navigation("rentalProperties");
-                });
-
-            modelBuilder.Entity("ires_api.Models.RentalContract", b =>
-                {
-                    b.Navigation("rentalContractDetails");
                 });
 
             modelBuilder.Entity("ires_api.Models.SubscriptionPlan", b =>

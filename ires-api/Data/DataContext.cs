@@ -17,10 +17,6 @@ namespace ires_api.Data
                 .HasOne(e => e.company)
                 .WithMany(c => c.employees)
                 .HasForeignKey(e => e.companyid);
-            modelBuilder.Entity<RentalProperty>()
-                .HasOne(r => r.project)
-                .WithMany(p => p.rentalProperties)
-                .HasForeignKey(r => r.projectid);
             modelBuilder.Entity<Survey>()
                 .HasOne(s => s.client)
                 .WithMany(c => c.surveys)
@@ -145,6 +141,26 @@ namespace ires_api.Data
                 .WithMany()
                 .HasForeignKey(e => e.moduleid);
 
+            modelBuilder.Entity<RentalProperty>()
+                .HasOne(r => r.project)
+                .WithMany(p => p.rentalProperties)
+                .HasForeignKey(r => r.projectid);
+
+            modelBuilder.Entity<RentalContract>()
+                .HasOne(r => r.client)
+                .WithMany()
+                .HasForeignKey(r => r.custid);
+
+            modelBuilder.Entity<RentalContractDetail>()
+                .HasOne(r => r.rentalContract)
+                .WithMany(d => d.rentalContractDetails)
+                .HasForeignKey(r => r.contractid);
+
+            modelBuilder.Entity<RentalContractDetail>()
+                .HasOne(r => r.rentalProperty)
+                .WithMany()
+                .HasForeignKey(r => r.propertyid);
+
             modelBuilder.Entity<UserPrivilege>()
                 .HasOne(s => s.module)
                 .WithMany()
@@ -181,6 +197,8 @@ namespace ires_api.Data
         public DbSet<PlanModule> planModules { get; set; }
         public DbSet<Project> projects { get; set; }
         public DbSet<RentalProperty> rentalProperties { get; set; }
+        public DbSet<RentalContract> rentalContracts { get; set; }
+        public DbSet<RentalContractDetail> rentalContractDetails { get; set; }
         public DbSet<Survey> surveys { get; set; }
         public DbSet<SubscriptionPlan> subscriptionPlans { get; set; }
         public DbSet<UserPrivilege> userPrivileges { get; set; }

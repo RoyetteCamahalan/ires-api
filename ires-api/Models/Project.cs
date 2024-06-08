@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ires_api.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires_api.Models
@@ -14,6 +15,7 @@ namespace ires_api.Models
         public string address { get; set; } = string.Empty;
         public string alias { get; set; } = string.Empty;
         public decimal area { get; set; }
+        public Boolean isjointventure { get; set; }
         public int computationtype { get; set; }
         public decimal defaultcommission { get; set; }
         public decimal com_percentage { get; set; }
@@ -26,6 +28,7 @@ namespace ires_api.Models
         public decimal withholding { get; set; }
         public int interesttype { get; set; }
         public decimal addoninterestpermonth { get; set; }
+        public ProjectType projectypeid { get; set; }
         public List<RentalProperty> rentalProperties { get; set; } = new List<RentalProperty>();
 
     }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires_api.Data;
 
@@ -11,9 +12,11 @@ using ires_api.Data;
 namespace ires_api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240608120949_UpdatedRentalContractCols")]
+    partial class UpdatedRentalContractCols
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1549,7 +1552,7 @@ namespace ires_api.Migrations
                     b.ToTable("property");
                 });
 
-            modelBuilder.Entity("ires_api.Models.RentalContract", b =>
+            modelBuilder.Entity("ires_api.Models.RentalContracts", b =>
                 {
                     b.Property<long>("contractid")
                         .ValueGeneratedOnAdd()
@@ -1619,38 +1622,6 @@ namespace ires_api.Migrations
                     b.HasIndex("custid");
 
                     b.ToTable("rentalcontracts");
-                });
-
-            modelBuilder.Entity("ires_api.Models.RentalContractDetail", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<long>("contractid")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("createdbyid")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("datecreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("deleted_at")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("propertyid")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("contractid");
-
-                    b.HasIndex("propertyid");
-
-                    b.ToTable("rentalcontractdetails");
                 });
 
             modelBuilder.Entity("ires_api.Models.RentalProperty", b =>
@@ -2143,7 +2114,7 @@ namespace ires_api.Migrations
                     b.Navigation("module");
                 });
 
-            modelBuilder.Entity("ires_api.Models.RentalContract", b =>
+            modelBuilder.Entity("ires_api.Models.RentalContracts", b =>
                 {
                     b.HasOne("ires_api.Models.Client", "client")
                         .WithMany()
@@ -2152,25 +2123,6 @@ namespace ires_api.Migrations
                         .IsRequired();
 
                     b.Navigation("client");
-                });
-
-            modelBuilder.Entity("ires_api.Models.RentalContractDetail", b =>
-                {
-                    b.HasOne("ires_api.Models.RentalContract", "rentalContract")
-                        .WithMany("rentalContractDetails")
-                        .HasForeignKey("contractid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ires_api.Models.RentalProperty", "rentalProperty")
-                        .WithMany()
-                        .HasForeignKey("propertyid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("rentalContract");
-
-                    b.Navigation("rentalProperty");
                 });
 
             modelBuilder.Entity("ires_api.Models.RentalProperty", b =>
@@ -2254,11 +2206,6 @@ namespace ires_api.Migrations
             modelBuilder.Entity("ires_api.Models.Project", b =>
                 {
                     b.Navigation("rentalProperties");
-                });
-
-            modelBuilder.Entity("ires_api.Models.RentalContract", b =>
-                {
-                    b.Navigation("rentalContractDetails");
                 });
 
             modelBuilder.Entity("ires_api.Models.SubscriptionPlan", b =>

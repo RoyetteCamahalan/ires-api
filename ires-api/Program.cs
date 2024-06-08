@@ -13,7 +13,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("corspolicy", b =>
     {
-        b.WithOrigins(builder.Configuration.GetValue<string>("uiBaseURL") ?? "").AllowAnyHeader().AllowAnyMethod();
+        b.WithOrigins(builder.Configuration.GetSection("uiBaseURLs").Get<string[]>()).AllowAnyHeader().AllowAnyMethod();
     });
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -55,6 +55,7 @@ builder.Services.AddScoped<IExpenseService, ExpenseRepository>();
 builder.Services.AddScoped<IFileService, FileRepository>();
 builder.Services.AddScoped<ILogService, LogRepository>();
 builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
+builder.Services.AddScoped<IProjectService, ProjectRepository>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

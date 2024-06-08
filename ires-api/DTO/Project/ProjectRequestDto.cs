@@ -1,4 +1,6 @@
-﻿namespace ires_api.DTO.Project
+﻿using ires_api.Enumerations;
+
+namespace ires_api.DTO.Project
 {
     public class ProjectRequestDto
     {
@@ -20,5 +22,6 @@
         public decimal withholding { get; set; }
         public int interesttype { get; set; }
         public decimal addoninterestpermonth { get; set; }
+        public ProjectType projectypeid { get; set; }
     }
 }

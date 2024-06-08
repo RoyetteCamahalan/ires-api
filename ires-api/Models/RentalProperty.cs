@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ires_api.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires_api.Models
@@ -12,10 +13,10 @@ namespace ires_api.Models
 
         public long projectid { get; set; }
         public string propertyname { get; set; } = string.Empty;
-        public string address { get; set; } = string.Empty;
-        public string contactno { get; set; } = string.Empty;
+        public string area { get; set; } = string.Empty;
         public decimal monthlyrent { get; set; } = 0;
         public string alias { get; set; } = string.Empty;
+        public RentalPropertyStatus status { get; set; }
 
         public Project? project { get; set; }
     }

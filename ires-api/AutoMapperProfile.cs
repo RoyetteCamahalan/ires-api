@@ -14,6 +14,9 @@ using ires_api.DTO.Office;
 using ires_api.DTO.OtherCharge;
 using ires_api.DTO.Payment;
 using ires_api.DTO.Project;
+using ires_api.DTO.RentalContract;
+using ires_api.DTO.RentalContractDetail;
+using ires_api.DTO.RentalUnit;
 using ires_api.DTO.Survey;
 using ires_api.DTO.User;
 using ires_api.DTO.Vendor;
@@ -77,8 +80,22 @@ namespace ires_api
             CreateMap<Office, OfficeDto>();
             CreateMap<Office, OfficeRequestDto>().ReverseMap();
 
+
+            CreateMap<RentalProjectRequestDto, ProjectRequestDto>();
+            CreateMap<Project, RentalProjectViewModel>();
             CreateMap<Project, ProjectRequestDto>()
                 .ReverseMap();
+
+
+
+            CreateMap<RentalUnitRequestDto, RentalProperty>().ForMember(x => x.status, opt => opt.Ignore());
+            CreateMap<RentalProperty, RentalUnitViewModel>().ReverseMap();
+
+            CreateMap<RentalContractRequestDto, RentalContract>();
+            CreateMap<RentalContract, RentalContractViewModel>().ReverseMap();
+
+            CreateMap<RentalContractDetailRequestDto, RentalContractDetail>();
+            CreateMap<RentalContractDetail, RentalContractDetailViewModel>().ReverseMap();
 
             CreateMap<UserPrivilege, UserPrivilegeDto>();
 
