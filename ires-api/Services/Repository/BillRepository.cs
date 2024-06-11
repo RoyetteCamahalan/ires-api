@@ -90,7 +90,7 @@ namespace ires_api.Services.Repository
                         bill.paymentrefno = responseDto.data.attributes.payments[0].id;
                         bill.paymentmode = responseDto.data.attributes.payment_method_used;
                         bill.status = Constants.BillStatus.paid;
-                        if (_dataContext.bills.Where(x => x.companyid == companyID && x.id != billID && x.status == Constants.BillStatus.open).Count() == 0)
+                        if (!_dataContext.bills.Where(x => x.companyid == companyID && x.id != billID && x.status == Constants.BillStatus.open).Any())
                         {
                             Company company = _dataContext.companies.Find(companyID);
                             company.subscriptionexpiry = (bill.dateend ?? DateTime.Now);

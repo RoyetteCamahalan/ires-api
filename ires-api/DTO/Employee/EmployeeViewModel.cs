@@ -1,9 +1,11 @@
-﻿namespace ires_api.DTO.Employee
+﻿using ires_api.DTO.Company;
+
+namespace ires_api.DTO.Employee
 {
-    public class EmployeeDto
+    public class EmployeeViewModel
     {
         public long employeeid { get; set; }
-        public long? companyid { get; set; }
+        public int companyid { get; set; }
         public string? firstname { get; set; }
         public string? lastname { get; set; }
         public string? middlename { get; set; }
@@ -14,5 +16,7 @@
         public string designation { get; set; } = string.Empty;
         public bool isactive { get; set; } = true;
         public bool isappsysadmin { get; set; } = false;
+
+        public CompanyViewModel? company { get; set; }
     }
 }

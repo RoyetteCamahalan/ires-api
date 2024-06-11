@@ -2,7 +2,7 @@
 
 namespace ires_api.DTO.Survey
 {
-    public class SurveyDto
+    public class SurveyViewModel
     {
         public int id { get; set; }
         public int companyid { get; set; }
@@ -20,6 +20,6 @@ namespace ires_api.DTO.Survey
         public int status { get; set; }
         public long createdbyid { get; set; }
         public long updatedbyid { get; set; }
-        public ClientDto? client { get; set; }
+        public ClientViewModel? client { get; set; }
     }
 }

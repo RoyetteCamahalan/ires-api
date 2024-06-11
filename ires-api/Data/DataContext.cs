@@ -133,7 +133,7 @@ namespace ires_api.Data
 
             modelBuilder.Entity<Payment>()
                 .HasOne(s => s.createdBy)
-                .WithMany(c => c.encodedPayments)
+                .WithMany()
                 .HasForeignKey(e => e.encodedby);
 
             modelBuilder.Entity<PlanModule>()

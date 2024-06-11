@@ -13,11 +13,13 @@ namespace ires_api.Services.Repository
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly IRentalService _rentalService;
 
-        public ProjectRepository(DataContext dataContext, IMapper mapper)
+        public ProjectRepository(DataContext dataContext, IMapper mapper, IRentalService rentalService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _rentalService = rentalService;
         }
         public async Task<RentalProjectViewModel> Create(ProjectRequestDto projectRequest)
         {
@@ -114,16 +116,14 @@ namespace ires_api.Services.Repository
                 && x.project.companyid == companyID && (x.propertyname.Contains(search) || x.area.Contains(search)))
                 .OrderBy(x => x.propertyname).ToListAsync();
             var data = _mapper.Map<ICollection<RentalUnitViewModel>>(result);
-            //foreach (var item in data)
-            //{
-            //    if(item.status == RentalPropertyStatus.Occupied)
-            //    {
-            //        var contract
-            //    }
-            //    var property = result.Where(x => x.propertyid == item.propertyid).First();
-            //    item.noofunits = property.rentalProperties.Count();
-            //    item.noofoccupiedunits = property.rentalProperties.Where(x => x.status == RentalPropertyStatus.Occupied).Count();
-            //}
+            foreach (var item in data)
+            {
+                if (item.status == RentalPropertyStatus.Occupied)
+                {
+                    var contract = await _rentalService.GetContractByUnit(item.propertyid);
+                    item.tenant = contract.client.fullname;
+                }
+            }
             return data;
         }
 
@@ -134,6 +134,16 @@ namespace ires_api.Services.Repository
                 .OrderBy(x => x.project.propertyname).ThenBy(x => x.propertyname).ToListAsync();
             var data = _mapper.Map<ICollection<RentalUnitViewModel>>(result);
             return data;
+        }
+
+        public async Task UpdateRentalUnitStatus(long id, RentalPropertyStatus status)
+        {
+            var entity = await GetRentalUnitById(id);
+            if (entity != null)
+            {
+                entity.status = status;
+                await _dataContext.SaveChangesAsync();
+            }
         }
     }
 }

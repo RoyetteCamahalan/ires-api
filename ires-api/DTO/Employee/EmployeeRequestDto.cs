@@ -11,8 +11,8 @@
         public string gender { get; set; } = string.Empty;
         public string? mobileno { get; set; }
         public string? email { get; set; }
-        public bool? isactive { get; set; }
-        public bool? isappsysadmin { get; set; }
+        public bool isactive { get; set; }
+        public bool isappsysadmin { get; set; }
         public string? username { get; set; }
         public string userpass { get; set; } = string.Empty;
         public string? designation { get; set; }

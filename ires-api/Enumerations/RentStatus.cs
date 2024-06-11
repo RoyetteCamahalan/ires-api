@@ -2,7 +2,7 @@
 {
     public enum RentStatus
     {
-        Active,
-        Inactive
+        Inactive,
+        Active
     }
 }

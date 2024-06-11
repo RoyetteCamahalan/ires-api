@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ires_api.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires_api.Models
@@ -10,7 +11,7 @@ namespace ires_api.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long id { get; set; }
         public int companyid { get; set; }
-        public int moduleid { get; set; }
+        public AppModule moduleid { get; set; }
         public string logtitle { get; set; } = string.Empty;
         public string logAction { get; set; } = string.Empty;
         public DateTime? logdate { get; set; }

@@ -1,8 +1,10 @@
-﻿namespace ires_api.DTO
+﻿using ires_api.Enumerations;
+
+namespace ires_api.DTO.Payment
 {
-    public class PayableDto
+    public class PayableViewModel
     {
-        public int payableType { get; set; } //See Constants.AppModules
+        public AppModule payableType { get; set; }
         public long payableID { get; set; }
         public string description { get; set; } = string.Empty;
         public decimal grossAmount { get; set; }

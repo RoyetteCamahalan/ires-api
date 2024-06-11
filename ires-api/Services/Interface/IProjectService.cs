@@ -1,5 +1,6 @@
 ﻿using ires_api.DTO.Project;
 using ires_api.DTO.RentalUnit;
+using ires_api.Enumerations;
 
 namespace ires_api.Services.Interface
 {
@@ -15,6 +16,7 @@ namespace ires_api.Services.Interface
 
         public Task<RentalUnitViewModel> CreateRentalUnit(RentalUnitRequestDto request);
         public Task<bool> UpdateRentalUnit(RentalUnitRequestDto request);
+        public Task UpdateRentalUnitStatus(long id, RentalPropertyStatus status);
         public Task<RentalUnitViewModel> GetRentalUnitByIdAsync(long id);
         public Task<ICollection<RentalUnitViewModel>> GetRentalUnits(long companyID, long projectID, string search);
         public Task<ICollection<RentalUnitViewModel>> GetAvailableRentalUnits(long companyID, string search);

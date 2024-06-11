@@ -14,7 +14,7 @@
         public string transtype { get; set; } = string.Empty; //See Constants.PaymentTransType
         public string paidby { get; set; } = string.Empty;
         public string remarks { get; set; } = string.Empty;
-        public List<PayableDto> payables { get; set; } = new List<PayableDto>();
+        public List<PayableRequestDto> payables { get; set; } = new List<PayableRequestDto>();
         public PaymentCheckRequestDto? paymentCheckRequestDto { get; set; }
         public BankTransferRequestDto? bankTransfer { get; set; }
     }

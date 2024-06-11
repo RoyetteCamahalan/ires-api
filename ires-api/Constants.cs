@@ -3,10 +3,6 @@
     public class Constants
     {
         public const string dateFormat = "MM/dd/yyyy";
-        public class AppModules
-        {
-            public const int survey = 15;
-        }
         public class InterestType
         {
             public const int notCompounding = 0;

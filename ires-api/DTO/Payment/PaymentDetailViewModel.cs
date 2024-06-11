@@ -1,14 +1,9 @@
 ﻿using ires_api.Enumerations;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ires_api.Models
+namespace ires_api.DTO.Payment
 {
-    [Table("paymentdetails")]
-    public class PaymentDetail
+    public class PaymentDetailViewModel
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long paymentdetailid { get; set; }
         public long chargeid { get; set; }
         public long otherfeeid { get; set; }
@@ -27,6 +22,6 @@ namespace ires_api.Models
         public string remarks_deletion { get; set; } = string.Empty;
         public AppModule payableType { get; set; }
         public long surveyid { get; set; }
-        public Payment? payment { get; set; }
+        public PaymentViewModel? payment { get; set; }
     }
 }

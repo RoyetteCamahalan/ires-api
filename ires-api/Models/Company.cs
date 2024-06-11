@@ -13,7 +13,7 @@ namespace ires_api.Models
         public string? contactno { get; set; }
         public bool? isactive { get; set; }
 
-        public bool? isverified { get; set; }
+        public bool isverified { get; set; }
         public int planid { get; set; }
         public DateTime? subscriptionexpiry { get; set; }
         public decimal storage { get; set; }

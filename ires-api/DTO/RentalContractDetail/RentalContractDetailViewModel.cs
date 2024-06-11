@@ -1,4 +1,5 @@
-﻿using ires_api.DTO.RentalUnit;
+﻿using ires_api.DTO.RentalContract;
+using ires_api.DTO.RentalUnit;
 
 namespace ires_api.DTO.RentalContractDetail
 {
@@ -8,7 +9,7 @@ namespace ires_api.DTO.RentalContractDetail
         public long contractid { get; set; }
         public long propertyid { get; set; }
 
-        public RentalContractDetailViewModel? rentalContract { get; set; }
+        public RentalContractViewModel? rentalContract { get; set; }
         public RentalUnitViewModel? rentalProperty { get; set; }
     }
 }

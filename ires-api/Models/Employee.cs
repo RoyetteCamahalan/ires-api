@@ -15,8 +15,8 @@ namespace ires_api.Models
         public string gender { get; set; } = String.Empty;
         public string? mobileno { get; set; }
         public string? email { get; set; }
-        public bool? isactive { get; set; }
-        public bool? isappsysadmin { get; set; }
+        public bool isactive { get; set; }
+        public bool isappsysadmin { get; set; }
         public string? username { get; set; }
         public string? userpass { get; set; }
         public string? designation { get; set; }
@@ -25,6 +25,5 @@ namespace ires_api.Models
         public string passwordresettoken { get; set; } = string.Empty;
 
         public Company? company { get; set; }
-        public List<Payment>? encodedPayments { get; set; }
     }
 }

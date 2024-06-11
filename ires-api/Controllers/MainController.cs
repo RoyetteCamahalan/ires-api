@@ -80,7 +80,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetCalendarEvents(DateTime startDate, DateTime endDate)
         {
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var serverResponse = new ServerResponse<ICollection<EventDto>>
+            var serverResponse = new ServerResponse<ICollection<EventViewModel>>
             {
                 Data = await _appService.GetEvents(identity.companyid ?? 0, startDate.Date, endDate.Date)
             };

@@ -1,44 +1,49 @@
-﻿using ires_api.Data;
+﻿using AutoMapper;
+using ires_api.Data;
 using ires_api.DTO.Attachment;
 using ires_api.Models;
 using ires_api.Services.Interface;
+using System.Data.Entity;
 
 namespace ires_api.Services.Repository
 {
     public class FileRepository : IFileService
     {
         private readonly DataContext _dataContext;
+        private readonly IMapper _mapper;
 
-        public FileRepository(DataContext dataContext)
+        public FileRepository(DataContext dataContext, IMapper mapper)
         {
             _dataContext = dataContext;
+            _mapper = mapper;
         }
 
         private Attachment GetAttachmentByID(long ID)
         {
             return _dataContext.attachments.Find(ID);
         }
-        public void DeleteFile(long ID)
+        public async Task DeleteFile(long ID)
         {
             var document = GetAttachmentByID(ID);
             if (document != null)
             {
                 document.isdeleted = true;
-                var company = _dataContext.companies.Find(document.companyid);
+                var company = await _dataContext.companies.FindAsync(document.companyid);
                 company.storage -= document.filesize;
                 string filename = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + document.companyid + "/" + document.filename);
                 if (File.Exists(filename))
                     File.Delete(filename);
-                _dataContext.SaveChanges();
+                await _dataContext.SaveChangesAsync();
             }
         }
 
-        public ICollection<Attachment> getFiles(int typeID, long attachableID, long lotID)
+        public async Task<ICollection<AttachmentViewModel>> getFiles(int typeID, long attachableID, long lotID)
         {
-            return _dataContext.attachments.Where(x => x.typeid == typeID && x.invoiceno == attachableID && x.lotid == lotID && !x.isdeleted).ToList();
+            var result = await _dataContext.attachments.Where(x => x.typeid == typeID && x.invoiceno == attachableID && x.lotid == lotID && !x.isdeleted).ToListAsync();
+            return _mapper.Map<ICollection<AttachmentViewModel>>(result);
         }
 
-        public Attachment uploadFile(AttachmentRequestDto requestDto)
+        public async Task<AttachmentViewModel> uploadFile(AttachmentRequestDto requestDto)
         {
             Attachment attachment = new Attachment
             {
@@ -75,10 +80,10 @@ namespace ires_api.Services.Repository
                     }
                     attachment.filename = filename;
                     _dataContext.attachments.Add(attachment);
-                    var company = _dataContext.companies.Find(requestDto.companyid);
+                    var company = await _dataContext.companies.FindAsync(requestDto.companyid);
                     company.storage += attachment.filesize;
-                    _dataContext.SaveChanges();
-                    return attachment;
+                    await _dataContext.SaveChangesAsync();
+                    return _mapper.Map<AttachmentViewModel>(attachment);
                 }
                 catch (Exception)
                 {

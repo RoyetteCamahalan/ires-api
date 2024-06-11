@@ -9,5 +9,6 @@ namespace ires_api.DTO.RentalContractDetail
         public long contractid { get; set; }
         [Required]
         public long propertyid { get; set; }
+        public long createdbyid { get; set; }
     }
 }

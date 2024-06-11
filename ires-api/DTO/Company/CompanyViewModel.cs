@@ -1,6 +1,6 @@
 ﻿namespace ires_api.DTO.Company
 {
-    public class CompanyDto
+    public class CompanyViewModel
     {
         public int id { get; set; }
         public string? name { get; set; }
@@ -9,5 +9,6 @@
         public DateTime? subscriptionexpiry { get; set; }
         public int planid { get; set; }
         public bool isexpired { get; set; }
+        public bool isverified { get; set; }
     }
 }

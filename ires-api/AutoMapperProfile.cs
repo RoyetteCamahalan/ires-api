@@ -28,7 +28,7 @@ namespace ires_api
     {
         public AutoMapperProfile()
         {
-            CreateMap<Attachment, AttachmentDto>();
+            CreateMap<Attachment, AttachmentViewModel>();
 
             CreateMap<AccountPayable, AccountPayableDto>();
             CreateMap<AccountPayable, AccountPayableRequestDto>().ReverseMap();
@@ -46,8 +46,9 @@ namespace ires_api
             CreateMap<CashDisbursement, CashDisbursementDto>();
             CreateMap<CashDisbursement, CashDisbursementRequestDto>().ReverseMap();
 
-            CreateMap<Client, ClientDto>().ReverseMap();
-            CreateMap<Company, CompanyDto>()
+            CreateMap<ClientRequestDto, Client>();
+            CreateMap<Client, ClientViewModel>();
+            CreateMap<Company, CompanyViewModel>()
                 .ForMember(dest => dest.isexpired,
                 opts => opts.MapFrom(src =>
                 src.subscriptionexpiry < DateTime.Now.AddDays(-1)));
@@ -56,11 +57,10 @@ namespace ires_api
                 opts => opts.MapFrom(src =>
                 src.subscriptionexpiry < DateTime.Now.AddDays(-1)));
 
-            CreateMap<Employee, EmployeeDto>();
+            CreateMap<EmployeeRequestDto, Employee>();
+            CreateMap<Employee, EmployeeViewModel>();
 
-            CreateMap<Employee, EmployeeRequestDto>().ReverseMap();
-
-            CreateMap<Employee, UserLoginDto>()
+            CreateMap<EmployeeViewModel, UserLoginViewModel>()
                 .ForMember(dest => dest.company,
                 opts => opts.MapFrom(src =>
                 src.company));
@@ -91,23 +91,28 @@ namespace ires_api
             CreateMap<RentalUnitRequestDto, RentalProperty>().ForMember(x => x.status, opt => opt.Ignore());
             CreateMap<RentalProperty, RentalUnitViewModel>().ReverseMap();
 
-            CreateMap<RentalContractRequestDto, RentalContract>();
-            CreateMap<RentalContract, RentalContractViewModel>().ReverseMap();
+            CreateMap<RentalContractRequestDto, RentalContract>()
+                .ForMember(x => x.rentalContractDetails, opt => opt.Ignore())
+                .ForMember(x => x.term, opt => opt.MapFrom(y => y.term ?? 0))
+                .ForMember(x => x.monthlypenalty, opt => opt.MapFrom(y => y.monthlypenalty ?? 0))
+                .ForMember(x => x.penaltyextension, opt => opt.MapFrom(y => y.penaltyextension ?? 0));
+            CreateMap<RentalContract, RentalContractViewModel>();
 
             CreateMap<RentalContractDetailRequestDto, RentalContractDetail>();
             CreateMap<RentalContractDetail, RentalContractDetailViewModel>().ReverseMap();
 
-            CreateMap<UserPrivilege, UserPrivilegeDto>();
+            CreateMap<UserPrivilege, UserPrivilegeViewModel>();
 
-            CreateMap<Survey, SurveyDto>();
-            CreateMap<Survey, SurveyRequestDto>().ReverseMap();
+            CreateMap<SurveyRequestDto, Survey>();
+            CreateMap<Survey, SurveyViewModel>();
 
             CreateMap<OtherCharge, OtherChargeDto>();
             CreateMap<OtherCharge, OtherChargeRequestDto>().ReverseMap();
-            CreateMap<Payment, PaymentRequestDto>().ReverseMap();
-            CreateMap<Payment, PaymentDto>();
+            CreateMap<PaymentRequestDto, Payment>().ReverseMap();
+            CreateMap<Payment, PaymentViewModel>();
             //.ForMember(dest => dest.client, opts => opts.MapFrom(src => src.client));
             CreateMap<PaymentCheck, PaymentCheckRequestDto>().ReverseMap();
+            CreateMap<PaymentDetail, PaymentDetailViewModel>();
             CreateMap<SubscriptionPlan, PlanDto>();
 
             CreateMap<Vendor, VendorDto>();

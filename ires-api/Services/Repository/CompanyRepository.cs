@@ -1,4 +1,5 @@
-﻿using ires_api.Data;
+﻿using AutoMapper;
+using ires_api.Data;
 using ires_api.DTO.Company;
 using ires_api.Models;
 using ires_api.Services.Interface;
@@ -10,14 +11,17 @@ namespace ires_api.Services.Repository
     public class CompanyRepository : ICompanyService
     {
         private readonly DataContext _dataContext;
+        private readonly IMapper _mapper;
 
-        public CompanyRepository(DataContext dataContext)
+        public CompanyRepository(DataContext dataContext, IMapper mapper)
         {
             _dataContext = dataContext;
+            _mapper = mapper;
         }
-        public async Task<ICollection<Company>> GetCompanies()
+        public async Task<ICollection<CompanyViewModel>> GetCompanies()
         {
-            return await _dataContext.companies.ToListAsync();
+            var result = await _dataContext.companies.ToListAsync();
+            return _mapper.Map<ICollection<CompanyViewModel>>(result);
         }
 
         public async Task<Company> GetCompanyByID(int id)
@@ -25,12 +29,19 @@ namespace ires_api.Services.Repository
             return await _dataContext.companies.FindAsync(id);
         }
 
-        public async Task<Company> GetCompanyByName(string name)
+        public async Task<CompanyViewModel> GetByID(int id)
         {
-            return await _dataContext.companies.Where(x => x.name == name).FirstOrDefaultAsync();
+            var result = await GetCompanyByID(id);
+            return _mapper.Map<CompanyViewModel>(result);
         }
 
-        public async Task<Company> RegisterAsync(CompanyRequestDto requestDto)
+        public async Task<CompanyViewModel> GetCompanyByName(string name)
+        {
+            var result = await _dataContext.companies.Where(x => x.name == name).FirstOrDefaultAsync();
+            return _mapper.Map<CompanyViewModel>(result);
+        }
+
+        public async Task<CompanyViewModel> RegisterAsync(CompanyRequestDto requestDto)
         {
             Company company = new Company
             {
@@ -60,12 +71,12 @@ namespace ires_api.Services.Repository
             BankSeeder bankSeeder = new BankSeeder(_dataContext);
             await bankSeeder.Seed(company.id, false);
             await bankSeeder.Seed(company.id, true);
-            return company;
+            return _mapper.Map<CompanyViewModel>(company);
         }
 
         public async Task<bool> Verify(int id)
         {
-            var company = await GetCompanyByID(id);
+            var company = await GetByID(id);
             if (company == null)
                 return false;
             company.isverified = true;

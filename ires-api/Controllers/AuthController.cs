@@ -58,7 +58,7 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> login(UserLoginRequestDto requestDto)
         {
-            var response = new ServerResponse<UserLoginDto>();
+            var response = new ServerResponse<UserLoginViewModel>();
             var employee = await _employeeService.LoginAsync(requestDto.username, Utility.GetHash(requestDto.password));
             if (employee == null)
             {
@@ -73,7 +73,7 @@ namespace ires_api.Controllers
                 return BadRequest(response);
             }
 
-            response.Data = _mapper.Map<UserLoginDto>(employee);
+            response.Data = _mapper.Map<UserLoginViewModel>(employee);
             //response.Data.userPrivileges = await _employeeService.GetUserPrivilegesByModule(employee.employeeid);
             //response.Data.LoadPrivileges(_mapper, await _employeeService.GetUserPrivileges(employee.employeeid));
             response.Data.Token = GenerateToken(employee);
@@ -81,7 +81,7 @@ namespace ires_api.Controllers
             return Ok(response);
         }
 
-        private string GenerateToken(Employee employee)
+        private string GenerateToken(EmployeeViewModel employee)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? ""));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -94,7 +94,7 @@ namespace ires_api.Controllers
                 new Claim(ClaimTypes.Email, employee.email ?? ""),
                 new Claim(ClaimTypes.GivenName, employee.firstname ?? ""),
                 new Claim(ClaimTypes.Surname, employee.lastname ?? ""),
-                new Claim(ClaimTypes.Role, (employee.isappsysadmin ?? false) ? "Admin" : "User")
+                new Claim(ClaimTypes.Role, (employee.isappsysadmin) ? "Admin" : "User")
             };
             var token = new JwtSecurityToken(_configuration["Jwt.Issuer"],
                 _configuration["Jwt.Audience"],
@@ -107,7 +107,7 @@ namespace ires_api.Controllers
         [HttpPost("systemoverride")]
         public async Task<IActionResult> SystemOverride(UserLoginRequestDto requestDto)
         {
-            var response = new ServerResponse<UserLoginDto>();
+            var response = new ServerResponse<UserLoginViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (identity == null)
             {
@@ -135,22 +135,22 @@ namespace ires_api.Controllers
                 response.Message = "Your account is unverified. Please check your email.";
                 return BadRequest(response);
             }
-            else if (employee != null && !(employee.isappsysadmin ?? false))
+            else if (employee != null && !(employee.isappsysadmin))
             {
                 response.Success = false;
                 response.Message = "Your account is not an Admin.";
                 return BadRequest(response);
             }
 
-            response.Data = _mapper.Map<UserLoginDto>(employee);
+            response.Data = _mapper.Map<UserLoginViewModel>(employee);
             return Ok(response);
         }
 
         [HttpPost("sendpasswordresetlink")]
         [AllowAnonymous]
-        public async Task<IActionResult> SendPasswordResetLink(StringDto stringDto)
+        public async Task<IActionResult> SendPasswordResetLink(StringViewModel stringDto)
         {
-            var response = new ServerResponse<UserLoginDto>();
+            var response = new ServerResponse<UserLoginViewModel>();
             var employee = await _employeeService.GetEmployeeByEmail(stringDto.value);
             if (employee == null)
             {
@@ -158,7 +158,7 @@ namespace ires_api.Controllers
                 response.Message = "Sorry, we couldn't find you email in our list";
                 return BadRequest(response);
             }
-            if (!(employee.isactive ?? false) || !(employee.company.isverified ?? false))
+            if (!(employee.isactive) || !(employee.company.isverified))
             {
                 response.Success = false;
                 response.Message = "Sorry, your account is not active or unverified";
@@ -177,7 +177,7 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ValidatePasswordResetToken(string token)
         {
-            var response = new ServerResponse<UserLoginDto>();
+            var response = new ServerResponse<UserLoginViewModel>();
             var employee = await _employeeService.GetPasswordToken(token);
             response.Success = employee != null;
             return Ok(response);
@@ -187,7 +187,7 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] PasswordRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<EmployeeDto>();
+            var serverResponse = new ServerResponse<EmployeeViewModel>();
             var employee = await _employeeService.GetPasswordToken(requestDto.token);
             if (employee == null)
             {

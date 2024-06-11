@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ires_api.DTO;
+﻿using ires_api.DTO;
 using ires_api.DTO.Client;
 using ires_api.Models;
 using ires_api.Services.Interface;
@@ -12,24 +11,22 @@ namespace ires_api.Controllers
     [ApiController]
     public class ClientController : ControllerBase
     {
-        private readonly IMapper _mapper;
         private readonly IClientService _clientService;
         private readonly IMailService _mailService;
 
-        public ClientController(IMapper mapper, IClientService clientService, IMailService mailService)
+        public ClientController(IClientService clientService, IMailService mailService)
         {
-            _mapper = mapper;
             _clientService = clientService;
             _mailService = mailService;
         }
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<ClientDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<ClientViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            List<ClientDto> clientDtos = _mapper.Map<List<ClientDto>>(await _clientService.GetClients(identity.companyid ?? 0, search ?? ""));
-            var paginator = new PaginatorDto<ClientDto>(currentPage);
-            paginator.Paginate(clientDtos);
+            var result = await _clientService.GetClients(identity.companyid ?? 0, search ?? "");
+            var paginator = new PaginatorDto<ClientViewModel>(currentPage);
+            paginator.Paginate(result);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -39,21 +36,21 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Get(long id)
         {
-            var serverResponse = new ServerResponse<ClientDto>();
-            var client = await _clientService.GetClientById(id);
+            var serverResponse = new ServerResponse<ClientViewModel>();
+            var client = await _clientService.GetByID(id);
             if (client == null)
             {
                 serverResponse.Success = false;
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ClientDto>(client);
+            serverResponse.Data = client;
             return Ok(serverResponse);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ClientDto requestDto)
+        public async Task<IActionResult> Post([FromBody] ClientRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<ClientDto>();
+            var serverResponse = new ServerResponse<ClientViewModel>();
             var client = await _clientService.GetClientByName(requestDto.companyid, requestDto.lname, requestDto.fname);
             if (client != null)
             {
@@ -68,16 +65,15 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ClientDto>(result);
+            serverResponse.Data = result;
             return Ok(serverResponse);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Put([FromBody] ClientDto requestDto)
+        public async Task<IActionResult> Put([FromBody] ClientRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<ClientDto>();
-            var client = await _clientService.Update(requestDto);
-            if (client == null)
+            var serverResponse = new ServerResponse<ClientViewModel>();
+            if (!await _clientService.Update(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
@@ -90,8 +86,10 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public IActionResult SendMail([FromBody] SendMailRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<Boolean>();
-            serverResponse.Success = _mailService.SendEmailAsync("Message From: " + requestDto.name, new List<string> { _mailService.GetPublicEmail() }, "Email: " + requestDto.email + " Message: " + requestDto.message);
+            var serverResponse = new ServerResponse<Boolean>
+            {
+                Success = _mailService.SendEmailAsync("Message From: " + requestDto.name, new List<string> { _mailService.GetPublicEmail() }, "Email: " + requestDto.email + " Message: " + requestDto.message)
+            };
             if (!serverResponse.Success)
             {
                 serverResponse.Message = "Unable to process request";

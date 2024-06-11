@@ -39,7 +39,6 @@ namespace ires_api.Controllers
         }
 
         [HttpGet("getrentalproperty/{id}")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetRentalProperty(long id)
         {
             var serverResponse = new ServerResponse<RentalProjectViewModel>();

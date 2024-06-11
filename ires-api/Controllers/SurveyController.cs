@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ires_api.DTO;
+﻿using ires_api.DTO;
 using ires_api.DTO.Survey;
 using ires_api.Models;
 using ires_api.Services.Interface;
@@ -12,24 +11,22 @@ namespace ires_api.Controllers
     [ApiController]
     public class SurveyController : ControllerBase
     {
-        private readonly IMapper _mapper;
         private readonly ISurveyService _surveyService;
         private readonly IPaymentService _paymentService;
 
-        public SurveyController(IMapper mapper, ISurveyService surveyService, IPaymentService paymentService)
+        public SurveyController(ISurveyService surveyService, IPaymentService paymentService)
         {
-            _mapper = mapper;
             _surveyService = surveyService;
             _paymentService = paymentService;
         }
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<SurveyDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<SurveyViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            List<SurveyDto> surveyDtos = _mapper.Map<List<SurveyDto>>(await _surveyService.GetSurveys(identity.companyid ?? 0, search ?? ""));
-            var paginator = new PaginatorDto<SurveyDto>(currentPage);
-            paginator.Paginate(surveyDtos);
+            var result = await _surveyService.GetSurveys(identity.companyid ?? 0, search ?? "");
+            var paginator = new PaginatorDto<SurveyViewModel>(currentPage);
+            paginator.Paginate(result);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -39,38 +36,37 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Get(long id)
         {
-            var serverResponse = new ServerResponse<SurveyDto>();
-            var survey = await _surveyService.GetSurveyByID(id);
-            if (survey == null)
+            var serverResponse = new ServerResponse<SurveyViewModel>();
+            var result = await _surveyService.GetByID(id);
+            if (result == null)
             {
                 serverResponse.Success = false;
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<SurveyDto>(survey);
+            serverResponse.Data = result;
             return Ok(serverResponse);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] SurveyRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<SurveyDto>();
-            var result = await _surveyService.Create(_mapper.Map<Survey>(requestDto));
+            var serverResponse = new ServerResponse<SurveyViewModel>();
+            var result = await _surveyService.Create(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<SurveyDto>(result);
+            serverResponse.Data = result;
             return Ok(serverResponse);
         }
 
         [HttpPut]
         public async Task<IActionResult> Put([FromBody] SurveyRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<SurveyDto>();
-            var survey = await _surveyService.Update(requestDto);
-            if (survey == null)
+            var serverResponse = new ServerResponse<bool>();
+            if (!await _surveyService.Update(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Record not found";
@@ -82,11 +78,11 @@ namespace ires_api.Controllers
         [HttpPut("updatestatus")]
         public async Task<IActionResult> UpdateStatus([FromBody] SurveyRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<Boolean>();
+            var serverResponse = new ServerResponse<bool>();
             if (requestDto.status == Constants.SurveyStatus.cancelled)
             {
                 var paymentDetails = await _paymentService.GetSurveyPaymentDetails(requestDto.id);
-                if (paymentDetails.Count() > 0)
+                if (paymentDetails.Count > 0)
                 {
                     serverResponse.Success = false;
                     serverResponse.Message = "Please void payment: (";
@@ -98,8 +94,7 @@ namespace ires_api.Controllers
                     return BadRequest(serverResponse);
                 }
             }
-            var survey = await _surveyService.UpdateStatus(requestDto.id, requestDto.status);
-            if (survey == null)
+            if (!await _surveyService.UpdateStatus(requestDto.id, requestDto.status))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Survey not found";

@@ -1,5 +1,4 @@
 ﻿using ires_api.DTO.Client;
-using ires_api.DTO.RentalContractDetail;
 using ires_api.Enumerations;
 
 namespace ires_api.DTO.RentalContract
@@ -22,12 +21,13 @@ namespace ires_api.DTO.RentalContract
         public decimal monthlypenalty { get; set; }
         public int penaltyextension { get; set; }
         public DateTime? billingstart { get; set; }
+        public string remarks { get; set; } = string.Empty;
         public long createdbyid { get; set; }
         public DateTime? datecreated { get; set; }
         public long updatedbyid { get; set; }
         public DateTime? dateupdated { get; set; }
+        public string propertyList { get; set; } = string.Empty;
 
-        public ClientDto? client { get; set; }
-        public List<RentalContractDetailViewModel> rentalContractDetails { get; set; } = new List<RentalContractDetailViewModel>();
+        public ClientViewModel? client { get; set; }
     }
 }

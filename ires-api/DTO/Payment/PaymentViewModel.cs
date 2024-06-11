@@ -3,7 +3,7 @@ using ires_api.DTO.Employee;
 
 namespace ires_api.DTO.Payment
 {
-    public class PaymentDto
+    public class PaymentViewModel
     {
         public long paymentid { get; set; }
         public int companyid { get; set; }
@@ -20,8 +20,9 @@ namespace ires_api.DTO.Payment
         public string paidby { get; set; } = string.Empty;
         public string remarks { get; set; } = string.Empty;
         public decimal payablebalance { get; set; }
-        public ClientDto? client { get; set; }
-        public List<PayableDto>? payables { get; set; }
-        public EmployeeDto? createdBy { get; set; }
+        public ClientViewModel? client { get; set; }
+        public List<PayableViewModel>? payables { get; set; }
+        public EmployeeViewModel? createdBy { get; set; }
+        public List<PaymentDetailViewModel> paymentDetails { get; set; } = new List<PaymentDetailViewModel>();
     }
 }

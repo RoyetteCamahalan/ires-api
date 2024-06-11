@@ -1,4 +1,5 @@
 ﻿using ires_api.Data;
+using ires_api.Enumerations;
 using ires_api.Models;
 using ires_api.Services.Interface;
 
@@ -12,7 +13,7 @@ namespace ires_api.Services.Repository
         {
             _dataContext = dataContext;
         }
-        public void SaveLog(int companyID, long employeeID, int moduleID, string title, string action, int withadmin)
+        public void SaveLog(int companyID, long employeeID, AppModule moduleID, string title, string action, int withadmin)
         {
             Log log = new Log
             {

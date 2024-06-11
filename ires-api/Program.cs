@@ -56,6 +56,7 @@ builder.Services.AddScoped<IFileService, FileRepository>();
 builder.Services.AddScoped<ILogService, LogRepository>();
 builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
 builder.Services.AddScoped<IProjectService, ProjectRepository>();
+builder.Services.AddScoped<IRentalService, RentalRepository>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

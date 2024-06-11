@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using ires_api.Data;
-using ires_api.DTO;
 using ires_api.DTO.Payment;
+using ires_api.Enumerations;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +21,7 @@ namespace ires_api.Services.Repository
             _surveyService = surveyService;
         }
 
-        public async Task<Payment> Create(PaymentRequestDto requestDto)
+        public async Task<PaymentViewModel> Create(PaymentRequestDto requestDto)
         {
             Payment payment = _mapper.Map<Payment>(requestDto);
             payment.paymentid = 0;
@@ -53,10 +53,10 @@ namespace ires_api.Services.Repository
                     paymenttype = 0,
                     runningbalance = payable.balance - payable.paymentAmount
                 };
-                if (payable.payableType == Constants.AppModules.survey)
+                if (payable.payableType == AppModule.Surveying)
                 {
                     detail.surveyid = payable.payableID;
-                    Survey survey = await _surveyService.GetSurveyByID(detail.surveyid);
+                    var survey = await _surveyService.GetByID(detail.surveyid);
                     survey.balance = payable.balance - payable.paymentAmount;
                     if (survey.balance <= 0 && survey.status == Constants.SurveyStatus.surveyed)
                         survey.status = Constants.SurveyStatus.completed;
@@ -66,14 +66,14 @@ namespace ires_api.Services.Repository
             }
             _dataContext.payments.Add(payment);
             await _dataContext.SaveChangesAsync();
-            return payment;
+            return _mapper.Map<PaymentViewModel>(payment);
         }
 
-        public async Task<ICollection<PayableDto>> GetPayables(long clientID, string search)
+        public async Task<ICollection<PayableViewModel>> GetPayables(long clientID, string search)
         {
-            return await _dataContext.surveys.Where(x => x.custid == clientID && x.balance > 0 && ("Survey Fee - " + x.propertyname).Contains(search)).Select(x => new PayableDto
+            return await _dataContext.surveys.Where(x => x.custid == clientID && x.balance > 0 && ("Survey Fee - " + x.propertyname).Contains(search)).Select(x => new PayableViewModel
             {
-                payableType = Constants.AppModules.survey,
+                payableType = AppModule.Surveying,
                 payableID = x.id,
                 description = "Survey Fee - " + x.propertyname + " (" + (x.surveydate ?? DateTime.Now).ToString(Constants.dateFormat) + ")",
                 grossAmount = x.contractprice,
@@ -81,7 +81,13 @@ namespace ires_api.Services.Repository
             }).ToListAsync();
         }
 
-        public async Task<Payment> GetPayment(long paymentID)
+        public async Task<PaymentViewModel> GetPayment(long paymentID)
+        {
+            var result = await GetPaymentByID(paymentID);
+            return _mapper.Map<PaymentViewModel>(result);
+        }
+
+        private async Task<Payment> GetPaymentByID(long paymentID)
         {
             return await _dataContext.payments.Include(x => x.client)
                 .Include(x => x.paymentDetails)
@@ -93,21 +99,23 @@ namespace ires_api.Services.Repository
             throw new NotImplementedException();
         }
 
-        public async Task<ICollection<Payment>> GetPayments(int companyID, string search)
+        public async Task<ICollection<PaymentViewModel>> GetPayments(int companyID, string search)
         {
-            return await _dataContext.payments.Include(x => x.client)
+            var result = await _dataContext.payments.Include(x => x.client)
                 .Where(x => x.companyid == companyID && (x.client.fname + x.client.lname).Contains(search) && x.receiptno.Contains(search))
                 .OrderByDescending(x => x.paymentdate)
                 .ThenByDescending(x => x.datecreated).ToListAsync();
+            return _mapper.Map<ICollection<PaymentViewModel>>(result);
         }
 
-        public async Task<ICollection<Payment>> GetPayments(int companyID, string search, DateTime startDate, DateTime endDate)
+        public async Task<ICollection<PaymentViewModel>> GetPayments(int companyID, string search, DateTime startDate, DateTime endDate)
         {
-            return await _dataContext.payments.Include(x => x.client)
+            var result = await _dataContext.payments.Include(x => x.client)
                 .Where(x => x.companyid == companyID && x.paymentdate >= startDate.Date && x.paymentdate <= endDate.Date
                     && (x.client.fname + x.client.lname).Contains(search) && x.receiptno.Contains(search))
                 .OrderByDescending(x => x.paymentdate)
                 .ThenByDescending(x => x.datecreated).ToListAsync();
+            return _mapper.Map<ICollection<PaymentViewModel>>(result);
         }
 
         public async Task<long> GetReceiptNo(int companyID, int receiptType)
@@ -118,7 +126,7 @@ namespace ires_api.Services.Repository
         public async Task<ICollection<PaymentDetail>> GetSurveyPaymentDetails(long surveyID)
         {
             return await _dataContext.paymentDetails.Include(x => x.payment)
-                .Where(x => x.payableType == Constants.AppModules.survey && x.surveyid == surveyID && x.payment.status != Constants.PaymentStatus.@void).ToListAsync();
+                .Where(x => x.payableType == AppModule.Surveying && x.surveyid == surveyID && x.payment.status != Constants.PaymentStatus.@void).ToListAsync();
         }
 
         public async Task<bool> IsDuplicateReceipt(int companyID, int receiptType, long receiptNo)
@@ -128,15 +136,15 @@ namespace ires_api.Services.Repository
 
         public async Task<bool> VoidPayment(long paymentID)
         {
-            var payment = await GetPayment(paymentID);
+            var payment = await GetPaymentByID(paymentID);
             if (payment != null)
             {
                 payment.status = Constants.PaymentStatus.@void;
                 foreach (var detail in payment.paymentDetails)
                 {
-                    if (detail.payableType == Constants.AppModules.survey)
+                    if (detail.payableType == AppModule.Surveying)
                     {
-                        Survey survey = await _surveyService.GetSurveyByID(detail.surveyid);
+                        var survey = await _surveyService.GetByID(detail.surveyid);
                         survey.balance += detail.amount;
                         if (survey.balance > 0 && survey.status == Constants.SurveyStatus.completed)
                             survey.status = Constants.SurveyStatus.surveyed;

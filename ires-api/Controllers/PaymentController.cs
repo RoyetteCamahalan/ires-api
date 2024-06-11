@@ -1,6 +1,6 @@
-﻿using AutoMapper;
-using ires_api.DTO;
+﻿using ires_api.DTO;
 using ires_api.DTO.Payment;
+using ires_api.Enumerations;
 using ires_api.Models;
 using ires_api.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
@@ -13,23 +13,23 @@ namespace ires_api.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly ISurveyService _surveyService;
-        private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public PaymentController(IPaymentService paymentService, ISurveyService surveyService, IMapper mapper)
+        public PaymentController(IPaymentService paymentService, ISurveyService surveyService, ILogService logService)
         {
             _paymentService = paymentService;
             _surveyService = surveyService;
-            _mapper = mapper;
+            _logService = logService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<PaymentDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<PaymentViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var payments = await _paymentService.GetPayments(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<PaymentDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<PaymentDto>>(payments));
+            var paginator = new PaginatorDto<PaymentViewModel>(currentPage);
+            paginator.Paginate(payments);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -38,13 +38,13 @@ namespace ires_api.Controllers
         [HttpGet("getcollection")]
         public async Task<IActionResult> GetCollection(DateTime startDate, DateTime endDate)
         {
-            var serverResponse = new ServerResponse<PaymentCollectionDto>();
+            var serverResponse = new ServerResponse<PaymentCollectionViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var payments = await _paymentService.GetPayments(identity.companyid ?? 0, "", startDate, endDate);
             payments = payments.Where(x => x.status != Constants.PaymentStatus.@void).ToList();
-            var collection = new PaymentCollectionDto
+            var collection = new PaymentCollectionViewModel
             {
-                payments = _mapper.Map<List<PaymentDto>>(payments),
+                payments = payments,
                 totalCash = payments.Where(x => x.paymentmode == Constants.PaymentMode.cash).Select(x => x.totalamount).Sum(),
                 totalCheck = payments.Where(x => x.paymentmode == Constants.PaymentMode.check).Select(x => x.totalamount).Sum(),
                 totalBankTransfer = payments.Where(x => x.paymentmode == Constants.PaymentMode.bankTransfer).Select(x => x.totalamount).Sum(),
@@ -59,7 +59,7 @@ namespace ires_api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(long id)
         {
-            var serverResponse = new ServerResponse<PaymentDto>();
+            var serverResponse = new ServerResponse<PaymentViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (identity == null)
             {
@@ -68,18 +68,18 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             var payment = await _paymentService.GetPayment(id);
-            var paymentDto = _mapper.Map<PaymentDto>(payment);
-            paymentDto.payables = new List<PayableDto>();
+            var paymentDto = payment;
+            paymentDto.payables = new List<PayableViewModel>();
             foreach (var item in payment.paymentDetails)
             {
-                var detail = new PayableDto
+                var detail = new PayableViewModel
                 {
                     paymentAmount = item.amount,
                     payableType = item.payableType,
                 };
-                if (detail.payableType == Constants.AppModules.survey)
+                if (detail.payableType == AppModule.Surveying)
                 {
-                    var survey = await _surveyService.GetSurveyByID(item.surveyid);
+                    var survey = await _surveyService.GetByID(item.surveyid);
                     detail.payableID = item.surveyid;
                     detail.description = "Survey Fee - " + survey.propertyname + " (" + (survey.surveydate ?? DateTime.Now).ToString(Constants.dateFormat) + ")";
                 }
@@ -92,9 +92,9 @@ namespace ires_api.Controllers
         [HttpGet("getpayables")]
         public async Task<IActionResult> GetPayables(long clientID, int currentPage, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<PayableDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<PayableViewModel>>();
             var payableDtos = await _paymentService.GetPayables(clientID, search ?? "");
-            var paginator = new PaginatorDto<PayableDto>(currentPage);
+            var paginator = new PaginatorDto<PayableViewModel>(currentPage);
             paginator.Paginate(payableDtos);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
@@ -105,7 +105,7 @@ namespace ires_api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] PaymentRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<PaymentRequestDto>();
+            var serverResponse = new ServerResponse<PaymentViewModel>();
             var payableDtos = await _paymentService.GetPayables(requestDto.custid, "");
             if (requestDto.payables.Count == 0)
             {
@@ -134,10 +134,7 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             if (!serverResponse.Success)
-            {
-                serverResponse.Data = requestDto;
                 return BadRequest(serverResponse);
-            }
 
             var result = await _paymentService.Create(requestDto);
             if (result == null)
@@ -146,7 +143,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<PaymentRequestDto>(result);
+            serverResponse.Data = result;
             return Ok(serverResponse);
         }
         [HttpPut("voidPayment")]
@@ -161,6 +158,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Payment not found";
                 return BadRequest(serverResponse);
             }
+            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, AppModule.Payments, "Void Payment", "Void Payment ID: " + requestDto.paymentid, 0);
             return Ok(serverResponse);
 
         }

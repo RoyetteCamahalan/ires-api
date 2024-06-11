@@ -1,6 +1,6 @@
 ﻿namespace ires_api.DTO.User
 {
-    public class UserPrivilegeDto
+    public class UserPrivilegeViewModel
     {
         public long userprivid { get; set; }
         public int moduleid { get; set; }

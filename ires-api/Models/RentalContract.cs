@@ -10,6 +10,7 @@ namespace ires_api.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long contractid { get; set; }
+        public long companyid { get; set; }
         public long contractno { get; set; }
         public long custid { get; set; }
         public DateTime contractdate { get; set; }
@@ -24,6 +25,7 @@ namespace ires_api.Models
         public decimal ewtpercentage { get; set; }
         public decimal monthlypenalty { get; set; }
         public int penaltyextension { get; set; }
+        public string remarks { get; set; } = string.Empty;
         public DateTime? billingstart { get; set; }
         public long createdbyid { get; set; }
         public DateTime? datecreated { get; set; }

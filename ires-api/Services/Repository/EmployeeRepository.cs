@@ -1,4 +1,5 @@
-﻿using ires_api.Data;
+﻿using AutoMapper;
+using ires_api.Data;
 using ires_api.DTO;
 using ires_api.DTO.Employee;
 using ires_api.DTO.User;
@@ -11,51 +12,64 @@ namespace ires_api.Services.Repository
     public class EmployeeRepository : IEmployeeService
     {
         private readonly DataContext _dataContext;
+        private readonly IMapper _mapper;
 
-        public EmployeeRepository(DataContext dataContext)
+        public EmployeeRepository(DataContext dataContext, IMapper mapper)
         {
             _dataContext = dataContext;
+            _mapper = mapper;
         }
 
-        public async Task<Employee> CreateAsync(Employee employee)
+        public async Task<EmployeeViewModel> CreateAsync(EmployeeRequestDto requestDto)
         {
-            employee.employeeid = 0;
-            employee.datecreated = DateTime.Now;
-            _dataContext.employees.Add(employee);
+            var entity = _mapper.Map<Employee>(requestDto);
+            entity.employeeid = 0;
+            entity.datecreated = DateTime.Now;
+            _dataContext.employees.Add(entity);
             await _dataContext.SaveChangesAsync();
-            return employee;
+            return _mapper.Map<EmployeeViewModel>(entity);
         }
 
-        public async Task<Employee> GetEmployeeByEmail(string email)
+        public async Task<EmployeeViewModel> GetEmployeeByEmail(string email)
         {
-            return await _dataContext.employees.Include(x => x.company).Where(x => x.email == email).FirstOrDefaultAsync();
+            var result = await _dataContext.employees.Include(x => x.company).Where(x => x.email == email).FirstOrDefaultAsync();
+            return _mapper.Map<EmployeeViewModel>(result);
         }
 
-        public async Task<Employee> GetEmployeeById(long id)
+        private async Task<Employee> GetEmployeeByID(long id)
         {
             return await _dataContext.employees.FindAsync(id);
         }
 
-        public async Task<Employee> GetEmployeeByUsername(string username)
+        public async Task<EmployeeViewModel> GetByID(long id)
         {
-            return await _dataContext.employees.Where(x => x.username == username).FirstOrDefaultAsync();
+            var result = await GetEmployeeByID(id);
+            return _mapper.Map<EmployeeViewModel>(result);
         }
 
-        public async Task<ICollection<Employee>> GetEmployees(long companyID, string search)
+        public async Task<EmployeeViewModel> GetEmployeeByUsername(string username)
         {
-            return await _dataContext.employees.Where(x => x.companyid == companyID && (x.firstname.Contains(search) || x.lastname.Contains(search) || (x.designation ?? "").Contains(search)))
+            var result = await _dataContext.employees.Where(x => x.username == username).FirstOrDefaultAsync();
+            return _mapper.Map<EmployeeViewModel>(result);
+        }
+
+        public async Task<ICollection<EmployeeViewModel>> GetEmployees(long companyID, string search)
+        {
+            var result = await _dataContext.employees.Where(x => x.companyid == companyID && (x.firstname.Contains(search) || x.lastname.Contains(search) || (x.designation ?? "").Contains(search)))
                 .OrderBy(x => x.lastname + x.firstname).ToListAsync();
+            return _mapper.Map<ICollection<EmployeeViewModel>>(result);
         }
 
-        public async Task<Employee> LoginAsync(string username, string userpass)
+        public async Task<EmployeeViewModel> LoginAsync(string username, string userpass)
         {
-            return await _dataContext.employees.Include(x => x.company).Where(x => (x.username == username || x.email == username) && x.userpass == userpass
-                && (x.isactive ?? true)).FirstOrDefaultAsync();
+            var result = await _dataContext.employees.Include(x => x.company).Where(x => (x.username == username || x.email == username) && x.userpass == userpass
+            && x.isactive).FirstOrDefaultAsync();
+            return _mapper.Map<EmployeeViewModel>(result);
         }
 
-        public async Task<Employee> UpdateAsync(EmployeeRequestDto requestDto)
+        public async Task<bool> UpdateAsync(EmployeeRequestDto requestDto)
         {
-            Employee employee = await GetEmployeeById(requestDto.employeeid);
+            var employee = await GetEmployeeByID(requestDto.employeeid);
             if (employee != null)
             {
                 employee.firstname = requestDto.firstname;
@@ -70,21 +84,32 @@ namespace ires_api.Services.Repository
                 employee.isappsysadmin = requestDto.isappsysadmin;
 
                 await _dataContext.SaveChangesAsync();
+                return true;
             }
-            return employee;
+            return false;
         }
 
-        public async Task ChangePassword(long id, string newPassword)
+        public async Task<StringViewModel> ChangePassword(long id, string newPassword)
         {
-            var data = await GetEmployeeById(id);
-            data.userpass = newPassword;
-            data.passwordresettoken = "";
-            await _dataContext.SaveChangesAsync();
+            var data = await GetEmployeeByID(id);
+            if (data != null)
+            {
+                if (data.userpass != newPassword)
+                    return new StringViewModel("Old Password is incorrect");
+                else if (data.userpass == newPassword)
+                    return new StringViewModel("New password should not be the same as your old password");
+
+                data.userpass = newPassword;
+                data.passwordresettoken = "";
+                await _dataContext.SaveChangesAsync();
+                return new StringViewModel("");
+            }
+            return new StringViewModel("User not found");
         }
 
         public async Task<string> CreatePasswordResetToken(long id)
         {
-            var employee = await GetEmployeeById(id);
+            var employee = await GetEmployeeByID(id);
             var token = Utility.RandomString(16);
             while (await _dataContext.employees.AnyAsync(x => x.passwordresettoken == token))
             {
@@ -95,9 +120,10 @@ namespace ires_api.Services.Repository
             return token;
         }
 
-        public async Task<Employee> GetPasswordToken(string token)
+        public async Task<EmployeeViewModel> GetPasswordToken(string token)
         {
-            return await _dataContext.employees.Where(x => x.passwordresettoken == token).FirstOrDefaultAsync();
+            var result = await _dataContext.employees.Where(x => x.passwordresettoken == token).FirstOrDefaultAsync();
+            return _mapper.Map<EmployeeViewModel>(result);
         }
 
         public async Task<UserPrivilege> GetUserPrivilegeByID(long id)
@@ -136,7 +162,7 @@ namespace ires_api.Services.Repository
                           select new UserAccessDto
                           {
                               moduleid = joinups == null ? pm.moduleid : joinups.moduleid,
-                              access = new UserPrivilegeDto
+                              access = new UserPrivilegeViewModel
                               {
                                   userprivid = joinups == null ? 0 : joinups.userid,
                                   canadd = joinups == null ? false : joinups.canadd,

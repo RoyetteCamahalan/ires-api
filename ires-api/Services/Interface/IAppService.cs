@@ -7,6 +7,6 @@ namespace ires_api.Services.Interface
     {
         public Task<ICollection<Notification>> GetNotifications(long employeeID);
         public Task MarkAsReadNotif(long id);
-        public Task<ICollection<EventDto>> GetEvents(int companyID, DateTime startDate, DateTime endDate);
+        public Task<ICollection<EventViewModel>> GetEvents(int companyID, DateTime startDate, DateTime endDate);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace ires_api.DTO.Attachment
 {
-    public class AttachmentDto
+    public class AttachmentViewModel
     {
         public long documentid { get; set; }
         public int companyid { get; set; }

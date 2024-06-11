@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ires_api.DTO;
+﻿using ires_api.DTO;
 using ires_api.DTO.Company;
 using ires_api.Models;
 using ires_api.Services.Interface;
@@ -13,23 +12,21 @@ namespace ires_api.Controllers
     public class CompanyController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private readonly IMapper _mapper;
         private readonly ICompanyService _companyService;
         private readonly IEmployeeService _employeeService;
         private readonly IMailService _mailService;
 
-        public CompanyController(IConfiguration configuration, IMapper mapper, ICompanyService companyService, IEmployeeService employeeService, IMailService mailService)
+        public CompanyController(IConfiguration configuration, ICompanyService companyService, IEmployeeService employeeService, IMailService mailService)
         {
             _configuration = configuration;
-            _mapper = mapper;
             _companyService = companyService;
             _employeeService = employeeService;
             _mailService = mailService;
         }
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> GetAsync()
         {
-            var serverResponse = new ServerResponse<CompanyDto>();
+            var serverResponse = new ServerResponse<CompanyViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (identity == null)
             {
@@ -37,16 +34,16 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            var company = _companyService.GetCompanyByID(identity.companyid ?? 0);
-            serverResponse.Data = _mapper.Map<CompanyDto>(company);
-            return Ok(company);
+            var company = await _companyService.GetByID(identity.companyid ?? 0);
+            serverResponse.Data = company;
+            return Ok(serverResponse);
         }
 
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> register([FromBody] CompanyRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<CompanyDto>();
+            var serverResponse = new ServerResponse<CompanyViewModel>();
             var company = await _companyService.GetCompanyByName(requestDto.name);
             if (company != null)
             {
@@ -62,7 +59,7 @@ namespace ires_api.Controllers
             }
             company = await _companyService.RegisterAsync(requestDto);
             this.sendConfirmationEmail(company.id, requestDto.email);
-            serverResponse.Data = _mapper.Map<CompanyDto>(company);
+            serverResponse.Data = company;
             return Ok(serverResponse);
         }
 
@@ -87,7 +84,7 @@ namespace ires_api.Controllers
 
         [HttpPost("verify")]
         [AllowAnonymous]
-        public async Task<IActionResult> verify(StringDto slug)
+        public async Task<IActionResult> verify(StringViewModel slug)
         {
             var serverResponse = new ServerResponse<string>();
             try

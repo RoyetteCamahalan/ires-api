@@ -7,7 +7,7 @@
         public string modulename { get; set; } = string.Empty;
         public int moduletypeid { get; set; }
         public bool isactive { get; set; }
-        public UserPrivilegeDto? access { get; set; }
+        public UserPrivilegeViewModel? access { get; set; }
         //public UserPrivilegeDto? survey { get; set; }
         //public UserPrivilegeDto? payment { get; set; }
         //public UserPrivilegeDto? client { get; set; }
