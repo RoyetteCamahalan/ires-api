@@ -1,4 +1,4 @@
-﻿using ires_api.DTO.User;
+﻿using ires.Domain.DTO.User;
 using System.Security.Claims;
 
 namespace ires_api

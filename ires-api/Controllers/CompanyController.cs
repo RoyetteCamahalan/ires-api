@@ -1,7 +1,7 @@
-﻿using ires_api.DTO;
-using ires_api.DTO.Company;
-using ires_api.Models;
-using ires_api.Services.Interface;
+﻿using ires.Domain;
+using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Company;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

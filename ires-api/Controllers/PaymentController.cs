@@ -1,8 +1,8 @@
-﻿using ires_api.DTO;
-using ires_api.DTO.Payment;
-using ires_api.Enumerations;
-using ires_api.Models;
-using ires_api.Services.Interface;
+﻿using ires.Domain;
+using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Payment;
+using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -41,14 +41,14 @@ namespace ires_api.Controllers
             var serverResponse = new ServerResponse<PaymentCollectionViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var payments = await _paymentService.GetPayments(identity.companyid ?? 0, "", startDate, endDate);
-            payments = payments.Where(x => x.status != Constants.PaymentStatus.@void).ToList();
+            payments = payments.Where(x => x.status != PaymentStatus.@void).ToList();
             var collection = new PaymentCollectionViewModel
             {
                 payments = payments,
-                totalCash = payments.Where(x => x.paymentmode == Constants.PaymentMode.cash).Select(x => x.totalamount).Sum(),
-                totalCheck = payments.Where(x => x.paymentmode == Constants.PaymentMode.check).Select(x => x.totalamount).Sum(),
-                totalBankTransfer = payments.Where(x => x.paymentmode == Constants.PaymentMode.bankTransfer).Select(x => x.totalamount).Sum(),
-                totalWallet = payments.Where(x => x.paymentmode == Constants.PaymentMode.eWallet).Select(x => x.totalamount).Sum()
+                totalCash = payments.Where(x => x.paymentmode == PaymentMode.cash).Select(x => x.totalamount).Sum(),
+                totalCheck = payments.Where(x => x.paymentmode == PaymentMode.check).Select(x => x.totalamount).Sum(),
+                totalBankTransfer = payments.Where(x => x.paymentmode == PaymentMode.bankTransfer).Select(x => x.totalamount).Sum(),
+                totalWallet = payments.Where(x => x.paymentmode == PaymentMode.eWallet).Select(x => x.totalamount).Sum()
             };
             collection.totalPayment = collection.totalCash + collection.totalCheck + collection.totalBankTransfer + collection.totalWallet;
             serverResponse.Data = collection;
@@ -163,7 +163,7 @@ namespace ires_api.Controllers
 
         }
         [HttpGet("getreceiptno")]
-        public async Task<IActionResult> GetReceiptNo(int receiptType)
+        public async Task<IActionResult> GetReceiptNo(ReceiptType receiptType)
         {
             var serverResponse = new ServerResponse<long>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);

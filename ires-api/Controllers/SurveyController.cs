@@ -1,7 +1,7 @@
-﻿using ires_api.DTO;
-using ires_api.DTO.Survey;
-using ires_api.Models;
-using ires_api.Services.Interface;
+﻿using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Survey;
+using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -79,7 +79,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> UpdateStatus([FromBody] SurveyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            if (requestDto.status == Constants.SurveyStatus.cancelled)
+            if (requestDto.status == SurveyStatus.cancelled)
             {
                 var paymentDetails = await _paymentService.GetSurveyPaymentDetails(requestDto.id);
                 if (paymentDetails.Count > 0)

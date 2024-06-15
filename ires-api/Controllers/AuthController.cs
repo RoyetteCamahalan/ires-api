@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
-using ires_api.DTO;
-using ires_api.DTO.Employee;
-using ires_api.DTO.User;
-using ires_api.Models;
-using ires_api.Services.Interface;
+using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Employee;
+using ires.Domain.DTO.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -59,7 +58,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> login(UserLoginRequestDto requestDto)
         {
             var response = new ServerResponse<UserLoginViewModel>();
-            var employee = await _employeeService.LoginAsync(requestDto.username, Utility.GetHash(requestDto.password));
+            var employee = await _employeeService.LoginAsync(requestDto.username, ires.Domain.Utility.GetHash(requestDto.password));
             if (employee == null)
             {
                 response.Success = false;
@@ -115,7 +114,7 @@ namespace ires_api.Controllers
                 response.Message = "Unable to process request";
                 return BadRequest(response);
             }
-            var employee = await _employeeService.LoginAsync(requestDto.username, Utility.GetHash(requestDto.password));
+            var employee = await _employeeService.LoginAsync(requestDto.username, ires.Domain.Utility.GetHash(requestDto.password));
 
             if (employee == null)
             {
@@ -195,7 +194,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Sorry, your password reset link is expired";
                 return BadRequest(serverResponse);
             }
-            await _employeeService.ChangePassword(employee.employeeid, Utility.GetHash(requestDto.newuserpass));
+            await _employeeService.ChangePassword(employee.employeeid, ires.Domain.Utility.GetHash(requestDto.newuserpass));
             _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Profile", "Password Reset via token :" + requestDto.token, 0);
             return Ok(serverResponse);
         }

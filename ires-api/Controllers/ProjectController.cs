@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
-using ires_api.DTO;
-using ires_api.DTO.Project;
-using ires_api.DTO.RentalUnit;
-using ires_api.Enumerations;
-using ires_api.Models;
-using ires_api.Services.Interface;
+using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Project;
+using ires.Domain.DTO.RentalUnit;
+using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

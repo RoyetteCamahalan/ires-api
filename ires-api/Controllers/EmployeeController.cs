@@ -1,8 +1,8 @@
-﻿using ires_api.DTO;
-using ires_api.DTO.Employee;
-using ires_api.DTO.User;
-using ires_api.Models;
-using ires_api.Services.Interface;
+﻿using ires.Domain;
+using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Employee;
+using ires.Domain.DTO.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -112,9 +112,9 @@ namespace ires_api.Controllers
         [HttpGet("getpriviligesbymodule")]
         public async Task<IActionResult> GetPriviligesByModule(long id)
         {
-            var serverResponse = new ServerResponse<List<UserAccessDto>>();
+            var serverResponse = new ServerResponse<ICollection<UserAccessViewModel>>();
             var result = await _employeeService.GetUserPrivilegesByModule(id);
-            serverResponse.Data = result.ToList();
+            serverResponse.Data = result;
             return Ok(serverResponse);
         }
     }

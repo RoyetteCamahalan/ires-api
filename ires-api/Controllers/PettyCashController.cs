@@ -1,9 +1,7 @@
-﻿
-using AutoMapper;
-using ires_api.DTO;
-using ires_api.DTO.CashDisbursement;
-using ires_api.Models;
-using ires_api.Services.Interface;
+﻿using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.CashDisbursement;
+using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -15,19 +13,17 @@ namespace ires_api.Controllers
         private readonly IPettyCashService _pettyCashService;
         private readonly IAccountService _accountService;
         private readonly ILogService _logService;
-        private readonly IMapper _mapper;
 
-        public PettyCashController(IPettyCashService pettyCashService, IAccountService accountService, ILogService logService, IMapper mapper)
+        public PettyCashController(IPettyCashService pettyCashService, IAccountService accountService, ILogService logService)
         {
             _pettyCashService = pettyCashService;
             _accountService = accountService;
             _logService = logService;
-            _mapper = mapper;
         }
         [HttpGet]
         public async Task<IActionResult> Get(long id)
         {
-            var serverResponse = new ServerResponse<CashDisbursementDto>();
+            var serverResponse = new ServerResponse<CashDisbursementViewModel>();
             var result = await _pettyCashService.GetDisbursementByID(id);
             if (result == null)
             {
@@ -35,18 +31,18 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<CashDisbursementDto>(result);
+            serverResponse.Data = result;
             return Ok(serverResponse);
         }
 
         [HttpGet("getall")]
         public async Task<IActionResult> GetAll(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<CashDisbursementDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<CashDisbursementViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = await _pettyCashService.GetCashDisbursements(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<CashDisbursementDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<CashDisbursementDto>>(result));
+            var paginator = new PaginatorDto<CashDisbursementViewModel>(currentPage);
+            paginator.Paginate(result);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -54,9 +50,9 @@ namespace ires_api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CashDisbursementRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<CashDisbursementDto>();
+            var serverResponse = new ServerResponse<CashDisbursementViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (requestDto.transtype == Constants.DisbursementTransType.transferout)
+            if (requestDto.transtype == DisbursementTransType.transferout)
             {
                 var office = await _accountService.GetOfficeByID(requestDto.accountid);
                 if (office.pettycashbalance < requestDto.amount)
@@ -68,14 +64,14 @@ namespace ires_api.Controllers
             }
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.createdbyid = identity.employeeid;
-            var result = await _pettyCashService.Create(_mapper.Map<CashDisbursement>(requestDto));
+            var result = await _pettyCashService.Create(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<CashDisbursementDto>(result);
+            serverResponse.Data = result;
             _logService.SaveLog(result.companyid, identity.employeeid, 0, "Petty Cash Disbursement", "Create New Record : " + result.disbursementid, 0);
             return Ok(serverResponse);
         }

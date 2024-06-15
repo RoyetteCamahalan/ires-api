@@ -1,6 +1,7 @@
-using ires_api.Data;
-using ires_api.Services.Interface;
-using ires_api.Services.Repository;
+using ires.AppService;
+using ires.Domain.Contracts;
+using ires.Infrastructure.Data;
+using ires.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -39,7 +40,7 @@ builder.Services.AddControllers()
         options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
         //options.SerializerSettings.DateFormatString = "yyyy-MM-dd hh:mm tt";
     });
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddAutoMapper(typeof(_ForAppServiceAssembyLoadOnly).Assembly);
 builder.Services.AddScoped<IAppService, AppRepository>();
 builder.Services.AddScoped<ICompanyService, CompanyRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeRepository>();

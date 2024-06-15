@@ -1,11 +1,10 @@
-﻿using AutoMapper;
-using ires_api.DTO;
-using ires_api.DTO.AccountPayable;
-using ires_api.DTO.Expense;
-using ires_api.DTO.ExpenseType;
-using ires_api.DTO.Vendor;
-using ires_api.Models;
-using ires_api.Services.Interface;
+﻿using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.AccountPayable;
+using ires.Domain.DTO.Expense;
+using ires.Domain.DTO.ExpenseType;
+using ires.Domain.DTO.Vendor;
+using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -17,21 +16,19 @@ namespace ires_api.Controllers
         private readonly IExpenseService _expenseService;
         private readonly IAccountService _accountService;
         private readonly ILogService _logService;
-        private readonly IMapper _mapper;
 
-        public ExpenseController(IExpenseService expenseService, IAccountService accountService, ILogService logService, IMapper mapper)
+        public ExpenseController(IExpenseService expenseService, IAccountService accountService, ILogService logService)
         {
             _expenseService = expenseService;
             _accountService = accountService;
             _logService = logService;
-            _mapper = mapper;
         }
 
 
         [HttpGet]
         public async Task<IActionResult> Get(long id)
         {
-            var serverResponse = new ServerResponse<ExpenseDto>();
+            var serverResponse = new ServerResponse<ExpenseViewModel>();
             var result = await _expenseService.GetExpenseByID(id);
             if (result == null)
             {
@@ -39,18 +36,18 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ExpenseDto>(result);
+            serverResponse.Data = result;
             return Ok(serverResponse);
         }
 
         [HttpGet("getall")]
         public async Task<IActionResult> GetAll(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<ExpenseDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<ExpenseViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = await _expenseService.GetExpenses(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<ExpenseDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<ExpenseDto>>(result));
+            var paginator = new PaginatorDto<ExpenseViewModel>(currentPage);
+            paginator.Paginate(result);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -59,14 +56,14 @@ namespace ires_api.Controllers
         [HttpGet("getexpensereport")]
         public async Task<IActionResult> GetExpenseReport(DateTime startDate, DateTime endDate)
         {
-            var serverResponse = new ServerResponse<ExpenseReportDto>();
+            var serverResponse = new ServerResponse<ExpenseReportViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = await _expenseService.GetExpenses(identity.companyid ?? 0, "", startDate, endDate);
-            result = result.Where(x => x.status != Constants.ExpenseStatus.@void).ToList();
-            var expenseReport = new ExpenseReportDto
+            result = result.Where(x => x.status != ExpenseStatus.@void).ToList();
+            var expenseReport = new ExpenseReportViewModel
             {
                 totalExpense = result.Select(x => x.amount).Sum(),
-                expenses = _mapper.Map<List<ExpenseDto>>(result)
+                expenses = result
             };
             serverResponse.Data = expenseReport;
             return Ok(serverResponse);
@@ -75,7 +72,7 @@ namespace ires_api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ExpenseRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<ExpenseDto>();
+            var serverResponse = new ServerResponse<ExpenseViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (requestDto.usepettycash)
             {
@@ -89,14 +86,14 @@ namespace ires_api.Controllers
             }
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.createdbyid = identity.employeeid;
-            var result = await _expenseService.Create(_mapper.Map<Expense>(requestDto));
+            var result = await _expenseService.Create(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ExpenseDto>(result);
+            serverResponse.Data = result;
             _logService.SaveLog(result.companyid, identity.employeeid, 0, "Expense", "Create New Record : " + result.expenseid, 0);
             return Ok(serverResponse);
         }
@@ -104,7 +101,7 @@ namespace ires_api.Controllers
         [HttpPut]
         public async Task<IActionResult> Put([FromBody] ExpenseRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<ExpenseDto>();
+            var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
 
             if (requestDto.usepettycash)
@@ -125,15 +122,13 @@ namespace ires_api.Controllers
                 }
             }
             requestDto.updatedbyid = identity.employeeid;
-            var result = await _expenseService.Update(requestDto);
-            if (result == null)
+            if (!await _expenseService.Update(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ExpenseDto>(result);
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Expense", "Update Record ID : " + requestDto.expenseid, 0);
+            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Expense", "Update Record ID : " + requestDto.expenseid, 0);
             return Ok(serverResponse);
         }
 
@@ -159,7 +154,7 @@ namespace ires_api.Controllers
         [HttpGet("getexpensetype")]
         public async Task<IActionResult> GetExpenseType(long id)
         {
-            var serverResponse = new ServerResponse<ExpenseTypeDto>();
+            var serverResponse = new ServerResponse<ExpenseTypeViewModel>();
             var result = await _expenseService.GetExpenseTypeByID(id);
             if (result == null)
             {
@@ -167,7 +162,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ExpenseTypeDto>(result);
+            serverResponse.Data = result;
             return Ok(serverResponse);
 
         }
@@ -175,11 +170,11 @@ namespace ires_api.Controllers
         [HttpGet("getexpensetypes")]
         public async Task<IActionResult> GetExpenseTypes(int currentPage, bool viewAll, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<ExpenseTypeDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<ExpenseTypeViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = await _expenseService.GetExpenseTypes(identity.companyid ?? 0, viewAll, search ?? "");
-            var paginator = new PaginatorDto<ExpenseTypeDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<ExpenseTypeDto>>(result));
+            var paginator = new PaginatorDto<ExpenseTypeViewModel>(currentPage);
+            paginator.Paginate(result);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -187,7 +182,7 @@ namespace ires_api.Controllers
         [HttpPost("createexpensetype")]
         public async Task<IActionResult> CreateExpenseType([FromBody] ExpenseTypeRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<ExpenseTypeDto>();
+            var serverResponse = new ServerResponse<ExpenseTypeViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = await _expenseService.GetExpenseTypeByName(requestDto.companyid, requestDto.expensetypedesc);
             if (result != null)
@@ -198,14 +193,14 @@ namespace ires_api.Controllers
             }
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.createdbyid = identity.employeeid;
-            result = await _expenseService.CreateExpenseType(_mapper.Map<ExpenseType>(requestDto));
+            result = await _expenseService.CreateExpenseType(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ExpenseTypeDto>(result);
+            serverResponse.Data = result;
             _logService.SaveLog(result.companyid, identity.employeeid, 0, "Expense Type", "Create New Expense Type : " + result.expensetypeid + "-" + requestDto.expensetypedesc, 0);
             return Ok(serverResponse);
         }
@@ -213,18 +208,16 @@ namespace ires_api.Controllers
         [HttpPut("updateexpensetype")]
         public async Task<IActionResult> UpdateExpenseType([FromBody] ExpenseTypeRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<ExpenseTypeDto>();
+            var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             requestDto.updatedbyid = identity.employeeid;
-            var result = await _expenseService.UpdateExpenseType(requestDto);
-            if (result == null)
+            if (!await _expenseService.UpdateExpenseType(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<ExpenseTypeDto>(result);
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Expense Type", "Update Expense Type ID : " + requestDto.expensetypeid, 0);
+            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Expense Type", "Update Expense Type ID : " + requestDto.expensetypeid, 0);
             return Ok(serverResponse);
         }
 
@@ -235,7 +228,7 @@ namespace ires_api.Controllers
         [HttpGet("getvendor")]
         public async Task<IActionResult> GetVendor(long id)
         {
-            var serverResponse = new ServerResponse<VendorDto>();
+            var serverResponse = new ServerResponse<VendorViewModel>();
             var result = await _expenseService.GetVendorByID(id);
             if (result == null)
             {
@@ -243,7 +236,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<VendorDto>(result);
+            serverResponse.Data = result;
             return Ok(serverResponse);
 
         }
@@ -251,11 +244,11 @@ namespace ires_api.Controllers
         [HttpGet("getvendors")]
         public async Task<IActionResult> GetVendors(int currentPage, bool viewAll, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<VendorDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<VendorViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = await _expenseService.GetVendors(identity.companyid ?? 0, viewAll, search ?? "");
-            var paginator = new PaginatorDto<VendorDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<VendorDto>>(result));
+            var paginator = new PaginatorDto<VendorViewModel>(currentPage);
+            paginator.Paginate(result);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -263,7 +256,7 @@ namespace ires_api.Controllers
         [HttpPost("createvendor")]
         public async Task<IActionResult> CreateVendor([FromBody] VendorRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<VendorDto>();
+            var serverResponse = new ServerResponse<VendorViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = await _expenseService.GetVendorByName(requestDto.companyid, requestDto.vendorname);
             if (result != null)
@@ -274,14 +267,14 @@ namespace ires_api.Controllers
             }
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.createdbyid = identity.employeeid;
-            result = await _expenseService.CreateVendor(_mapper.Map<Vendor>(requestDto));
+            result = await _expenseService.CreateVendor(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<VendorDto>(result);
+            serverResponse.Data = result;
             _logService.SaveLog(result.companyid, identity.employeeid, 0, "Vendor", "Create New Vendor : " + result.vendorid + "-" + requestDto.vendorname, 0);
             return Ok(serverResponse);
         }
@@ -289,18 +282,16 @@ namespace ires_api.Controllers
         [HttpPut("updatevendor")]
         public async Task<IActionResult> UpdateVendor([FromBody] VendorRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<VendorDto>();
+            var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             requestDto.updatedbyid = identity.employeeid;
-            var result = await _expenseService.UpdateVendor(requestDto);
-            if (result == null)
+            if (!await _expenseService.UpdateVendor(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<VendorDto>(result);
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Vendor", "Update Vendor ID : " + requestDto.vendorid, 0);
+            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Vendor", "Update Vendor ID : " + requestDto.vendorid, 0);
             return Ok(serverResponse);
         }
         #endregion
@@ -310,7 +301,7 @@ namespace ires_api.Controllers
         [HttpGet("getaccountpayable")]
         public async Task<IActionResult> GetAccountPayable(long id)
         {
-            var serverResponse = new ServerResponse<AccountPayableDto>();
+            var serverResponse = new ServerResponse<AccountPayableViewModel>();
             var result = await _expenseService.GetAccountPayableByID(id);
             if (result == null)
             {
@@ -318,18 +309,18 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<AccountPayableDto>(result);
+            serverResponse.Data = result;
             return Ok(serverResponse);
         }
 
         [HttpGet("getaccountpayables")]
         public async Task<IActionResult> GetAccountPayables(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<AccountPayableDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<AccountPayableViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = await _expenseService.GetAccountPayables(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<AccountPayableDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<AccountPayableDto>>(result));
+            var paginator = new PaginatorDto<AccountPayableViewModel>(currentPage);
+            paginator.Paginate(result);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -337,18 +328,18 @@ namespace ires_api.Controllers
         [HttpPost("createaccountpayable")]
         public async Task<IActionResult> CreateAccountPayable([FromBody] AccountPayableRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<AccountPayableDto>();
+            var serverResponse = new ServerResponse<AccountPayableViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.createdbyid = identity.employeeid;
-            var result = await _expenseService.CreateAccountPayable(_mapper.Map<AccountPayable>(requestDto));
+            var result = await _expenseService.CreateAccountPayable(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<AccountPayableDto>(result);
+            serverResponse.Data = result;
             _logService.SaveLog(result.companyid, identity.employeeid, 0, "Accounts Payable", "Create New Record : " + result.chargeid, 0);
             return Ok(serverResponse);
         }
@@ -356,18 +347,16 @@ namespace ires_api.Controllers
         [HttpPut("updateaccountpayable")]
         public async Task<IActionResult> UpdateAccountPayable([FromBody] AccountPayableRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<AccountPayableDto>();
+            var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             requestDto.updatedbyid = identity.employeeid;
-            var result = await _expenseService.UpdateAccountPayable(requestDto);
-            if (result == null)
+            if (!await _expenseService.UpdateAccountPayable(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<AccountPayableDto>(result);
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Accounts Payable", "Update Record ID : " + requestDto.chargeid, 0);
+            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Accounts Payable", "Update Record ID : " + requestDto.chargeid, 0);
             return Ok(serverResponse);
         }
 

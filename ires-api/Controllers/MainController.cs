@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using ires_api.DTO;
-using ires_api.Models;
-using ires_api.Services.Interface;
+using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -33,7 +33,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetFinanceDashboard()
         {
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var totalExpenses = (await _expenseService.GetExpenses(identity.companyid ?? 0, "", DateTime.Now, DateTime.Now)).Where(x => x.status == Constants.ExpenseStatus.approved).Select(x => x.amount).Sum();
+            var totalExpenses = (await _expenseService.GetExpenses(identity.companyid ?? 0, "", DateTime.Now, DateTime.Now)).Where(x => x.status == ExpenseStatus.approved).Select(x => x.amount).Sum();
             var data = new
             {
                 totalExpenses,
@@ -63,9 +63,9 @@ namespace ires_api.Controllers
         {
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var result = (await _appService.GetNotifications(identity.employeeid));
-            var serverResponse = new ServerResponse<List<NotificationDto>>
+            var serverResponse = new ServerResponse<List<NotificationViewModel>>
             {
-                Data = _mapper.Map<List<NotificationDto>>(result)
+                Data = _mapper.Map<List<NotificationViewModel>>(result)
             };
             return Ok(serverResponse);
         }

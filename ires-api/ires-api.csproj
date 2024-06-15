@@ -46,6 +46,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ires.AppService\ires.AppService.csproj" />
+    <ProjectReference Include="..\ires.Domain\ires.Domain.csproj" />
+    <ProjectReference Include="..\ires.Infrastructure\ires.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Templates\ConfirmationEmail.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

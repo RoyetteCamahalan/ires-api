@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using ires_api.DTO;
-using ires_api.DTO.Bank;
-using ires_api.Models;
-using ires_api.Services.Interface;
+﻿using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Bank;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -13,18 +11,16 @@ namespace ires_api.Controllers
     {
         private readonly IBankService _bankService;
         private readonly ILogService _logService;
-        private readonly IMapper _mapper;
 
-        public BankController(IBankService bankService, ILogService logService, IMapper mapper)
+        public BankController(IBankService bankService, ILogService logService)
         {
             _bankService = bankService;
             _logService = logService;
-            _mapper = mapper;
         }
         [HttpGet]
         public async Task<IActionResult> Get(long bankID)
         {
-            var serverResponse = new ServerResponse<BankDto>();
+            var serverResponse = new ServerResponse<BankViewModel>();
             var banks = await _bankService.GetBankByID(bankID);
             if (banks == null)
             {
@@ -32,7 +28,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<BankDto>(banks);
+            serverResponse.Data = banks;
             return Ok(serverResponse);
 
         }
@@ -40,11 +36,11 @@ namespace ires_api.Controllers
         [HttpGet("getallbanks")]
         public async Task<IActionResult> GetAllBanks(int currentPage, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<BankDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<BankViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var banks = await _bankService.GetAllBanks(identity.companyid ?? 0, search ?? "");
-            var paginator = new PaginatorDto<BankDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<BankDto>>(banks));
+            var paginator = new PaginatorDto<BankViewModel>(currentPage);
+            paginator.Paginate(banks);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -52,11 +48,11 @@ namespace ires_api.Controllers
         [HttpGet("getbanks")]
         public async Task<IActionResult> GetBanks(int currentPage, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<BankDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<BankViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var banks = await _bankService.GetBanks(identity.companyid ?? 0, false, search ?? "");
-            var paginator = new PaginatorDto<BankDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<BankDto>>(banks));
+            var paginator = new PaginatorDto<BankViewModel>(currentPage);
+            paginator.Paginate(banks);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -64,11 +60,11 @@ namespace ires_api.Controllers
         [HttpGet("getewallets")]
         public async Task<IActionResult> GetEwallets(int currentPage, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<BankDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<BankViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var banks = await _bankService.GetBanks(identity.companyid ?? 0, true, search ?? "");
-            var paginator = new PaginatorDto<BankDto>(currentPage);
-            paginator.Paginate(_mapper.Map<List<BankDto>>(banks));
+            var paginator = new PaginatorDto<BankViewModel>(currentPage);
+            paginator.Paginate(banks);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -76,7 +72,7 @@ namespace ires_api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] BankRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<BankDto>();
+            var serverResponse = new ServerResponse<BankViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             var bank = await _bankService.GetBankByName(requestDto.companyid, requestDto.name);
             if (bank != null)
@@ -92,7 +88,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<BankDto>(result);
+            serverResponse.Data = result;
             _logService.SaveLog(result.companyid, identity.employeeid, 0, "Create New Bank", "Bank Name : " + requestDto.name, 0);
             return Ok(serverResponse);
         }
@@ -100,17 +96,15 @@ namespace ires_api.Controllers
         [HttpPut]
         public async Task<IActionResult> Put([FromBody] BankRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<BankDto>();
+            var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _bankService.Update(requestDto);
-            if (result == null)
+            if (!await _bankService.Update(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<BankDto>(result);
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Update Bank", "Bank ID : " + requestDto.bankid.ToString(), 0);
+            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Update Bank", "Bank ID : " + requestDto.bankid.ToString(), 0);
             return Ok(serverResponse);
         }
     }

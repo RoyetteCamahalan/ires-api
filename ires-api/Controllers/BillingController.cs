@@ -1,8 +1,7 @@
-﻿using AutoMapper;
-using ires_api.DTO;
-using ires_api.DTO.Company;
-using ires_api.Models;
-using ires_api.Services.Interface;
+﻿using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Company;
+using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -11,20 +10,20 @@ namespace ires_api.Controllers
     [ApiController]
     public class BillingController : ControllerBase
     {
-        private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
         private readonly IBillService _billService;
         private readonly ILogService _logService;
 
-        public BillingController(IMapper mapper, IBillService billService, ILogService logService)
+        public BillingController(IConfiguration configuration, IBillService billService, ILogService logService)
         {
-            _mapper = mapper;
+            _configuration = configuration;
             _billService = billService;
             _logService = logService;
         }
         [HttpGet]
-        public IActionResult Get(int currentPage, int filter)
+        public async Task<IActionResult> Get(int currentPage, int filter)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<BillDto>>();
+            var serverResponse = new ServerResponse<PaginatorDto<BillViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (identity == null)
             {
@@ -32,17 +31,17 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            List<BillDto> billDtos = _mapper.Map<List<BillDto>>(_billService.GetBills(identity.companyid ?? 0, filter));
-            var paginator = new PaginatorDto<BillDto>(currentPage);
+            var billDtos = await _billService.GetBills(identity.companyid ?? 0, filter);
+            var paginator = new PaginatorDto<BillViewModel>(currentPage);
             paginator.Paginate(billDtos);
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
         }
         [HttpGet("getplans")]
-        public IActionResult GetPlans()
+        public async Task<IActionResult> GetPlans()
         {
-            var serverResponse = new ServerResponse<PaginatorDto<CompanyPlanDto>>();
+            var serverResponse = new ServerResponse<CompanyViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (identity == null)
             {
@@ -50,17 +49,14 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            List<CompanyPlanDto> companyPlanDtos = _mapper.Map<List<CompanyPlanDto>>(_billService.GetSubscriptionPlans(identity.companyid ?? 0));
-            var paginator = new PaginatorDto<CompanyPlanDto>(0);
-            paginator.Paginate(companyPlanDtos);
-            serverResponse.Data = paginator;
+            serverResponse.Data = await _billService.GetSubscriptionPlans(identity.companyid ?? 0);
             return Ok(serverResponse);
         }
 
         [HttpPost("processpayment")]
-        public IActionResult ProcessPayment(IDRequestDto requestDto)
+        public async Task<IActionResult> ProcessPayment(IDRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<BillDto>();
+            var serverResponse = new ServerResponse<BillViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (identity == null)
             {
@@ -68,15 +64,15 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            var bill = _billService.StartPayment(identity.companyid ?? 0, requestDto.id);
-            serverResponse.Data = _mapper.Map<BillDto>(bill);
+            var bill = await _billService.StartPayment(identity.companyid ?? 0, requestDto.id, new PayMongoConfig(_configuration));
+            serverResponse.Data = bill;
             return Ok(serverResponse);
         }
 
         [HttpPost("completepayment")]
-        public IActionResult CompletePayment(IDRequestDto requestDto)
+        public async Task<IActionResult> CompletePayment(IDRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<BillDto>();
+            var serverResponse = new ServerResponse<BillViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (identity == null)
             {
@@ -84,9 +80,9 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            var bill = _billService.CompletePayment(identity.companyid ?? 0, requestDto.id);
-            if (bill != null && bill.status == Constants.BillStatus.paid)
-                serverResponse.Data = _mapper.Map<BillDto>(bill);
+            var bill = await _billService.CompletePayment(identity.companyid ?? 0, requestDto.id, new PayMongoConfig(_configuration));
+            if (bill != null && bill.status == BillStatus.paid)
+                serverResponse.Data = bill;
             else
             {
                 serverResponse.Success = false;
@@ -114,7 +110,7 @@ namespace ires_api.Controllers
         }
 
         [HttpPut("upgradeplan")]
-        public IActionResult UpgradePlan(CompanyRequestDto requestDto)
+        public async Task<IActionResult> UpgradePlan(CompanyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
@@ -124,8 +120,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            bool updated = _billService.UpgradePlan(identity.companyid ?? 0, requestDto.planid);
-            if (!updated)
+            if (!await _billService.UpgradePlan(identity.companyid ?? 0, requestDto.planid))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
