@@ -11,7 +11,7 @@ namespace ires.Domain.Contracts
         public Task<bool> Update(ExpenseRequestDto requestDto);
         public Task<ExpenseViewModel> GetExpenseByID(long ID);
         public Task<ICollection<ExpenseViewModel>> GetExpenses(int companyID, string search, DateTime startDate, DateTime endDate);
-        public Task<bool> VoidExpense(long id);
+        public Task<bool> VoidExpense(long id, long employeeid);
         public Task ReComputeAPAsync(long vendorID);
 
         public Task<ExpenseTypeViewModel> CreateExpenseType(ExpenseTypeRequestDto requestDto);
@@ -32,7 +32,7 @@ namespace ires.Domain.Contracts
         public Task<AccountPayableViewModel> CreateAccountPayable(AccountPayableRequestDto requestDto);
         public Task<bool> UpdateAccountPayable(AccountPayableRequestDto requestDto);
         public Task<AccountPayableViewModel> GetAccountPayableByID(long id);
-        public Task<bool> VoidAccountPayable(long id);
+        public Task<bool> VoidAccountPayable(long id, long employeeid);
         public Task<ICollection<AccountPayableViewModel>> GetAccountPayables(int companyID, string search, DateTime startDate, DateTime endDate);
     }
 }

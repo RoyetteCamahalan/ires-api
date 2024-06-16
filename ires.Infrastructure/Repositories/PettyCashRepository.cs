@@ -14,12 +14,14 @@ namespace ires.Infrastructure.Repositories
         private readonly DataContext _dataContext;
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public PettyCashRepository(DataContext dataContext, IAccountService accountService, IMapper mapper)
+        public PettyCashRepository(DataContext dataContext, IAccountService accountService, IMapper mapper, ILogService logService)
         {
             _dataContext = dataContext;
             _accountService = accountService;
             _mapper = mapper;
+            _logService = logService;
         }
         public async Task<CashDisbursementViewModel> Create(CashDisbursementRequestDto requestDto)
         {
@@ -45,6 +47,7 @@ namespace ires.Infrastructure.Repositories
             }
             else
                 await _accountService.UpdateOfficeBalanceAsync(cashDisbursement.accountid, cashDisbursement.amount);
+            await _logService.SaveLogAsync(cashDisbursement.companyid, cashDisbursement.createdbyid, AppModule.PettyCash, "Petty Cash Disbursement", "Create New Record : " + cashDisbursement.disbursementid, 0);
             return _mapper.Map<CashDisbursementViewModel>(cashDisbursement);
         }
 
@@ -67,20 +70,21 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<CashDisbursementViewModel>(await GetDisbursement(id));
         }
 
-        public async Task<bool> VoidDisbursement(long id, bool isRefDisbursement)
+        public async Task<bool> VoidDisbursement(long id, bool isRefDisbursement, long employeeid)
         {
             var data = await GetDisbursementByID(id);
             if (data != null)
             {
                 data.status = DisbursementStatus.@void;
                 if (data.refdisbursementid > 0 && !isRefDisbursement)
-                    await VoidDisbursement(data.refdisbursementid, true);
+                    await VoidDisbursement(data.refdisbursementid, true, employeeid);
 
                 if (data.transtype == DisbursementTransType.transferout)
                     await _accountService.UpdateOfficeBalanceAsync(data.accountid, data.amount);
                 else
                     await _accountService.UpdateOfficeBalanceAsync(data.accountid, data.amount * -1);
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(data.companyid, employeeid, AppModule.PettyCash, "Petty Cash Disbursement", "Void Record : " + id, 0);
                 return true;
             }
             return false;

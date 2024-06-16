@@ -1,7 +1,7 @@
-﻿using ires.Infrastructure.Data;
+﻿using ires.Domain.Contracts;
 using ires.Domain.Enumerations;
+using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
-using ires.Domain.Contracts;
 
 namespace ires.Infrastructure.Repositories
 {
@@ -13,7 +13,8 @@ namespace ires.Infrastructure.Repositories
         {
             _dataContext = dataContext;
         }
-        public void SaveLog(int companyID, long employeeID, AppModule moduleID, string title, string action, int withadmin)
+
+        public async Task SaveLogAsync(int companyID, long employeeID, AppModule moduleID, string title, string action, int withadmin)
         {
             Log log = new Log
             {
@@ -26,7 +27,7 @@ namespace ires.Infrastructure.Repositories
                 withadmin = withadmin
             };
             _dataContext.logs.Add(log);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
         }
     }
 }

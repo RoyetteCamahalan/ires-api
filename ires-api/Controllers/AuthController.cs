@@ -3,6 +3,7 @@ using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Employee;
 using ires.Domain.DTO.User;
+using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -76,7 +77,7 @@ namespace ires_api.Controllers
             //response.Data.userPrivileges = await _employeeService.GetUserPrivilegesByModule(employee.employeeid);
             //response.Data.LoadPrivileges(_mapper, await _employeeService.GetUserPrivileges(employee.employeeid));
             response.Data.Token = GenerateToken(employee);
-            _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Authentication", "User logged in : " + response.Data.Token, 0);
+            await _logService.SaveLogAsync(employee.companyid, employee.employeeid, AppModule.Users, "Authentication", "User logged in : " + response.Data.Token, 0);
             return Ok(response);
         }
 
@@ -168,7 +169,7 @@ namespace ires_api.Controllers
             var html = System.IO.File.ReadAllText(@"./Templates/PasswordReset.html");
             var body = html.Replace("{0}", employee.firstname).Replace("{1}", _configuration["uiBaseURL"] + "/resetpassword?token=" + token);
             _mailService.SendEmailAsync("Reset your HexaByt Password", new List<string> { stringDto.value }, body, true);
-            _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Profile", "Reset Password link request :" + token, 0);
+            await _logService.SaveLogAsync(employee.companyid, employee.employeeid, AppModule.Users, "Profile", "Reset Password link request :" + token, 0);
 
             return Ok(response);
         }
@@ -194,8 +195,7 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Sorry, your password reset link is expired";
                 return BadRequest(serverResponse);
             }
-            await _employeeService.ChangePassword(employee.employeeid, ires.Domain.Utility.GetHash(requestDto.newuserpass));
-            _logService.SaveLog(employee.companyid, employee.employeeid, 0, "Profile", "Password Reset via token :" + requestDto.token, 0);
+            await _employeeService.ChangePassword(employee.employeeid, ires.Domain.Utility.GetHash(requestDto.newuserpass), true);
             return Ok(serverResponse);
         }
     }

@@ -12,13 +12,11 @@ namespace ires_api.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IBillService _billService;
-        private readonly ILogService _logService;
 
-        public BillingController(IConfiguration configuration, IBillService billService, ILogService logService)
+        public BillingController(IConfiguration configuration, IBillService billService)
         {
             _configuration = configuration;
             _billService = billService;
-            _logService = logService;
         }
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, int filter)
@@ -97,14 +95,9 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            _billService.UpdateBillingCycle(identity.companyid ?? 0, requestDto.billingcycle);
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Billing Cycle", "Updated Billing Cycle : " + (requestDto.billingcycle == 1 ? "Monthly" : "Yearly"), 1);
+            requestDto.id = identity.companyid ?? 0;
+            requestDto.updatedbyid = identity.employeeid;
+            _billService.UpdateBillingCycle(requestDto);
             serverResponse.Data = true;
             return Ok(serverResponse);
         }
@@ -114,19 +107,12 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
+            if (!await _billService.UpgradePlan(identity.companyid ?? 0, requestDto.planid, identity.employeeid))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            if (!await _billService.UpgradePlan(identity.companyid ?? 0, requestDto.planid))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Subscription Upgrade", "Subscription Upgrade : " + requestDto.planid.ToString(), 1);
             serverResponse.Data = true;
             return Ok(serverResponse);
         }

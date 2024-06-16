@@ -10,5 +10,6 @@
         public string bankpreferredbranch { get; set; } = string.Empty;
         public bool isactive { get; set; }
         public long createdbyid { get; set; }
+        public long updatedbyid { get; set; }
     }
 }

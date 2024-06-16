@@ -10,7 +10,7 @@ namespace ires.Infrastructure.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long contractid { get; set; }
-        public long companyid { get; set; }
+        public int companyid { get; set; }
         public long contractno { get; set; }
         public long custid { get; set; }
         public DateTime contractdate { get; set; }

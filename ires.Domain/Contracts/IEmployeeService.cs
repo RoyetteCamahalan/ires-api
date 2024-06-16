@@ -16,7 +16,7 @@ namespace ires.Domain.Contracts
 
         public Task<EmployeeViewModel> CreateAsync(EmployeeRequestDto requestDto);
         public Task<bool> UpdateAsync(EmployeeRequestDto requestDto);
-        public Task<StringViewModel> ChangePassword(long id, string newPassword);
+        public Task<StringViewModel> ChangePassword(long id, string newPassword, bool withToken = false);
 
         public Task<ICollection<UserPrivilegeViewModel>> GetUserPrivileges(long id);
         public Task<ICollection<UserPrivilegeViewModel>> GetUserAllPrivileges(long id);

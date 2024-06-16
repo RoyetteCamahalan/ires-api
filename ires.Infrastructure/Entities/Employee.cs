@@ -7,6 +7,7 @@ namespace ires.Infrastructure.Entities
     public class Employee
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long employeeid { get; set; }
         public int companyid { get; set; }
         public string firstname { get; set; } = String.Empty;
@@ -22,6 +23,8 @@ namespace ires.Infrastructure.Entities
         public string? designation { get; set; }
         public long? createdbyid { get; set; }
         public DateTime? datecreated { get; set; }
+        public long? updatedbyid { get; set; }
+        public DateTime? dateupdated { get; set; }
         public string passwordresettoken { get; set; } = string.Empty;
 
         public Company? company { get; set; }

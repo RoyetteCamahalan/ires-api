@@ -46,7 +46,6 @@ namespace ires.Infrastructure.Repositories
         {
             Company company = new Company
             {
-                id = (_dataContext.companies.Max(x => (int?)x.id) ?? 0) + 1,
                 name = requestDto.name,
                 address = requestDto.address,
                 contactno = requestDto.contactno,
@@ -57,7 +56,7 @@ namespace ires.Infrastructure.Repositories
             _dataContext.companies.Add(company);
             Employee employee = new Employee
             {
-                companyid = company.id,
+                company = company,
                 firstname = requestDto.adminfirstname,
                 lastname = requestDto.adminlastname,
                 email = requestDto.email,

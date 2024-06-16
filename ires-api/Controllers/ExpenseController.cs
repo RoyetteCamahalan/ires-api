@@ -15,13 +15,11 @@ namespace ires_api.Controllers
     {
         private readonly IExpenseService _expenseService;
         private readonly IAccountService _accountService;
-        private readonly ILogService _logService;
 
-        public ExpenseController(IExpenseService expenseService, IAccountService accountService, ILogService logService)
+        public ExpenseController(IExpenseService expenseService, IAccountService accountService)
         {
             _expenseService = expenseService;
             _accountService = accountService;
-            _logService = logService;
         }
 
 
@@ -94,7 +92,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Expense", "Create New Record : " + result.expenseid, 0);
             return Ok(serverResponse);
         }
 
@@ -128,7 +125,6 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Expense", "Update Record ID : " + requestDto.expenseid, 0);
             return Ok(serverResponse);
         }
 
@@ -137,14 +133,13 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _expenseService.VoidExpense(requestDto.id);
+            serverResponse.Success = await _expenseService.VoidExpense(requestDto.id, identity.employeeid);
             serverResponse.Data = serverResponse.Success;
             if (!serverResponse.Success)
             {
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Expense", "Void Record : " + requestDto.id, 0);
             return Ok(serverResponse);
         }
 
@@ -201,7 +196,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Expense Type", "Create New Expense Type : " + result.expensetypeid + "-" + requestDto.expensetypedesc, 0);
             return Ok(serverResponse);
         }
 
@@ -217,7 +211,6 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Expense Type", "Update Expense Type ID : " + requestDto.expensetypeid, 0);
             return Ok(serverResponse);
         }
 
@@ -275,7 +268,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Vendor", "Create New Vendor : " + result.vendorid + "-" + requestDto.vendorname, 0);
             return Ok(serverResponse);
         }
 
@@ -291,7 +283,6 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Vendor", "Update Vendor ID : " + requestDto.vendorid, 0);
             return Ok(serverResponse);
         }
         #endregion
@@ -340,7 +331,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Accounts Payable", "Create New Record : " + result.chargeid, 0);
             return Ok(serverResponse);
         }
 
@@ -356,7 +346,6 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Accounts Payable", "Update Record ID : " + requestDto.chargeid, 0);
             return Ok(serverResponse);
         }
 
@@ -365,14 +354,13 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _expenseService.VoidAccountPayable(requestDto.id);
+            serverResponse.Success = await _expenseService.VoidAccountPayable(requestDto.id, identity.employeeid);
             serverResponse.Data = serverResponse.Success;
             if (!serverResponse.Success)
             {
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Accounts Payable", "Void Record : " + requestDto.id, 0);
             return Ok(serverResponse);
         }
         #endregion

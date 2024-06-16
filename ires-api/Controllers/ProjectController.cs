@@ -15,13 +15,11 @@ namespace ires_api.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IProjectService _projectService;
-        private readonly ILogService _logService;
 
-        public ProjectController(IMapper mapper, IProjectService projectService, ILogService logService)
+        public ProjectController(IMapper mapper, IProjectService projectService)
         {
             _mapper = mapper;
             _projectService = projectService;
-            _logService = logService;
         }
 
         [HttpGet("getrentalproperties")]
@@ -57,6 +55,7 @@ namespace ires_api.Controllers
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.projectypeid = ProjectType.Rental;
+            requestDto.createdbyid = identity.employeeid;
             var result = await _projectService.Create(_mapper.Map<ProjectRequestDto>(requestDto));
             if (result == null)
             {
@@ -65,7 +64,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = _mapper.Map<RentalProjectViewModel>(result);
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Create Rental Property", "Create New Record : " + result.propertyname, 0);
             return Ok(serverResponse);
         }
         [HttpPut("updaterentalproperty")]
@@ -73,6 +71,7 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<RentalProjectViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.updatedbyid = identity.employeeid;
             var data = await _projectService.Update(_mapper.Map<ProjectRequestDto>(requestDto));
             if (data == null)
             {
@@ -80,7 +79,6 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(data.companyid, identity.employeeid, 0, "Update Rental Property", "Update Record : " + data.propertyname, 0);
             return Ok(serverResponse);
         }
 
@@ -130,6 +128,8 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<RentalUnitViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.companyid = identity.companyid ?? 0;
+            requestDto.createdbyid = identity.employeeid;
             var result = await _projectService.CreateRentalUnit(requestDto);
             if (result == null)
             {
@@ -138,7 +138,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = _mapper.Map<RentalUnitViewModel>(result);
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Create Rental Unit", "Create New Record : " + result.propertyid.ToString() + "-" + result.propertyname, 0);
             return Ok(serverResponse);
         }
         [HttpPut("updaterentalunit")]
@@ -146,13 +145,14 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<RentalUnitViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.companyid = identity.companyid ?? 0;
+            requestDto.updatedbyid = identity.employeeid;
             if (!(await _projectService.UpdateRentalUnit(requestDto)))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Update Rental Unit", "Update Record : " + requestDto.propertyid.ToString() + "-" + requestDto.propertyname, 0);
             return Ok(serverResponse);
         }
     }

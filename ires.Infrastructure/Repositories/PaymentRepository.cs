@@ -14,12 +14,14 @@ namespace ires.Infrastructure.Repositories
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
         private readonly ISurveyService _surveyService;
+        private readonly ILogService _logService;
 
-        public PaymentRepository(DataContext dataContext, IMapper mapper, ISurveyService surveyService)
+        public PaymentRepository(DataContext dataContext, IMapper mapper, ISurveyService surveyService, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
             _surveyService = surveyService;
+            _logService = logService;
         }
 
         public async Task<PaymentViewModel> Create(PaymentRequestDto requestDto)
@@ -137,13 +139,13 @@ namespace ires.Infrastructure.Repositories
             return await _dataContext.payments.AnyAsync(x => x.companyid == companyID && x.receipttype == receiptType && x.status != PaymentStatus.@void && x.orno == receiptNo);
         }
 
-        public async Task<bool> VoidPayment(long paymentID)
+        public async Task<bool> VoidPayment(long paymentID, long employeeid)
         {
-            var payment = await GetPaymentByID(paymentID);
-            if (payment != null)
+            var entity = await GetPaymentByID(paymentID);
+            if (entity != null)
             {
-                payment.status = PaymentStatus.@void;
-                foreach (var detail in payment.paymentDetails)
+                entity.status = PaymentStatus.@void;
+                foreach (var detail in entity.paymentDetails)
                 {
                     if (detail.payableType == AppModule.Surveying)
                     {
@@ -154,6 +156,7 @@ namespace ires.Infrastructure.Repositories
                     }
                 }
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(entity.companyid, employeeid, AppModule.Payments, "Void Payment", "Void Payment ID: " + paymentID, 0);
                 return true;
             }
             return false;

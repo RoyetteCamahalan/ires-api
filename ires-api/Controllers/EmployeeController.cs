@@ -13,12 +13,10 @@ namespace ires_api.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
-        private readonly ILogService _logService;
 
-        public EmployeeController(IEmployeeService employeeService, ILogService logService)
+        public EmployeeController(IEmployeeService employeeService)
         {
             _employeeService = employeeService;
-            _logService = logService;
         }
 
         [HttpGet]
@@ -105,7 +103,6 @@ namespace ires_api.Controllers
                 serverResponse.errorCode = 1;
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Profile", "Password Changed", 0);
             return Ok(serverResponse);
         }
 

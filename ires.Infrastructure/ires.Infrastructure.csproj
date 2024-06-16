@@ -22,4 +22,8 @@
     <ProjectReference Include="..\ires.Domain\ires.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

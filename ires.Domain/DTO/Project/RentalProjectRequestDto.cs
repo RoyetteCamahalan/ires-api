@@ -9,5 +9,7 @@ namespace ires.Domain.DTO.Project
         public string propertyname { get; set; } = string.Empty;
         public string address { get; set; } = string.Empty;
         public ProjectType projectypeid { get; set; }
+        public long createdbyid { get; set; }
+        public long updatedbyid { get; set; }
     }
 }

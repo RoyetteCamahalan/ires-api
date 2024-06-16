@@ -54,7 +54,10 @@ namespace ires.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                _logService.SaveLog(0, 0, 0, "mail error", ex.Message, 0);
+                Task.Run(async () =>
+                {
+                    await _logService.SaveLogAsync(0, 0, 0, "mail error", ex.Message, 0);
+                });
                 return false;
             }
             return true;

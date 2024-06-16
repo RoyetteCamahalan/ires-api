@@ -1,5 +1,6 @@
 using ires.AppService;
 using ires.Domain.Contracts;
+using ires.Infrastructure;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,7 +33,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true
         };
     });
-builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("IRESConnection")));
+
+builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("IRESConnection"),
+    b =>
+    {
+        b.MigrationsAssembly(typeof(_ForInfrastructureAssembyLoadOnly).Assembly.GetName().Name);
+    })
+);
 
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
@@ -55,6 +62,7 @@ builder.Services.AddScoped<IBankService, BankRepository>();
 builder.Services.AddScoped<IExpenseService, ExpenseRepository>();
 builder.Services.AddScoped<IFileService, FileRepository>();
 builder.Services.AddScoped<ILogService, LogRepository>();
+builder.Services.AddScoped<IOtherChargeService, OtherChargeRepository>();
 builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
 builder.Services.AddScoped<IProjectService, ProjectRepository>();
 builder.Services.AddScoped<IRentalService, RentalRepository>();

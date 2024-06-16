@@ -10,12 +10,10 @@ namespace ires_api.Controllers
     public class BankController : ControllerBase
     {
         private readonly IBankService _bankService;
-        private readonly ILogService _logService;
 
-        public BankController(IBankService bankService, ILogService logService)
+        public BankController(IBankService bankService)
         {
             _bankService = bankService;
-            _logService = logService;
         }
         [HttpGet]
         public async Task<IActionResult> Get(long bankID)
@@ -81,6 +79,8 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Bank already registered.";
                 return BadRequest(serverResponse);
             }
+            requestDto.companyid = identity.companyid ?? 0;
+            requestDto.createdbyid = identity.employeeid;
             var result = await _bankService.Create(requestDto);
             if (result == null)
             {
@@ -89,7 +89,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Create New Bank", "Bank Name : " + requestDto.name, 0);
             return Ok(serverResponse);
         }
 
@@ -98,13 +97,13 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.updatedbyid = identity.employeeid;
             if (!await _bankService.Update(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Update Bank", "Bank ID : " + requestDto.bankid.ToString(), 0);
             return Ok(serverResponse);
         }
     }

@@ -2,6 +2,7 @@
 using ires.Domain.Contracts;
 using ires.Domain.DTO.BankAccount;
 using ires.Domain.DTO.Office;
+using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +13,13 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public AccountRepository(DataContext dataContext, IMapper mapper)
+        public AccountRepository(DataContext dataContext, IMapper mapper, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _logService = logService;
         }
         private async Task<BankAccount> GetBankAccount(long id)
         {
@@ -51,6 +54,7 @@ namespace ires.Infrastructure.Repositories
             entity.datecreated = DateTime.Now;
             _dataContext.bankAccounts.Add(entity);
             await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.BankAccounts, "Create New Bank Account", "Account : " + entity.accountid + '-' + entity.accountname, 0);
             return _mapper.Map<BankAccountViewModel>(entity);
         }
 
@@ -64,8 +68,8 @@ namespace ires.Infrastructure.Repositories
                 bankAccount.bankid = requestDto.bankid;
                 bankAccount.bankpreferredbranch = requestDto.bankpreferredbranch;
                 bankAccount.isactive = requestDto.isactive;
-
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(bankAccount.companyid, requestDto.updatedbyid, AppModule.BankAccounts, "Updated Bank Account", "Account ID: " + bankAccount.accountid + '-' + bankAccount.accountname, 0);
                 return true;
             }
             return false;
@@ -91,20 +95,22 @@ namespace ires.Infrastructure.Repositories
             entity.datecreated = DateTime.Now;
             _dataContext.offices.Add(entity);
             await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Offices, "Office", "Create New Office : " + entity.accountid + "-" + entity.accountname, 0);
             return _mapper.Map<OfficeViewModel>(entity);
         }
 
         public async Task<bool> UpdateOfficeAsync(OfficeRequestDto requestDto)
         {
-            var Office = await GetOffice(requestDto.accountid);
-            if (Office != null)
+            var entity = await GetOffice(requestDto.accountid);
+            if (entity != null)
             {
-                Office.accountname = requestDto.accountname;
-                Office.isactive = requestDto.isactive;
-                Office.memo = requestDto.memo;
-                Office.updatedbyid = requestDto.updatedbyid;
-                Office.dateupdated = DateTime.Now;
+                entity.accountname = requestDto.accountname;
+                entity.isactive = requestDto.isactive;
+                entity.memo = requestDto.memo;
+                entity.updatedbyid = requestDto.updatedbyid;
+                entity.dateupdated = DateTime.Now;
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(entity.companyid, entity.updatedbyid, 0, "Office", "Update Office ID : " + requestDto.accountid, 0);
                 return true;
             }
             return false;

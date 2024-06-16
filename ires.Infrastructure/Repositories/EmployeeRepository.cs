@@ -4,6 +4,7 @@ using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Employee;
 using ires.Domain.DTO.User;
+using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +15,13 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public EmployeeRepository(DataContext dataContext, IMapper mapper)
+        public EmployeeRepository(DataContext dataContext, IMapper mapper, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _logService = logService;
         }
 
         public async Task<EmployeeViewModel> CreateAsync(EmployeeRequestDto requestDto)
@@ -90,19 +93,23 @@ namespace ires.Infrastructure.Repositories
             return false;
         }
 
-        public async Task<StringViewModel> ChangePassword(long id, string newPassword)
+        public async Task<StringViewModel> ChangePassword(long id, string newPassword, bool withToken = false)
         {
-            var data = await GetEmployeeByID(id);
-            if (data != null)
+            var entity = await GetEmployeeByID(id);
+            if (entity != null)
             {
-                if (data.userpass != newPassword)
+                if (entity.userpass != newPassword)
                     return new StringViewModel("Old Password is incorrect");
-                else if (data.userpass == newPassword)
+                else if (entity.userpass == newPassword)
                     return new StringViewModel("New password should not be the same as your old password");
 
-                data.userpass = newPassword;
-                data.passwordresettoken = "";
+                entity.userpass = newPassword;
+                entity.passwordresettoken = "";
                 await _dataContext.SaveChangesAsync();
+                if (withToken)
+                    await _logService.SaveLogAsync(entity.companyid, id, AppModule.Users, "Profile", "Password Reset via token", 0);
+                else
+                    await _logService.SaveLogAsync(entity.companyid, id, AppModule.Users, "Profile", "Password Changed", 0);
                 return new StringViewModel("");
             }
             return new StringViewModel("User not found");

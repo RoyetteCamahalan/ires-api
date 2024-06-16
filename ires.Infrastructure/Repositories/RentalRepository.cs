@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
-using ires.Infrastructure.Data;
-using ires.Domain.Enumerations;
-using ires.Infrastructure.Entities;
 using ires.Domain.Contracts;
-using Microsoft.EntityFrameworkCore;
 using ires.Domain.DTO.RentalContract;
 using ires.Domain.DTO.RentalContractDetail;
 using ires.Domain.DTO.RentalUnit;
+using ires.Domain.Enumerations;
+using ires.Infrastructure.Data;
+using ires.Infrastructure.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
@@ -15,12 +15,14 @@ namespace ires.Infrastructure.Repositories
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
         private readonly IProjectService _projectService;
+        private readonly ILogService _logService;
 
-        public RentalRepository(DataContext dataContext, IMapper mapper, IProjectService projectService)
+        public RentalRepository(DataContext dataContext, IMapper mapper, IProjectService projectService, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
             _projectService = projectService;
+            _logService = logService;
         }
         public async Task<RentalContractViewModel> Create(RentalContractRequestDto requestDto)
         {
@@ -43,6 +45,7 @@ namespace ires.Infrastructure.Repositories
             }
             _dataContext.rentalContracts.Add(entity);
             await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(requestDto.companyid, requestDto.createdbyid, AppModule.Rentals, "Create Rental Contract", "Create New Record : " + entity.contractid, 0);
             foreach (var item in requestDto.rentalContractDetails)
             {
                 await _projectService.UpdateRentalUnitStatus(item.propertyid, RentalPropertyStatus.Occupied);
@@ -140,6 +143,7 @@ namespace ires.Infrastructure.Repositories
                     }
                 }
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(entity.companyid, requestDto.updatedbyid, 0, "Update Rental Contract", "Update Record : " + requestDto.contractid.ToString(), 0);
                 await RecomputeContract(requestDto.contractid);
                 return true;
             }
@@ -163,7 +167,8 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<ICollection<RentalHistoryViewModel>> GetAccountHistory(long companyID, long contractID)
         {
-            return await _dataContext.Database.SqlQuery<RentalHistoryViewModel>($"exec spWebReports @contractid = {contractID}, @companyid =  {companyID}").ToListAsync();
+            var result = await _dataContext.rentalAccountHistories.FromSqlRaw($"exec spWebReports @contractid = {contractID}, @companyid =  {companyID}").ToListAsync();
+            return _mapper.Map<ICollection<RentalHistoryViewModel>>(result);
         }
     }
 }

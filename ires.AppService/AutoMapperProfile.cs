@@ -14,6 +14,7 @@ using ires.Domain.DTO.Expense;
 using ires.Domain.DTO.ExpenseType;
 using ires.Domain.DTO.Office;
 using ires.Domain.DTO.OtherCharge;
+using ires.Domain.DTO.OtherFee;
 using ires.Domain.DTO.Payment;
 using ires.Domain.DTO.Project;
 using ires.Domain.DTO.RentalContract;
@@ -23,6 +24,7 @@ using ires.Domain.DTO.Survey;
 using ires.Domain.DTO.User;
 using ires.Domain.DTO.Vendor;
 using ires.Infrastructure.Entities;
+using ires.Infrastructure.Keyless;
 
 namespace ires.AppService
 {
@@ -82,6 +84,9 @@ namespace ires.AppService
             CreateMap<OfficeRequestDto, Office>();
             CreateMap<Office, OfficeViewModel>();
 
+            CreateMap<OtherFeeRequestDto, OtherFee>();
+            CreateMap<OtherFee, OtherFeeViewModel>();
+
 
             CreateMap<RentalProjectRequestDto, ProjectRequestDto>();
             CreateMap<Project, RentalProjectViewModel>();
@@ -103,6 +108,7 @@ namespace ires.AppService
 
             CreateMap<RentalContractDetailRequestDto, RentalContractDetail>();
             CreateMap<RentalContractDetail, RentalContractDetailViewModel>();
+            CreateMap<RentalAccountHistory, RentalHistoryViewModel>();
 
             CreateMap<UserPrivilege, UserPrivilegeViewModel>();
 

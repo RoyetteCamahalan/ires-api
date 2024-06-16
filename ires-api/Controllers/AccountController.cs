@@ -12,12 +12,10 @@ namespace ires_api.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
-        private readonly ILogService _logService;
 
-        public AccountController(IAccountService accountService, ILogService logService)
+        public AccountController(IAccountService accountService)
         {
             _accountService = accountService;
-            _logService = logService;
         }
 
         [HttpGet("getbankaccounts")]
@@ -59,6 +57,7 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<BankAccountViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.createdbyid = identity.employeeid;
             if (await _accountService.isBankAccountExist(requestDto))
             {
                 serverResponse.Success = false;
@@ -73,7 +72,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Create New Bank Account", "Account : " + result.accountid + '-' + requestDto.accountname, 0);
             return Ok(serverResponse);
         }
 
@@ -82,13 +80,13 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.updatedbyid = identity.employeeid;
             if (!await _accountService.UpdateBankAccountAsync(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Updated Bank Account", "Account ID: " + requestDto.accountid + '-' + requestDto.accountname, 0);
             return Ok(serverResponse);
         }
 
@@ -146,7 +144,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Office", "Create New Office : " + result.accountid + "-" + requestDto.accountname, 0);
             return Ok(serverResponse);
         }
 
@@ -162,7 +159,6 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Office", "Update Office ID : " + requestDto.accountid, 0);
             return Ok(serverResponse);
         }
     }

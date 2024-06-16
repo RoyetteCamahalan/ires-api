@@ -14,17 +14,20 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public ProjectRepository(DataContext dataContext, IMapper mapper)
+        public ProjectRepository(DataContext dataContext, IMapper mapper, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _logService = logService;
         }
         public async Task<RentalProjectViewModel> Create(ProjectRequestDto projectRequest)
         {
             Project project = _mapper.Map<Project>(projectRequest);
             _dataContext.projects.Add(project);
             await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(project.companyid, projectRequest.createdbyid, AppModule.Projects, "Create Project", "Create New Record : " + project.propertyid + " - " + project.propertyname, 0);
             return _mapper.Map<RentalProjectViewModel>(project);
         }
 
@@ -61,48 +64,49 @@ namespace ires.Infrastructure.Repositories
             {
                 _dataContext.Entry(project).CurrentValues.SetValues(projectRequest);
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(project.companyid, projectRequest.updatedbyid, AppModule.Projects, "Update Project", "Update Record : " + project.propertyid + " - " + project.propertyname, 0);
             }
             return _mapper.Map<RentalProjectViewModel>(project);
         }
 
-        public async Task<RentalUnitViewModel> CreateRentalUnit(RentalUnitRequestDto request)
+        public async Task<RentalUnitViewModel> CreateRentalUnit(RentalUnitRequestDto requestDto)
         {
-            var entity = _mapper.Map<RentalProperty>(request);
-            if (request.isactive)
+            var entity = _mapper.Map<RentalProperty>(requestDto);
+            if (requestDto.isactive)
                 entity.status = RentalPropertyStatus.Vacant;
             else
                 entity.status = RentalPropertyStatus.Inactive;
             _dataContext.rentalProperties.Add(entity);
             await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(requestDto.companyid, requestDto.createdbyid, AppModule.Projects, "Create Rental Unit", "Create New Record : " + entity.propertyid.ToString() + "-" + entity.propertyname, 0);
             return _mapper.Map<RentalUnitViewModel>(entity);
         }
 
-        public async Task<bool> UpdateRentalUnit(RentalUnitRequestDto request)
+        public async Task<bool> UpdateRentalUnit(RentalUnitRequestDto requestDto)
         {
-            var entity = await GetRentalUnitById(request.propertyid);
+            var entity = await GetRentalUnitById(requestDto.propertyid);
             if (entity != null)
             {
-                entity.propertyname = request.propertyname;
-                entity.area = request.area;
-                entity.monthlyrent = request.monthlyrent;
+                entity.propertyname = requestDto.propertyname;
+                entity.area = requestDto.area;
+                entity.monthlyrent = requestDto.monthlyrent;
                 if (entity.status != RentalPropertyStatus.Occupied)
                 {
-                    if (request.isactive)
+                    if (requestDto.isactive)
                         entity.status = RentalPropertyStatus.Vacant;
                     else
                         entity.status = RentalPropertyStatus.Inactive;
                 }
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(entity.project.companyid, requestDto.updatedbyid, AppModule.Projects, "Update Rental Unit", "Update Record : " + entity.propertyid.ToString() + "-" + entity.propertyname, 0);
                 return true;
             }
             return false;
         }
-
         private async Task<RentalProperty> GetRentalUnitById(long id)
         {
-            return await _dataContext.rentalProperties.FindAsync(id);
+            return await _dataContext.rentalProperties.Include(x => x.project).FirstOrDefaultAsync(x => x.propertyid == id);
         }
-
         public async Task<RentalUnitViewModel> GetRentalUnitByIdAsync(long id)
         {
             var entity = await GetRentalUnitById(id);

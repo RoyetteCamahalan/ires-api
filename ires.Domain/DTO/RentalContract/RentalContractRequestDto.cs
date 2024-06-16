@@ -5,7 +5,7 @@ namespace ires.Domain.DTO.RentalContract
     public class RentalContractRequestDto
     {
         public long contractid { get; set; }
-        public long companyid { get; set; }
+        public int companyid { get; set; }
         public long contractno { get; set; }
         public long custid { get; set; }
         public DateTime contractdate { get; set; }
@@ -19,6 +19,7 @@ namespace ires.Domain.DTO.RentalContract
         public DateTime? billingstart { get; set; }
         public string remarks { get; set; } = string.Empty;
         public long createdbyid { get; set; }
+        public long updatedbyid { get; set; }
         public List<RentalContractDetailRequestDto> rentalContractDetails { get; set; } = new List<RentalContractDetailRequestDto>();
     }
 }

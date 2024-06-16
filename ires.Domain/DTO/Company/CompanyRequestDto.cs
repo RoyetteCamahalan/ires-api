@@ -11,5 +11,6 @@
         public string email { get; set; } = string.Empty;
         public int billingcycle { get; set; }
         public int planid { get; set; }
+        public long updatedbyid { get; set; }
     }
 }

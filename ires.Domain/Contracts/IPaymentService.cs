@@ -14,6 +14,6 @@ namespace ires.Domain.Contracts
         public Task<long> GetReceiptNo(int companyID, ReceiptType receiptType);
         public Task<bool> IsDuplicateReceipt(int companyID, ReceiptType receiptType, long receiptNo);
         public Task<PaymentViewModel> Create(PaymentRequestDto requestDto);
-        public Task<bool> VoidPayment(long paymentID);
+        public Task<bool> VoidPayment(long paymentID, long employeeid);
     }
 }

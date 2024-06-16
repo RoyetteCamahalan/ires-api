@@ -1,5 +1,7 @@
 ﻿
+using ires.Domain.Enumerations;
 using ires.Infrastructure.Entities;
+using ires.Infrastructure.Keyless;
 using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Data
@@ -12,6 +14,8 @@ namespace ires.Infrastructure.Data
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<RentalAccountHistory>().HasNoKey();
+
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Employee>()
@@ -29,7 +33,7 @@ namespace ires.Infrastructure.Data
 
             modelBuilder.Entity<OtherCharge>()
                 .HasOne(o => o.fee)
-                .WithMany(s => s.otherCharges)
+                .WithMany()
                 .HasForeignKey(o => o.chargetype);
 
             modelBuilder.Entity<PaymentCheck>()
@@ -162,11 +166,33 @@ namespace ires.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(r => r.propertyid);
 
+            modelBuilder.Entity<RentalCharge>()
+                .HasOne(r => r.otherFee)
+                .WithMany()
+                .HasForeignKey(r => r.otherfeeid);
+
+            modelBuilder.Entity<RentalCharge>()
+                .HasOne(r => r.rentalContract)
+                .WithMany()
+                .HasForeignKey(r => r.contractid);
+
             modelBuilder.Entity<UserPrivilege>()
                 .HasOne(s => s.module)
                 .WithMany()
                 .HasForeignKey(e => e.moduleid);
 
+
+
+            modelBuilder.Entity<SubscriptionPlan>().HasData(
+                    new SubscriptionPlan { id = 1, moduleid = AppModule.Surveying, name = "60 Day Trial", isactive = true, storage = 1000, surveylimit = 0, monthlysubscription = 0 },
+                    new SubscriptionPlan { id = 2, moduleid = AppModule.Surveying, name = "Surveying Pro", isactive = true, storage = 1000, surveylimit = 0, monthlysubscription = 800 },
+                    new SubscriptionPlan { id = 3, moduleid = AppModule.Surveying, name = "Surveying Enterprise", isactive = true, storage = 5000, surveylimit = 0, monthlysubscription = 1000 },
+                    new SubscriptionPlan { id = 4, moduleid = AppModule.Expenses, name = "60 Day Trial", isactive = true, storage = 1000, surveylimit = 0, monthlysubscription = 0 },
+                    new SubscriptionPlan { id = 5, moduleid = AppModule.Expenses, name = "Finance Enterprise", isactive = true, storage = 5000, surveylimit = 0, monthlysubscription = 500 },
+                    new SubscriptionPlan { id = 6, moduleid = AppModule.Rentals, name = "60 Day Trial", isactive = true, storage = 1000, surveylimit = 0, monthlysubscription = 0 },
+                    new SubscriptionPlan { id = 7, moduleid = AppModule.Rentals, name = "Rental Pro", isactive = true, storage = 1000, surveylimit = 20, monthlysubscription = 800 },
+                    new SubscriptionPlan { id = 8, moduleid = AppModule.Rentals, name = "Rental Enterprise", isactive = true, storage = 5000, surveylimit = 0, monthlysubscription = 1000 }
+                );
         }
         public DbSet<AccountPayable> accountPayables { get; set; }
         public DbSet<Attachment> attachments { get; set; }
@@ -192,6 +218,7 @@ namespace ires.Infrastructure.Data
         public DbSet<Notification> notifications { get; set; }
         public DbSet<Office> offices { get; set; }
         public DbSet<OtherCharge> otherCharges { get; set; }
+        public DbSet<OtherFee> otherFees { get; set; }
         public DbSet<Payment> payments { get; set; }
         public DbSet<PaymentCheck> paymentChecks { get; set; }
         public DbSet<PaymentDetail> paymentDetails { get; set; }
@@ -200,9 +227,14 @@ namespace ires.Infrastructure.Data
         public DbSet<RentalProperty> rentalProperties { get; set; }
         public DbSet<RentalContract> rentalContracts { get; set; }
         public DbSet<RentalContractDetail> rentalContractDetails { get; set; }
+        public DbSet<RentalCharge> rentalCharges { get; set; }
         public DbSet<Survey> surveys { get; set; }
         public DbSet<SubscriptionPlan> subscriptionPlans { get; set; }
         public DbSet<UserPrivilege> userPrivileges { get; set; }
         public DbSet<Vendor> vendors { get; set; }
+
+
+
+        public DbSet<RentalAccountHistory> rentalAccountHistories { get; set; }
     }
 }

@@ -5,25 +5,25 @@
 namespace ires.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateRentalProperties : Migration
+    public partial class AddRentalChargeInterestPercentageTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "projectypeid",
-                table: "property",
-                type: "int",
+            migrationBuilder.AddColumn<decimal>(
+                name: "interestpercentage",
+                table: "rentalcharges",
+                type: "decimal(18,2)",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 0m);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "projectypeid",
-                table: "property");
+                name: "interestpercentage",
+                table: "rentalcharges");
         }
     }
 }

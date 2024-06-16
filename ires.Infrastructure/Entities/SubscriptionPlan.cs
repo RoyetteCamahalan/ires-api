@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ires.Domain.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires.Infrastructure.Entities
@@ -8,7 +9,7 @@ namespace ires.Infrastructure.Entities
     {
         [Key]
         public int id { get; set; }
-        public int moduleid { get; set; }
+        public AppModule moduleid { get; set; }
         public string name { get; set; } = string.Empty;
         public string description { get; set; } = string.Empty;
         public bool isactive { get; set; }

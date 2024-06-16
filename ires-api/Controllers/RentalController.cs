@@ -2,7 +2,6 @@
 using ires.Domain.DTO;
 using ires.Domain.DTO.RentalContract;
 using ires.Domain.DTO.RentalContractDetail;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -12,12 +11,10 @@ namespace ires_api.Controllers
     public class RentalController : ControllerBase
     {
         private readonly IRentalService _rentalService;
-        private readonly ILogService _logService;
 
-        public RentalController(IRentalService rentalService, ILogService logService)
+        public RentalController(IRentalService rentalService)
         {
             _rentalService = rentalService;
-            _logService = logService;
         }
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] RentalContractRequestDto requestDto)
@@ -34,7 +31,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Create Rental Contract", "Create New Record : " + result.contractid.ToString(), 0);
             return Ok(serverResponse);
         }
         [HttpPut]
@@ -42,13 +38,13 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.updatedbyid = identity.employeeid;
             if (!await _rentalService.Update(requestDto))
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Update Rental Contract", "Update Record : " + requestDto.contractid.ToString(), 0);
             return Ok(serverResponse);
         }
 
@@ -90,12 +86,19 @@ namespace ires_api.Controllers
             return Ok(serverResponse);
 
         }
+        [HttpGet("recompute/{id}")]
+        public async Task<IActionResult> RecomputeContract(long id)
+        {
+            var serverResponse = new ServerResponse<bool>();
+            await _rentalService.RecomputeContract(id);
+            return Ok(serverResponse);
+        }
         [HttpGet("getaccounthistory/{id}")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetAccountHistory(long id)
         {
             var serverResponse = new ServerResponse<ICollection<RentalHistoryViewModel>>();
-            var result = await _rentalService.GetAccountHistory(id, 1);
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var result = await _rentalService.GetAccountHistory(identity.companyid ?? 0, id);
             serverResponse.Data = result;
             return Ok(serverResponse);
         }

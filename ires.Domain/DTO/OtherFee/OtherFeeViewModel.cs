@@ -1,18 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace ires.Infrastructure.Entities
+﻿namespace ires.Domain.DTO.OtherFee
 {
-    [Table("otherfees")]
-    public class OtherFee
+    public class OtherFeeViewModel
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long id { get; set; }
         public int companyid { get; set; }
-        [MaxLength(255)]
         public string name { get; set; } = string.Empty;
-        [MaxLength(500)]
         public string description { get; set; } = string.Empty;
         public decimal price { get; set; }
         public bool isactive { get; set; }

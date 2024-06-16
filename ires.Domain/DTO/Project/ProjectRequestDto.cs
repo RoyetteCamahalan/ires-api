@@ -23,5 +23,7 @@ namespace ires.Domain.DTO.Project
         public int interesttype { get; set; }
         public decimal addoninterestpermonth { get; set; }
         public ProjectType projectypeid { get; set; }
+        public long createdbyid { get; set; }
+        public long updatedbyid { get; set; }
     }
 }

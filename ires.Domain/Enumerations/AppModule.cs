@@ -3,8 +3,20 @@
     public enum AppModule
     {
         Payments = 3,
+        Projects = 6,
+        Users = 8,
+        Expenses = 10,
         Rentals = 14,
-        Surveying = 15
+        Surveying = 15,
+        OtherFees = 23,
+        AccountsPayable = 16,
+        PettyCash = 17,
+        Banks = 18,
+        BankAccounts = 19,
+        Offices = 21,
+        Vendors = 22,
+        OtherCharges = 24,
+        Billing = 25,
         //        1	Reservation
         //2	Sales
         //3	Payments
@@ -12,19 +24,19 @@
         //5	Agents
         //6	Properties
         //7	Clients
-        //8	Users
+        //8	
         //9	Check Register
-        //10	Expenses
+        //10	
         //11	Reports
         //12	Loans
         //13	Credit Notes
         //14	Rentals
-        //16	Accounts Payable
+        //16	
         //17	Petty Cash
-        //18	Banks
-        //19	Bank Accounts
+        //18	
+        //19	
         //20	Expense Types
-        //21	Offices
-        //22	Vendors
+        //21	
+        //22	
     }
 }

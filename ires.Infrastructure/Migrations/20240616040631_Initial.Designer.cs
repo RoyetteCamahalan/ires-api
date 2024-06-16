@@ -12,8 +12,8 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230601021216_AddCarTable")]
-    partial class AddCarTable
+    [Migration("20240616040631_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace ires.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ires_api.Models.AccountPayable", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.AccountPayable", b =>
                 {
                     b.Property<long>("chargeid")
                         .ValueGeneratedOnAdd()
@@ -92,7 +92,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("expenseposting");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Attachment", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Attachment", b =>
                 {
                     b.Property<long>("documentid")
                         .ValueGeneratedOnAdd()
@@ -143,7 +143,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("attachments");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Bank", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Bank", b =>
                 {
                     b.Property<long>("bankid")
                         .ValueGeneratedOnAdd()
@@ -166,7 +166,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("bank");
                 });
 
-            modelBuilder.Entity("ires_api.Models.BankAccount", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.BankAccount", b =>
                 {
                     b.Property<long>("accountid")
                         .ValueGeneratedOnAdd()
@@ -208,7 +208,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("bankaccounts");
                 });
 
-            modelBuilder.Entity("ires_api.Models.BankTransfer", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.BankTransfer", b =>
                 {
                     b.Property<long>("id")
                         .ValueGeneratedOnAdd()
@@ -249,7 +249,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("banktobank");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Bill", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Bill", b =>
                 {
                     b.Property<long>("id")
                         .ValueGeneratedOnAdd()
@@ -309,7 +309,66 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("bill");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Car", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Booking", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<long>("carid")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("clientid")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("companyid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("drivername")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime>("enddate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("isselfdrive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("noofdays")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("rate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ratetype")
+                        .HasColumnType("int");
+
+                    b.Property<string>("remarks")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("startdate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("totalrate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("carid");
+
+                    b.HasIndex("clientid");
+
+                    b.ToTable("bookings");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.Car", b =>
                 {
                     b.Property<long>("id")
                         .ValueGeneratedOnAdd()
@@ -364,7 +423,58 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("cars");
                 });
 
-            modelBuilder.Entity("ires_api.Models.CarType", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.CarMaintenance", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<long>("carid")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("companyid")
+                        .HasColumnType("int");
+
+                    b.Property<long>("createdbyid")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("datecreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("dateupdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("enddate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("remarks")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("startdate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("typeid")
+                        .HasColumnType("int");
+
+                    b.Property<long>("updatedbyid")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("carid");
+
+                    b.HasIndex("typeid");
+
+                    b.ToTable("carmaintenance");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.CarType", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
@@ -434,7 +544,7 @@ namespace ires.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("ires_api.Models.CashDisbursement", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.CashDisbursement", b =>
                 {
                     b.Property<long>("disbursementid")
                         .ValueGeneratedOnAdd()
@@ -495,7 +605,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("pettycashdisbursement");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Client", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Client", b =>
                 {
                     b.Property<long>("custid")
                         .ValueGeneratedOnAdd()
@@ -554,7 +664,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("customer");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Company", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
@@ -577,7 +687,7 @@ namespace ires.Infrastructure.Migrations
                     b.Property<bool?>("isactive")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("isverified")
+                    b.Property<bool>("isverified")
                         .HasColumnType("bit");
 
                     b.Property<string>("name")
@@ -602,7 +712,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("company");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Employee", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Employee", b =>
                 {
                     b.Property<long>("employeeid")
                         .ValueGeneratedOnAdd()
@@ -633,10 +743,10 @@ namespace ires.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool?>("isactive")
+                    b.Property<bool>("isactive")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("isappsysadmin")
+                    b.Property<bool>("isappsysadmin")
                         .HasColumnType("bit");
 
                     b.Property<string>("lastname")
@@ -667,7 +777,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("employees");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Expense", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Expense", b =>
                 {
                     b.Property<long>("expenseid")
                         .ValueGeneratedOnAdd()
@@ -740,7 +850,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("expenses");
                 });
 
-            modelBuilder.Entity("ires_api.Models.ExpenseType", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.ExpenseType", b =>
                 {
                     b.Property<long>("expensetypeid")
                         .ValueGeneratedOnAdd()
@@ -780,7 +890,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("expensetypes");
                 });
 
-            modelBuilder.Entity("ires_api.Models.ExpenseTypeCategory", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.ExpenseTypeCategory", b =>
                 {
                     b.Property<int>("expensecatid")
                         .ValueGeneratedOnAdd()
@@ -800,7 +910,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("expensetypecategory");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Log", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Log", b =>
                 {
                     b.Property<long>("id")
                         .ValueGeneratedOnAdd()
@@ -836,7 +946,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("logs");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Lot", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Lot", b =>
                 {
                     b.Property<long>("lot_id")
                         .ValueGeneratedOnAdd()
@@ -907,7 +1017,54 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("lot");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Module", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.MaintenanceType", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<bool>("isactive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("maintenancetypes");
+
+                    b.HasData(
+                        new
+                        {
+                            id = 1,
+                            isactive = true,
+                            name = "Repair and Maintenance"
+                        },
+                        new
+                        {
+                            id = 2,
+                            isactive = true,
+                            name = "Registration Renewal"
+                        },
+                        new
+                        {
+                            id = 3,
+                            isactive = true,
+                            name = "Personal Use"
+                        },
+                        new
+                        {
+                            id = 4,
+                            isactive = true,
+                            name = "Others"
+                        });
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.Module", b =>
                 {
                     b.Property<int>("moduleid")
                         .ValueGeneratedOnAdd()
@@ -930,7 +1087,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("applicationmodules");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Notification", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Notification", b =>
                 {
                     b.Property<long>("id")
                         .ValueGeneratedOnAdd()
@@ -963,7 +1120,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("notifications");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Office", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Office", b =>
                 {
                     b.Property<long>("accountid")
                         .ValueGeneratedOnAdd()
@@ -1005,7 +1162,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("accounts");
                 });
 
-            modelBuilder.Entity("ires_api.Models.OtherCharge", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.OtherCharge", b =>
                 {
                     b.Property<long>("chargeid")
                         .ValueGeneratedOnAdd()
@@ -1055,7 +1212,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("othercharges");
                 });
 
-            modelBuilder.Entity("ires_api.Models.OtherFee", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.OtherFee", b =>
                 {
                     b.Property<long>("id")
                         .ValueGeneratedOnAdd()
@@ -1063,10 +1220,13 @@ namespace ires.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
 
-                    b.Property<long?>("createdby")
+                    b.Property<int>("companyid")
+                        .HasColumnType("int");
+
+                    b.Property<long>("createdby")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime?>("datecreated")
+                    b.Property<DateTime>("datecreated")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("dateupdated")
@@ -1074,14 +1234,16 @@ namespace ires.Infrastructure.Migrations
 
                     b.Property<string>("description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("isactive")
                         .HasColumnType("bit");
 
                     b.Property<string>("name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<decimal>("price")
                         .HasColumnType("decimal(18,2)");
@@ -1094,7 +1256,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("otherfees");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Payment", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Payment", b =>
                 {
                     b.Property<long>("paymentid")
                         .ValueGeneratedOnAdd()
@@ -1173,7 +1335,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("payment");
                 });
 
-            modelBuilder.Entity("ires_api.Models.PaymentCheck", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.PaymentCheck", b =>
                 {
                     b.Property<long>("checkid")
                         .ValueGeneratedOnAdd()
@@ -1231,7 +1393,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("checks");
                 });
 
-            modelBuilder.Entity("ires_api.Models.PaymentDetail", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.PaymentDetail", b =>
                 {
                     b.Property<long>("paymentdetailid")
                         .ValueGeneratedOnAdd()
@@ -1298,7 +1460,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("paymentdetails");
                 });
 
-            modelBuilder.Entity("ires_api.Models.PlanModule", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.PlanModule", b =>
                 {
                     b.Property<long>("id")
                         .ValueGeneratedOnAdd()
@@ -1322,7 +1484,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("planmodules");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Project", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Project", b =>
                 {
                     b.Property<long>("propertyid")
                         .ValueGeneratedOnAdd()
@@ -1371,10 +1533,16 @@ namespace ires.Infrastructure.Migrations
                     b.Property<int>("interesttype")
                         .HasColumnType("int");
 
+                    b.Property<bool>("isjointventure")
+                        .HasColumnType("bit");
+
                     b.Property<int>("paymentextension")
                         .HasColumnType("int");
 
                     b.Property<int>("paymentterm")
+                        .HasColumnType("int");
+
+                    b.Property<int>("projectypeid")
                         .HasColumnType("int");
 
                     b.Property<string>("propertyname")
@@ -1389,7 +1557,118 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("property");
                 });
 
-            modelBuilder.Entity("ires_api.Models.RentalProperty", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.RentalContract", b =>
+                {
+                    b.Property<long>("contractid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("contractid"));
+
+                    b.Property<decimal>("advancerent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("billingstart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("companyid")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("contractdate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("contractno")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("createdbyid")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("custid")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("datecreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("dateupdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("deposit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ewtpercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("monthlypenalty")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("montlyrent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("noofmonthadvance")
+                        .HasColumnType("int");
+
+                    b.Property<int>("noofmonthdeposit")
+                        .HasColumnType("int");
+
+                    b.Property<int>("penaltyextension")
+                        .HasColumnType("int");
+
+                    b.Property<string>("remarks")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("term")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("totalbalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("updatedbyid")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("contractid");
+
+                    b.HasIndex("custid");
+
+                    b.ToTable("rentalcontracts");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.RentalContractDetail", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<long>("contractid")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("createdbyid")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("datecreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("deleted_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("propertyid")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("contractid");
+
+                    b.HasIndex("propertyid");
+
+                    b.ToTable("rentalcontractdetails");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.RentalProperty", b =>
                 {
                     b.Property<long>("propertyid")
                         .ValueGeneratedOnAdd()
@@ -1397,15 +1676,11 @@ namespace ires.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("propertyid"));
 
-                    b.Property<string>("address")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("alias")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("contactno")
+                    b.Property<string>("area")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1419,6 +1694,9 @@ namespace ires.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("status")
+                        .HasColumnType("int");
+
                     b.HasKey("propertyid");
 
                     b.HasIndex("projectid");
@@ -1426,7 +1704,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("propertyrentals");
                 });
 
-            modelBuilder.Entity("ires_api.Models.SubscriptionPlan", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.SubscriptionPlan", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
@@ -1462,7 +1740,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("subscriptionplan");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Survey", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Survey", b =>
                 {
                     b.Property<long>("id")
                         .ValueGeneratedOnAdd()
@@ -1499,6 +1777,9 @@ namespace ires.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("landarea")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("owner")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1531,7 +1812,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("survey");
                 });
 
-            modelBuilder.Entity("ires_api.Models.UserPrivilege", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.UserPrivilege", b =>
                 {
                     b.Property<long>("userprivid")
                         .ValueGeneratedOnAdd()
@@ -1576,7 +1857,7 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("userprivileges");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Vendor", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Vendor", b =>
                 {
                     b.Property<long>("vendorid")
                         .ValueGeneratedOnAdd()
@@ -1623,15 +1904,52 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("vendors");
                 });
 
-            modelBuilder.Entity("ires_api.Models.AccountPayable", b =>
+            modelBuilder.Entity("ires.Infrastructure.Keyless.RentalAccountHistory", b =>
                 {
-                    b.HasOne("ires_api.Models.ExpenseType", "expenseType")
+                    b.Property<DateTime?>("chargedate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("chargeid")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("credit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("debit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("interest")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("particular")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("paymentdate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("refno")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("runningbalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("seq")
+                        .HasColumnType("int");
+
+                    b.ToTable("rentalAccountHistories");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.AccountPayable", b =>
+                {
+                    b.HasOne("ires.Infrastructure.Entities.ExpenseType", "expenseType")
                         .WithMany()
                         .HasForeignKey("expensetypeid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ires_api.Models.Vendor", "vendor")
+                    b.HasOne("ires.Infrastructure.Entities.Vendor", "vendor")
                         .WithMany()
                         .HasForeignKey("vendorid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1642,9 +1960,9 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("vendor");
                 });
 
-            modelBuilder.Entity("ires_api.Models.BankAccount", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.BankAccount", b =>
                 {
-                    b.HasOne("ires_api.Models.Bank", "bank")
+                    b.HasOne("ires.Infrastructure.Entities.Bank", "bank")
                         .WithMany("bankAccounts")
                         .HasForeignKey("bankid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1653,17 +1971,17 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("bank");
                 });
 
-            modelBuilder.Entity("ires_api.Models.BankTransfer", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.BankTransfer", b =>
                 {
-                    b.HasOne("ires_api.Models.Bank", "bank")
+                    b.HasOne("ires.Infrastructure.Entities.Bank", "bank")
                         .WithMany("bankTransfers")
                         .HasForeignKey("bankid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ires_api.Models.Payment", "payment")
+                    b.HasOne("ires.Infrastructure.Entities.Payment", "payment")
                         .WithOne("bankTransfer")
-                        .HasForeignKey("ires_api.Models.BankTransfer", "paymentid")
+                        .HasForeignKey("ires.Infrastructure.Entities.BankTransfer", "paymentid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1672,9 +1990,28 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("payment");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Car", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Booking", b =>
                 {
-                    b.HasOne("ires_api.Models.CarType", "carType")
+                    b.HasOne("ires.Infrastructure.Entities.Car", "car")
+                        .WithMany()
+                        .HasForeignKey("carid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ires.Infrastructure.Entities.Client", "client")
+                        .WithMany()
+                        .HasForeignKey("clientid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("car");
+
+                    b.Navigation("client");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.Car", b =>
+                {
+                    b.HasOne("ires.Infrastructure.Entities.CarType", "carType")
                         .WithMany()
                         .HasForeignKey("typeid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1683,15 +2020,34 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("carType");
                 });
 
-            modelBuilder.Entity("ires_api.Models.CashDisbursement", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.CarMaintenance", b =>
                 {
-                    b.HasOne("ires_api.Models.Office", "office")
+                    b.HasOne("ires.Infrastructure.Entities.Car", "car")
+                        .WithMany()
+                        .HasForeignKey("carid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ires.Infrastructure.Entities.MaintenanceType", "maintenanceType")
+                        .WithMany()
+                        .HasForeignKey("typeid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("car");
+
+                    b.Navigation("maintenanceType");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.CashDisbursement", b =>
+                {
+                    b.HasOne("ires.Infrastructure.Entities.Office", "office")
                         .WithMany()
                         .HasForeignKey("accountid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ires_api.Models.Office", "refOffice")
+                    b.HasOne("ires.Infrastructure.Entities.Office", "refOffice")
                         .WithMany()
                         .HasForeignKey("refaccountid");
 
@@ -1700,9 +2056,9 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("refOffice");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Company", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>
                 {
-                    b.HasOne("ires_api.Models.SubscriptionPlan", "subscriptionPlan")
+                    b.HasOne("ires.Infrastructure.Entities.SubscriptionPlan", "subscriptionPlan")
                         .WithMany("companies")
                         .HasForeignKey("planid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1711,9 +2067,9 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("subscriptionPlan");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Employee", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Employee", b =>
                 {
-                    b.HasOne("ires_api.Models.Company", "company")
+                    b.HasOne("ires.Infrastructure.Entities.Company", "company")
                         .WithMany("employees")
                         .HasForeignKey("companyid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1722,21 +2078,21 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("company");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Expense", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Expense", b =>
                 {
-                    b.HasOne("ires_api.Models.Office", "office")
+                    b.HasOne("ires.Infrastructure.Entities.Office", "office")
                         .WithMany()
                         .HasForeignKey("accountid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ires_api.Models.ExpenseType", "expenseType")
+                    b.HasOne("ires.Infrastructure.Entities.ExpenseType", "expenseType")
                         .WithMany()
                         .HasForeignKey("expensetypeid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ires_api.Models.Vendor", "vendor")
+                    b.HasOne("ires.Infrastructure.Entities.Vendor", "vendor")
                         .WithMany()
                         .HasForeignKey("payeeid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1749,9 +2105,9 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("vendor");
                 });
 
-            modelBuilder.Entity("ires_api.Models.ExpenseType", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.ExpenseType", b =>
                 {
-                    b.HasOne("ires_api.Models.ExpenseTypeCategory", "category")
+                    b.HasOne("ires.Infrastructure.Entities.ExpenseTypeCategory", "category")
                         .WithMany("expenseTypes")
                         .HasForeignKey("expensetypecat")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1760,15 +2116,15 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("category");
                 });
 
-            modelBuilder.Entity("ires_api.Models.OtherCharge", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.OtherCharge", b =>
                 {
-                    b.HasOne("ires_api.Models.OtherFee", "fee")
-                        .WithMany("otherCharges")
+                    b.HasOne("ires.Infrastructure.Entities.OtherFee", "fee")
+                        .WithMany()
                         .HasForeignKey("chargetype")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ires_api.Models.Survey", "survey")
+                    b.HasOne("ires.Infrastructure.Entities.Survey", "survey")
                         .WithMany("otherCharges")
                         .HasForeignKey("surveyid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1779,16 +2135,16 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("survey");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Payment", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Payment", b =>
                 {
-                    b.HasOne("ires_api.Models.Client", "client")
+                    b.HasOne("ires.Infrastructure.Entities.Client", "client")
                         .WithMany("payments")
                         .HasForeignKey("custid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ires_api.Models.Employee", "createdBy")
-                        .WithMany("encodedPayments")
+                    b.HasOne("ires.Infrastructure.Entities.Employee", "createdBy")
+                        .WithMany()
                         .HasForeignKey("encodedby")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1798,17 +2154,17 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("createdBy");
                 });
 
-            modelBuilder.Entity("ires_api.Models.PaymentCheck", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.PaymentCheck", b =>
                 {
-                    b.HasOne("ires_api.Models.Bank", "bank")
+                    b.HasOne("ires.Infrastructure.Entities.Bank", "bank")
                         .WithMany("checks")
                         .HasForeignKey("bankid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ires_api.Models.Payment", "payment")
+                    b.HasOne("ires.Infrastructure.Entities.Payment", "payment")
                         .WithOne("paymentCheck")
-                        .HasForeignKey("ires_api.Models.PaymentCheck", "paymentid")
+                        .HasForeignKey("ires.Infrastructure.Entities.PaymentCheck", "paymentid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1817,9 +2173,9 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("payment");
                 });
 
-            modelBuilder.Entity("ires_api.Models.PaymentDetail", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.PaymentDetail", b =>
                 {
-                    b.HasOne("ires_api.Models.Payment", "payment")
+                    b.HasOne("ires.Infrastructure.Entities.Payment", "payment")
                         .WithMany("paymentDetails")
                         .HasForeignKey("paymentid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1828,9 +2184,9 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("payment");
                 });
 
-            modelBuilder.Entity("ires_api.Models.PlanModule", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.PlanModule", b =>
                 {
-                    b.HasOne("ires_api.Models.Module", "module")
+                    b.HasOne("ires.Infrastructure.Entities.Module", "module")
                         .WithMany()
                         .HasForeignKey("moduleid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1839,9 +2195,39 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("module");
                 });
 
-            modelBuilder.Entity("ires_api.Models.RentalProperty", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.RentalContract", b =>
                 {
-                    b.HasOne("ires_api.Models.Project", "project")
+                    b.HasOne("ires.Infrastructure.Entities.Client", "client")
+                        .WithMany()
+                        .HasForeignKey("custid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("client");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.RentalContractDetail", b =>
+                {
+                    b.HasOne("ires.Infrastructure.Entities.RentalContract", "rentalContract")
+                        .WithMany("rentalContractDetails")
+                        .HasForeignKey("contractid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ires.Infrastructure.Entities.RentalProperty", "rentalProperty")
+                        .WithMany()
+                        .HasForeignKey("propertyid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("rentalContract");
+
+                    b.Navigation("rentalProperty");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.RentalProperty", b =>
+                {
+                    b.HasOne("ires.Infrastructure.Entities.Project", "project")
                         .WithMany("rentalProperties")
                         .HasForeignKey("projectid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1850,9 +2236,9 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("project");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Survey", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Survey", b =>
                 {
-                    b.HasOne("ires_api.Models.Client", "client")
+                    b.HasOne("ires.Infrastructure.Entities.Client", "client")
                         .WithMany("surveys")
                         .HasForeignKey("custid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1861,9 +2247,9 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("client");
                 });
 
-            modelBuilder.Entity("ires_api.Models.UserPrivilege", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.UserPrivilege", b =>
                 {
-                    b.HasOne("ires_api.Models.Module", "module")
+                    b.HasOne("ires.Infrastructure.Entities.Module", "module")
                         .WithMany()
                         .HasForeignKey("moduleid")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1872,7 +2258,7 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("module");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Bank", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Bank", b =>
                 {
                     b.Navigation("bankAccounts");
 
@@ -1881,34 +2267,24 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("checks");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Client", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Client", b =>
                 {
                     b.Navigation("payments");
 
                     b.Navigation("surveys");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Company", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>
                 {
                     b.Navigation("employees");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Employee", b =>
-                {
-                    b.Navigation("encodedPayments");
-                });
-
-            modelBuilder.Entity("ires_api.Models.ExpenseTypeCategory", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.ExpenseTypeCategory", b =>
                 {
                     b.Navigation("expenseTypes");
                 });
 
-            modelBuilder.Entity("ires_api.Models.OtherFee", b =>
-                {
-                    b.Navigation("otherCharges");
-                });
-
-            modelBuilder.Entity("ires_api.Models.Payment", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Payment", b =>
                 {
                     b.Navigation("bankTransfer");
 
@@ -1917,17 +2293,22 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("paymentDetails");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Project", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Project", b =>
                 {
                     b.Navigation("rentalProperties");
                 });
 
-            modelBuilder.Entity("ires_api.Models.SubscriptionPlan", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.RentalContract", b =>
+                {
+                    b.Navigation("rentalContractDetails");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.SubscriptionPlan", b =>
                 {
                     b.Navigation("companies");
                 });
 
-            modelBuilder.Entity("ires_api.Models.Survey", b =>
+            modelBuilder.Entity("ires.Infrastructure.Entities.Survey", b =>
                 {
                     b.Navigation("otherCharges");
                 });

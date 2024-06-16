@@ -13,13 +13,11 @@ namespace ires_api.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly ISurveyService _surveyService;
-        private readonly ILogService _logService;
 
-        public PaymentController(IPaymentService paymentService, ISurveyService surveyService, ILogService logService)
+        public PaymentController(IPaymentService paymentService, ISurveyService surveyService)
         {
             _paymentService = paymentService;
             _surveyService = surveyService;
-            _logService = logService;
         }
 
         [HttpGet]
@@ -151,14 +149,13 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _paymentService.VoidPayment(requestDto.paymentid);
+            serverResponse.Success = await _paymentService.VoidPayment(requestDto.paymentid, identity.employeeid);
             serverResponse.Data = serverResponse.Success;
             if (!serverResponse.Success)
             {
                 serverResponse.Message = "Payment not found";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, AppModule.Payments, "Void Payment", "Void Payment ID: " + requestDto.paymentid, 0);
             return Ok(serverResponse);
 
         }

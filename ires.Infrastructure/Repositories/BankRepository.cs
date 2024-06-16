@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Bank;
+using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using ires.Infrastructure.Seeders;
@@ -12,11 +13,13 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public BankRepository(DataContext dataContext, IMapper mapper)
+        public BankRepository(DataContext dataContext, IMapper mapper, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _logService = logService;
         }
         public async Task<BankViewModel> Create(BankRequestDto requestDto)
         {
@@ -24,6 +27,7 @@ namespace ires.Infrastructure.Repositories
             entity.bankid = 0;
             _dataContext.banks.Add(entity);
             await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(entity.companyid, requestDto.createdbyid, AppModule.Banks, "Create New Bank", "Bank ID : " + entity.bankid + "-" + entity.name, 0);
             return _mapper.Map<BankViewModel>(entity);
         }
 
@@ -71,12 +75,13 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<bool> Update(BankRequestDto requestDto)
         {
-            var bank = await GetBank(requestDto.bankid);
-            if (bank != null)
+            var entity = await GetBank(requestDto.bankid);
+            if (entity != null)
             {
-                bank.name = requestDto.name;
-                bank.isewallet = requestDto.isewallet;
+                entity.name = requestDto.name;
+                entity.isewallet = requestDto.isewallet;
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(entity.companyid, requestDto.updatedbyid, AppModule.Banks, "Update Bank", "Bank ID : " + entity.bankid + "-" + entity.name, 0);
                 return true;
             }
             return false;

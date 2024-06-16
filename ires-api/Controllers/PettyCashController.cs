@@ -12,13 +12,11 @@ namespace ires_api.Controllers
     {
         private readonly IPettyCashService _pettyCashService;
         private readonly IAccountService _accountService;
-        private readonly ILogService _logService;
 
-        public PettyCashController(IPettyCashService pettyCashService, IAccountService accountService, ILogService logService)
+        public PettyCashController(IPettyCashService pettyCashService, IAccountService accountService)
         {
             _pettyCashService = pettyCashService;
             _accountService = accountService;
-            _logService = logService;
         }
         [HttpGet]
         public async Task<IActionResult> Get(long id)
@@ -72,7 +70,6 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
-            _logService.SaveLog(result.companyid, identity.employeeid, 0, "Petty Cash Disbursement", "Create New Record : " + result.disbursementid, 0);
             return Ok(serverResponse);
         }
 
@@ -81,14 +78,13 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _pettyCashService.VoidDisbursement(requestDto.id, false);
+            serverResponse.Success = await _pettyCashService.VoidDisbursement(requestDto.id, false, identity.employeeid);
             serverResponse.Data = serverResponse.Success;
             if (!serverResponse.Success)
             {
                 serverResponse.Message = "Record not found";
                 return BadRequest(serverResponse);
             }
-            _logService.SaveLog(identity.companyid ?? 0, identity.employeeid, 0, "Petty Cash Disbursement", "Void Record : " + requestDto.id, 0);
             return Ok(serverResponse);
         }
     }

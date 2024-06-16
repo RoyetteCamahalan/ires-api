@@ -18,11 +18,13 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public BillRepository(DataContext dataContext, IMapper mapper)
+        public BillRepository(DataContext dataContext, IMapper mapper, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _logService = logService;
         }
 
         public async Task<BillViewModel> GetBillByID(long billID)
@@ -115,19 +117,20 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<BillViewModel>(bill);
         }
 
-        public async Task<bool> UpdateBillingCycle(int companyID, int cycleID)
+        public async Task<bool> UpdateBillingCycle(CompanyRequestDto requestDto)
         {
-            var company = await _dataContext.companies.FindAsync(companyID);
-            if (company != null)
+            var entity = await _dataContext.companies.FindAsync(requestDto.id);
+            if (entity != null)
             {
-                company.billingcycle = cycleID;
+                entity.billingcycle = requestDto.billingcycle;
                 await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(entity.id, requestDto.updatedbyid, AppModule.Billing, "Billing Cycle", "Updated Billing Cycle : " + (requestDto.billingcycle == 1 ? "Monthly" : "Yearly"), 1);
                 return true;
             }
             return false;
         }
 
-        public async Task<bool> UpgradePlan(int companyID, int planID)
+        public async Task<bool> UpgradePlan(int companyID, int planID, long employeeid)
         {
             var company = _dataContext.companies.Find(companyID);
 
@@ -160,6 +163,7 @@ namespace ires.Infrastructure.Repositories
             company.planid = planID;
             company.amount = plan.monthlysubscription;
             await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(company.id, employeeid, AppModule.Billing, "Subscription Upgrade", "Subscription Upgrade : " + planID, 1);
             return true;
         }
 
