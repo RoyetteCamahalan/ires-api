@@ -22,7 +22,7 @@ namespace ires.Domain.DTO.Payment
         public string remarks { get; set; } = string.Empty;
         public decimal payablebalance { get; set; }
         public ClientViewModel? client { get; set; }
-        public List<PayableViewModel>? payables { get; set; }
+        public ICollection<PayableViewModel>? payables { get; set; }
         public EmployeeViewModel? createdBy { get; set; }
         public List<PaymentDetailViewModel> paymentDetails { get; set; } = new List<PaymentDetailViewModel>();
     }

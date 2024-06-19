@@ -9,6 +9,7 @@ namespace ires.Domain.Contracts
         public Task<ICollection<PaymentViewModel>> GetPayments(int companyID, string search, DateTime startDate, DateTime endDate);
         public Task<PaymentViewModel> GetPayment(long paymentID);
         public Task<ICollection<PaymentDetailViewModel>> GetPaymentDetails(long paymentID);
+        public Task<ICollection<PayableViewModel>> GetPaymentDetailsAsPayables(long paymentID);
         public Task<ICollection<PaymentDetailViewModel>> GetSurveyPaymentDetails(long surveyID);
         public Task<ICollection<PayableViewModel>> GetPayables(long clientID, string search);
         public Task<long> GetReceiptNo(int companyID, ReceiptType receiptType);

@@ -26,6 +26,7 @@ namespace ires.Domain.DTO.RentalContract
         public DateTime? datecreated { get; set; }
         public long updatedbyid { get; set; }
         public DateTime? dateupdated { get; set; }
+        public DateTime? dateterminated { get; set; }
         public string propertyList { get; set; } = string.Empty;
 
         public ClientViewModel? client { get; set; }

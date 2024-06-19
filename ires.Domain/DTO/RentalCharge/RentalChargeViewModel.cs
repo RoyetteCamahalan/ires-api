@@ -1,14 +1,11 @@
-﻿using ires.Domain.Enumerations;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using ires.Domain.DTO.OtherFee;
+using ires.Domain.DTO.RentalContract;
+using ires.Domain.Enumerations;
 
-namespace ires.Infrastructure.Entities
+namespace ires.Domain.DTO.RentalCharge
 {
-    [Table("rentalcharges")]
-    public class RentalCharge : BaseModel
+    public class RentalChargeViewModel
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long chargeid { get; set; }
         public long contractid { get; set; }
         public long? otherfeeid { get; set; }
@@ -20,8 +17,7 @@ namespace ires.Infrastructure.Entities
         public decimal? runningbalance { get; set; }
         public int interestype { get; set; }
         public decimal interestpercentage { get; set; }
-        public decimal ewt { get; set; }
-        public RentalContract? rentalContract { get; set; }
-        public OtherFee? otherFee { get; set; }
+        public RentalContractViewModel? rentalContract { get; set; }
+        public OtherFeeViewModel? otherFee { get; set; }
     }
 }

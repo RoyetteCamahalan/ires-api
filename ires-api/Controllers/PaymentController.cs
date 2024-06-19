@@ -1,5 +1,4 @@
-﻿using ires.Domain;
-using ires.Domain.Contracts;
+﻿using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Payment;
 using ires.Domain.Enumerations;
@@ -12,12 +11,10 @@ namespace ires_api.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
-        private readonly ISurveyService _surveyService;
 
-        public PaymentController(IPaymentService paymentService, ISurveyService surveyService)
+        public PaymentController(IPaymentService paymentService)
         {
             _paymentService = paymentService;
-            _surveyService = surveyService;
         }
 
         [HttpGet]
@@ -66,24 +63,8 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             var payment = await _paymentService.GetPayment(id);
-            var paymentDto = payment;
-            paymentDto.payables = new List<PayableViewModel>();
-            foreach (var item in payment.paymentDetails)
-            {
-                var detail = new PayableViewModel
-                {
-                    paymentAmount = item.amount,
-                    payableType = item.payableType,
-                };
-                if (detail.payableType == AppModule.Surveying)
-                {
-                    var survey = await _surveyService.GetByID(item.surveyid);
-                    detail.payableID = item.surveyid;
-                    detail.description = "Survey Fee - " + survey.propertyname + " (" + (survey.surveydate ?? DateTime.Now).ToString(Constants.dateFormat) + ")";
-                }
-                paymentDto.payables.Add(detail);
-            }
-            serverResponse.Data = paymentDto;
+            payment.payables = await _paymentService.GetPaymentDetailsAsPayables(payment.paymentid);
+            serverResponse.Data = payment;
             return Ok(serverResponse);
 
         }

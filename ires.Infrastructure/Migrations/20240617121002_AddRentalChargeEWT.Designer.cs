@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240617121002_AddRentalChargeEWT")]
+    partial class AddRentalChargeEWT
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1654,9 +1657,6 @@ namespace ires.Infrastructure.Migrations
                     b.Property<DateTime?>("datecreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("dateterminated")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime?>("dateupdated")
                         .HasColumnType("datetime2");
 
@@ -2060,30 +2060,6 @@ namespace ires.Infrastructure.Migrations
                     b.HasKey("vendorid");
 
                     b.ToTable("vendors");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Keyless.Payable", b =>
-                {
-                    b.Property<decimal>("balance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("grossAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("payableID")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("payableType")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("paymentAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.ToTable("payables");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Keyless.RentalAccountHistory", b =>

@@ -13,14 +13,14 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
-        private readonly ISurveyService _surveyService;
+        private readonly IRentalService _rentalService;
         private readonly ILogService _logService;
 
-        public PaymentRepository(DataContext dataContext, IMapper mapper, ISurveyService surveyService, ILogService logService)
+        public PaymentRepository(DataContext dataContext, IMapper mapper, IRentalService rentalService, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
-            _surveyService = surveyService;
+            _rentalService = rentalService;
             _logService = logService;
         }
 
@@ -43,6 +43,11 @@ namespace ires.Infrastructure.Repositories
             else if (payment.paymentmode == PaymentMode.bankTransfer || payment.paymentmode == PaymentMode.eWallet)
             {
                 BankTransfer bankTransfer = _mapper.Map<BankTransfer>(requestDto.bankTransfer);
+                if (payment.paymentmode == PaymentMode.bankTransfer)
+                {
+                    var account = await _dataContext.bankAccounts.FindAsync(bankTransfer.accountid);
+                    bankTransfer.bankid = account.bankid;
+                }
                 bankTransfer.id = 0;
                 payment.bankTransfer = bankTransfer;
             }
@@ -57,31 +62,43 @@ namespace ires.Infrastructure.Repositories
                     runningbalance = payable.balance - payable.paymentAmount
                 };
                 if (payable.payableType == AppModule.Surveying)
-                {
                     detail.surveyid = payable.payableID;
-                    var survey = await _surveyService.GetByID(detail.surveyid);
-                    survey.balance = payable.balance - payable.paymentAmount;
-                    if (survey.balance <= 0 && survey.status == SurveyStatus.surveyed)
-                        survey.status = SurveyStatus.completed;
+                else if (payable.payableType == AppModule.Rentals)
+                {
+                    detail.rentalchargeid = payable.payableID;
+                    var rentalCharge = await _dataContext.rentalCharges.FindAsync(detail.rentalchargeid);
+                    detail.rentalid = rentalCharge.contractid;
+                    detail.paymenttype = (long)rentalCharge.chargetype;
                 }
 
                 payment.paymentDetails.Add(detail);
             }
             _dataContext.payments.Add(payment);
             await _dataContext.SaveChangesAsync();
+
+            foreach (var payable in requestDto.payables)
+            {
+                if (payable.payableType == AppModule.Surveying)
+                {
+                    var survey = await _dataContext.surveys.FindAsync(payable.payableID);
+                    survey.balance = payable.balance - payable.paymentAmount;
+                    if (survey.balance <= 0 && survey.status == SurveyStatus.surveyed)
+                        survey.status = SurveyStatus.completed;
+                }
+                else if (payable.payableType == AppModule.Rentals)
+                {
+                    var rentalCharge = await _dataContext.rentalCharges.FindAsync(payable.payableID);
+                    rentalCharge.balance = payable.balance - payable.paymentAmount;
+                    await _rentalService.RecomputeContract(rentalCharge.contractid);
+                }
+            }
             return _mapper.Map<PaymentViewModel>(payment);
         }
 
         public async Task<ICollection<PayableViewModel>> GetPayables(long clientID, string search)
         {
-            return await _dataContext.surveys.Where(x => x.custid == clientID && x.balance > 0 && ("Survey Fee - " + x.propertyname).Contains(search)).Select(x => new PayableViewModel
-            {
-                payableType = AppModule.Surveying,
-                payableID = x.id,
-                description = "Survey Fee - " + x.propertyname + " (" + (x.surveydate ?? DateTime.Now).ToString(Constants.dateFormat) + ")",
-                grossAmount = x.contractprice,
-                balance = x.balance
-            }).ToListAsync();
+            var result = await _dataContext.payables.FromSqlRaw("exec spWebReports @operation=0, @soperation=1, @clientid = {0}, @search =  {1}", clientID, search).ToListAsync();
+            return _mapper.Map<ICollection<PayableViewModel>>(result);
         }
 
         public async Task<PaymentViewModel> GetPayment(long paymentID)
@@ -101,6 +118,11 @@ namespace ires.Infrastructure.Repositories
         {
             var result = await _dataContext.paymentDetails.Where(x => x.paymentid == paymentID).ToListAsync();
             return _mapper.Map<ICollection<PaymentDetailViewModel>>(result);
+        }
+        public async Task<ICollection<PayableViewModel>> GetPaymentDetailsAsPayables(long paymentID)
+        {
+            var result = await _dataContext.payables.FromSqlRaw("exec spWebReports @operation=0, @soperation=2, @paymentid = {0}", paymentID).ToListAsync();
+            return _mapper.Map<ICollection<PayableViewModel>>(result);
         }
 
         public async Task<ICollection<PaymentViewModel>> GetPayments(int companyID, string search)
@@ -145,15 +167,18 @@ namespace ires.Infrastructure.Repositories
             if (entity != null)
             {
                 entity.status = PaymentStatus.@void;
+                await _dataContext.SaveChangesAsync();
                 foreach (var detail in entity.paymentDetails)
                 {
                     if (detail.payableType == AppModule.Surveying)
                     {
-                        var survey = await _surveyService.GetByID(detail.surveyid);
+                        var survey = await _dataContext.surveys.FindAsync(detail.surveyid);
                         survey.balance += detail.amount;
                         if (survey.balance > 0 && survey.status == SurveyStatus.completed)
                             survey.status = SurveyStatus.surveyed;
                     }
+                    else if (detail.payableType == AppModule.Rentals)
+                        await _rentalService.RecomputeContract(detail.rentalid);
                 }
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.companyid, employeeid, AppModule.Payments, "Void Payment", "Void Payment ID: " + paymentID, 0);

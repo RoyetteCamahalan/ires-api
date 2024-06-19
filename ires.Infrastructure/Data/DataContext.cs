@@ -15,6 +15,7 @@ namespace ires.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RentalAccountHistory>().HasNoKey();
+            modelBuilder.Entity<Payable>().HasNoKey();
 
             base.OnModelCreating(modelBuilder);
 
@@ -234,7 +235,8 @@ namespace ires.Infrastructure.Data
         public DbSet<Vendor> vendors { get; set; }
 
 
-
+        //Keyless
         public DbSet<RentalAccountHistory> rentalAccountHistories { get; set; }
+        public DbSet<Payable> payables { get; set; }
     }
 }
