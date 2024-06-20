@@ -1,4 +1,6 @@
-﻿namespace ires.Domain.DTO.Company
+﻿using ires.Domain.Enumerations;
+
+namespace ires.Domain.DTO.Company
 {
     public class CompanyRequestDto
     {
@@ -9,7 +11,7 @@
         public string adminfirstname { get; set; } = string.Empty;
         public string adminlastname { get; set; } = string.Empty;
         public string email { get; set; } = string.Empty;
-        public int billingcycle { get; set; }
+        public BillingCycle billingcycle { get; set; }
         public int planid { get; set; }
         public long updatedbyid { get; set; }
     }

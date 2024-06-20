@@ -10,14 +10,14 @@ namespace ires.Domain.Contracts
     {
         public Task<RentalContractViewModel> Create(RentalContractRequestDto requestDto);
         public Task<bool> Update(RentalContractRequestDto requestDto);
-        public Task<RentalContractViewModel> Get(long companyID, long contractID);
+        public Task<RentalContractViewModel> Get(int companyID, long contractID);
         public Task<ICollection<RentalContractDetailViewModel>> GetDetails(long contractID);
-        public Task<ICollection<RentalContractViewModel>> GetAll(long companyID, string search, int filterByID);
+        public Task<ICollection<RentalContractViewModel>> GetAll(int companyID, string search, int filterByID);
         public Task<ICollection<RentalUnitViewModel>> GetProperties(long contractID);
         public Task<string> GetPropertiesAsString(long contractID);
         public Task RecomputeContract(long contractID);
-        public Task<ICollection<RentalHistoryViewModel>> GetAccountHistory(long companyID, long contractID);
-        public Task<ICollection<PayableViewModel>> GetSOA(long companyID, long contractID);
+        public Task<ICollection<RentalHistoryViewModel>> GetAccountHistory(int companyID, long contractID);
+        public Task<ICollection<PayableViewModel>> GetSOA(int companyID, long contractID);
 
 
         public Task<RentalChargeViewModel> GetRentalCharge(long id);
@@ -26,5 +26,8 @@ namespace ires.Domain.Contracts
         public Task<bool> UpdateOtherCharge(RentalChargeRequestDto requestDto);
         public Task<bool> DeleteOtherCharge(long id);
         public Task<bool> UpdateContractStatus(RentalTerminateRequestDto requestDto);
+        public Task<int> CountActiveUnits(int companyID);
+        public Task<int> CountAvailableUnits(int companyID);
+        public Task<int> CountActiveContracts(int companyID);
     }
 }

@@ -57,7 +57,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<EmployeeViewModel>(result);
         }
 
-        public async Task<ICollection<EmployeeViewModel>> GetEmployees(long companyID, string search)
+        public async Task<ICollection<EmployeeViewModel>> GetEmployees(int companyID, string search)
         {
             var result = await _dataContext.employees.Where(x => x.companyid == companyID && (x.firstname.Contains(search) || x.lastname.Contains(search) || (x.designation ?? "").Contains(search)))
                 .OrderBy(x => x.lastname + x.firstname).ToListAsync();

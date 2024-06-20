@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ires.Domain.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires.Infrastructure.Entities
@@ -18,8 +19,9 @@ namespace ires.Infrastructure.Entities
         public DateTime? subscriptionexpiry { get; set; }
         public decimal storage { get; set; }
         public int surveylimit { get; set; }
-        public int billingcycle { get; set; }
+        public BillingCycle billingcycle { get; set; }
         public decimal amount { get; set; }
+        public int apptour { get; set; }
 
         public List<Employee> employees { get; set; } = new List<Employee>();
         public SubscriptionPlan? subscriptionPlan { get; set; }

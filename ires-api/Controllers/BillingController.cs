@@ -39,7 +39,7 @@ namespace ires_api.Controllers
         [HttpGet("getplans")]
         public async Task<IActionResult> GetPlans()
         {
-            var serverResponse = new ServerResponse<CompanyViewModel>();
+            var serverResponse = new ServerResponse<ICollection<CompanyPlanViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (identity == null)
             {
@@ -47,7 +47,8 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = await _billService.GetSubscriptionPlans(identity.companyid ?? 0);
+            var plan = await _billService.GetSubscriptionPlans(identity.companyid ?? 0);
+            serverResponse.Data = new List<CompanyPlanViewModel> { plan };
             return Ok(serverResponse);
         }
 

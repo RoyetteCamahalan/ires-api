@@ -19,12 +19,12 @@ namespace ires.Infrastructure.Repositories
             _mapper = mapper;
         }
 
-        public async Task<int> CountCompleted(long companyID)
+        public async Task<int> CountCompleted(int companyID)
         {
             return await _dataContext.surveys.Where(x => x.companyid == companyID && x.status == SurveyStatus.completed).CountAsync();
         }
 
-        public async Task<int> CountPending(long companyID)
+        public async Task<int> CountPending(int companyID)
         {
             return await _dataContext.surveys.Where(x => x.companyid == companyID && x.status == SurveyStatus.pending).CountAsync();
         }
@@ -51,7 +51,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<SurveyViewModel>(result);
         }
 
-        public async Task<ICollection<SurveyViewModel>> GetSurveys(long companyID, string search)
+        public async Task<ICollection<SurveyViewModel>> GetSurveys(int companyID, string search)
         {
             var result = await _dataContext.surveys.Include(x => x.client).Where(x => x.companyid == companyID &&
                 (x.propertyname.Contains(search) || x.address.Contains(search) || (x.client.fname ?? "").Contains(search) || (x.client.lname ?? "").Contains(search)))

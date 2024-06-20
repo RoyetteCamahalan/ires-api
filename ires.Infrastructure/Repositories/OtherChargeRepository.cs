@@ -40,7 +40,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<OtherFeeViewModel>(await GetOtherFeeById(id));
         }
 
-        public async Task<ICollection<OtherFeeViewModel>> GetOtherFees(long companyID, string search, bool viewAll)
+        public async Task<ICollection<OtherFeeViewModel>> GetOtherFees(int companyID, string search, bool viewAll)
         {
             var result = await _dataContext.otherFees.Where(x => x.companyid == companyID && (x.isactive || viewAll) && x.name.Contains(search))
                 .OrderBy(x => x.name).ToListAsync();

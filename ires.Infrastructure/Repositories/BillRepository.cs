@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Company;
@@ -49,10 +48,10 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<ICollection<BillViewModel>>(result);
         }
 
-        public async Task<CompanyViewModel> GetSubscriptionPlans(int companyID)
+        public async Task<CompanyPlanViewModel> GetSubscriptionPlans(int companyID)
         {
             var result = await _dataContext.companies.Include(x => x.subscriptionPlan).Where(x => x.id == companyID).FirstOrDefaultAsync();
-            return _mapper.Map<CompanyViewModel>(result);
+            return _mapper.Map<CompanyPlanViewModel>(result);
         }
 
         public async Task<BillViewModel> StartPayment(int companyID, long billID, PayMongoConfig payMongoConfig)
@@ -105,6 +104,7 @@ namespace ires.Infrastructure.Repositories
                         bill.paymentrefno = responseDto.data.attributes.payments[0].id;
                         bill.paymentmode = responseDto.data.attributes.payment_method_used;
                         bill.status = BillStatus.paid;
+                        bill.datepaid = DateTimeOffset.FromUnixTimeSeconds(responseDto.data.attributes.payments[0].attributes.paid_at).DateTime;
                         if (!_dataContext.bills.Where(x => x.companyid == companyID && x.id != billID && x.status == BillStatus.open).Any())
                         {
                             Company company = _dataContext.companies.Find(companyID);
@@ -124,7 +124,7 @@ namespace ires.Infrastructure.Repositories
             {
                 entity.billingcycle = requestDto.billingcycle;
                 await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.id, requestDto.updatedbyid, AppModule.Billing, "Billing Cycle", "Updated Billing Cycle : " + (requestDto.billingcycle == 1 ? "Monthly" : "Yearly"), 1);
+                await _logService.SaveLogAsync(entity.id, requestDto.updatedbyid, AppModule.Billing, "Billing Cycle", "Updated Billing Cycle : " + (requestDto.billingcycle == BillingCycle.yearly ? "Yearly" : "Monthly"), 1);
                 return true;
             }
             return false;
@@ -146,18 +146,18 @@ namespace ires.Infrastructure.Repositories
                     duedate = company.subscriptionexpiry,
                     status = BillStatus.open,
                 };
-                if (company.billingcycle == Constants.BillCycle.monthly)
+                if (company.billingcycle == BillingCycle.monthly)
                 {
                     bill.dateend = DateTime.Now.AddMonths(1);
                     bill.amount = plan.monthlysubscription;
                 }
-                else if (company.billingcycle == Constants.BillCycle.yearly)
+                else if (company.billingcycle == BillingCycle.yearly)
                 {
                     bill.dateend = DateTime.Now.AddYears(1);
                     bill.amount = plan.monthlysubscription * 12;
                 }
                 bill.balance = bill.amount;
-                bill.particular = "Subscription for " + (bill.datefrom ?? DateTime.Now).ToString("MMM dd, yyyy") + " - " + (bill.datefrom ?? DateTime.Now).ToString("MMM dd, yyyy");
+                bill.particular = "Subscription for " + (bill.datefrom ?? DateTime.Now).ToString("MMM dd, yyyy") + " - " + (bill.dateend ?? DateTime.Now).ToString("MMM dd, yyyy");
                 _dataContext.bills.Add(bill);
             }
             company.planid = planID;

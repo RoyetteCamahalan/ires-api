@@ -51,7 +51,8 @@ namespace ires.Infrastructure.Repositories
                 contactno = requestDto.contactno,
                 planid = requestDto.planid,
                 isactive = false,
-                isverified = false
+                isverified = false,
+                billingcycle = Domain.Enumerations.BillingCycle.monthly
             };
             _dataContext.companies.Add(company);
             Employee employee = new Employee

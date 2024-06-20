@@ -6,7 +6,7 @@ namespace ires.Domain.Contracts
     {
         public Task<OtherFeeViewModel> CreateOtherFee(OtherFeeRequestDto requestDto);
         public Task<bool> UpdateOtherFee(OtherFeeRequestDto requestDto);
-        public Task<ICollection<OtherFeeViewModel>> GetOtherFees(long companyID, string search, bool viewAll);
+        public Task<ICollection<OtherFeeViewModel>> GetOtherFees(int companyID, string search, bool viewAll);
         public Task<OtherFeeViewModel> GetOtherFee(long id);
     }
 }

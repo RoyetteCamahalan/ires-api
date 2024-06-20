@@ -10,5 +10,6 @@
         public int planid { get; set; }
         public bool isexpired { get; set; }
         public bool isverified { get; set; }
+        public int apptour { get; set; }
     }
 }

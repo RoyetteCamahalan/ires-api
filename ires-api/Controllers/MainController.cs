@@ -17,9 +17,10 @@ namespace ires_api.Controllers
         private readonly IPaymentService _paymentService;
         private readonly IExpenseService _expenseService;
         private readonly IPettyCashService _pettyCashService;
+        private readonly IRentalService _rentalService;
 
         public MainController(IAppService appService, IMapper mapper, ISurveyService surveyService, IClientService clientService, IPaymentService paymentService, IExpenseService expenseService,
-            IPettyCashService pettyCashService)
+            IPettyCashService pettyCashService, IRentalService rentalService)
         {
             _appService = appService;
             _mapper = mapper;
@@ -28,6 +29,7 @@ namespace ires_api.Controllers
             _paymentService = paymentService;
             _expenseService = expenseService;
             _pettyCashService = pettyCashService;
+            _rentalService = rentalService;
         }
         [HttpGet("getfinancedashboard")]
         public async Task<IActionResult> GetFinanceDashboard()
@@ -54,6 +56,21 @@ namespace ires_api.Controllers
                 totalSurveys = await _surveyService.CountCompleted(identity.companyid ?? 0),
                 pendingSurveys = await _surveyService.CountPending(identity.companyid ?? 0),
                 totalClients = await _clientService.GetCountClientAsync(identity.companyid ?? 0),
+            };
+            var serverResponse = new ServerResponse<Object> { Data = data };
+            return Ok(serverResponse);
+        }
+        [HttpGet("getrentaldashboard")]
+        public async Task<IActionResult> GetRentalDashboard()
+        {
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", DateTime.Now, DateTime.Now)).Select(x => x.totalamount).Sum();
+            var data = new
+            {
+                totalPayment,
+                activeContracts = await _rentalService.CountActiveContracts(identity.companyid ?? 0),
+                availableProperties = await _rentalService.CountAvailableUnits(identity.companyid ?? 0),
+                totalProperties = await _rentalService.CountActiveUnits(identity.companyid ?? 0),
             };
             var serverResponse = new ServerResponse<Object> { Data = data };
             return Ok(serverResponse);

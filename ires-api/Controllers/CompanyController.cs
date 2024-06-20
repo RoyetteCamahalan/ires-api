@@ -74,7 +74,7 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ResendConfirmationAsync(IDRequestDto requestDto)
         {
-            var employees = await _employeeService.GetEmployees(requestDto.id, "");
+            var employees = await _employeeService.GetEmployees((int)requestDto.id, "");
             if (employees.Count > 0)
             {
                 sendConfirmationEmail((int)requestDto.id, employees.First().email);

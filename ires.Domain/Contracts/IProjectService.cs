@@ -10,7 +10,7 @@ namespace ires.Domain.Contracts
 
         public Task<RentalProjectViewModel> Update(ProjectRequestDto projectRequest);
         public Task<RentalProjectViewModel> GetProjectByIdAsync(long id);
-        public Task<ICollection<RentalProjectViewModel>> GetRentalProperties(long companyID, string search);
+        public Task<ICollection<RentalProjectViewModel>> GetRentalProperties(int companyID, string search);
 
 
 
@@ -18,7 +18,7 @@ namespace ires.Domain.Contracts
         public Task<bool> UpdateRentalUnit(RentalUnitRequestDto request);
         public Task UpdateRentalUnitStatus(long id, RentalPropertyStatus status);
         public Task<RentalUnitViewModel> GetRentalUnitByIdAsync(long id);
-        public Task<ICollection<RentalUnitViewModel>> GetRentalUnits(long companyID, long projectID, string search);
-        public Task<ICollection<RentalUnitViewModel>> GetAvailableRentalUnits(long companyID, string search);
+        public Task<ICollection<RentalUnitViewModel>> GetRentalUnits(int companyID, long projectID, string search);
+        public Task<ICollection<RentalUnitViewModel>> GetAvailableRentalUnits(int companyID, string search);
     }
 }

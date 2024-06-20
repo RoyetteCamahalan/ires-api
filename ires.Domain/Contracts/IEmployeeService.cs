@@ -6,7 +6,7 @@ namespace ires.Domain.Contracts
 {
     public interface IEmployeeService
     {
-        public Task<ICollection<EmployeeViewModel>> GetEmployees(long companyID, string search);
+        public Task<ICollection<EmployeeViewModel>> GetEmployees(int companyID, string search);
         public Task<EmployeeViewModel> GetByID(long id);
         public Task<EmployeeViewModel> GetEmployeeByEmail(string email);
         public Task<EmployeeViewModel> GetEmployeeByUsername(string username);

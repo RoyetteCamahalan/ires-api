@@ -28,11 +28,6 @@ namespace ires.Domain
             public const string payment = "P";
             public const string creditMemo = "CN"; //Used also as discount
         }
-        public class BillCycle
-        {
-            public const int monthly = 1;
-            public const int yearly = 2;
-        }
         public class ExpenseTypeCategory
         {
             public const int operating = 1;

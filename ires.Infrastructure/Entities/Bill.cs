@@ -24,5 +24,6 @@ namespace ires.Infrastructure.Entities
         public string paymentrefno { get; set; } = string.Empty;
         public string checkouturl { get; set; } = string.Empty;
         public string paymentid { get; set; } = string.Empty;
+        public DateTime? datepaid { get; set; }
     }
 }

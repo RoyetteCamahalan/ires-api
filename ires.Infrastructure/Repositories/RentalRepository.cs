@@ -56,7 +56,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<RentalContractViewModel>(entity);
         }
 
-        public async Task<RentalContractViewModel> Get(long companyID, long contractID)
+        public async Task<RentalContractViewModel> Get(int companyID, long contractID)
         {
             var entity = await GetContractById(contractID);
             if (entity != null)
@@ -64,7 +64,7 @@ namespace ires.Infrastructure.Repositories
             return null;
         }
 
-        public async Task<ICollection<RentalContractViewModel>> GetAll(long companyID, string search, int filterByID)
+        public async Task<ICollection<RentalContractViewModel>> GetAll(int companyID, string search, int filterByID)
         {
             var result = await _dataContext.rentalContracts.Include(x => x.client).Include(x => x.rentalContractDetails).ThenInclude(x => x.rentalProperty)
                 .Where(x => x.companyid == companyID
@@ -170,12 +170,12 @@ namespace ires.Infrastructure.Repositories
             catch (Exception) { }
         }
 
-        public async Task<ICollection<RentalHistoryViewModel>> GetAccountHistory(long companyID, long contractID)
+        public async Task<ICollection<RentalHistoryViewModel>> GetAccountHistory(int companyID, long contractID)
         {
             var result = await _dataContext.rentalAccountHistories.FromSqlRaw($"exec spWebReports @operation=0, @soperation=0, @contractid = {contractID}, @companyid =  {companyID}").ToListAsync();
             return _mapper.Map<ICollection<RentalHistoryViewModel>>(result);
         }
-        public async Task<ICollection<PayableViewModel>> GetSOA(long companyID, long contractID)
+        public async Task<ICollection<PayableViewModel>> GetSOA(int companyID, long contractID)
         {
             var result = await _dataContext.payables.FromSqlRaw($"exec spWebReports @operation=0, @soperation=3, @contractid = {contractID}, @companyid =  {companyID}").ToListAsync();
             return _mapper.Map<ICollection<PayableViewModel>>(result);
@@ -276,6 +276,21 @@ namespace ires.Infrastructure.Repositories
                 return true;
             }
             return false;
+        }
+
+        public async Task<int> CountActiveUnits(int companyID)
+        {
+            return await _dataContext.rentalProperties.Include(x => x.project).Where(x => x.project.companyid == companyID && x.status != RentalPropertyStatus.Inactive).CountAsync();
+        }
+
+        public async Task<int> CountAvailableUnits(int companyID)
+        {
+            return await _dataContext.rentalProperties.Include(x => x.project).Where(x => x.project.companyid == companyID && x.status == RentalPropertyStatus.Vacant).CountAsync();
+        }
+
+        public async Task<int> CountActiveContracts(int companyID)
+        {
+            return await _dataContext.rentalContracts.Where(x => x.companyid == companyID && x.status == RentStatus.Active).CountAsync();
         }
     }
 }

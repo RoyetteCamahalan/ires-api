@@ -42,7 +42,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<RentalProjectViewModel>(project);
         }
 
-        public async Task<ICollection<RentalProjectViewModel>> GetRentalProperties(long companyID, string search)
+        public async Task<ICollection<RentalProjectViewModel>> GetRentalProperties(int companyID, string search)
         {
             var result = await _dataContext.projects.Include(x => x.rentalProperties).Where(x => x.companyid == companyID && x.projectypeid == ProjectType.Rental
                 && (x.propertyname.Contains(search) || x.address.Contains(search)))
@@ -113,7 +113,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<RentalUnitViewModel>(entity);
         }
 
-        public async Task<ICollection<RentalUnitViewModel>> GetRentalUnits(long companyID, long projectID, string search)
+        public async Task<ICollection<RentalUnitViewModel>> GetRentalUnits(int companyID, long projectID, string search)
         {
             var result = await _dataContext.rentalProperties.Include(x => x.project).Where(x => x.projectid == projectID
                 && x.project.companyid == companyID && (x.propertyname.Contains(search) || x.area.Contains(search)))
@@ -138,7 +138,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<RentalContractViewModel>(result);
         }
 
-        public async Task<ICollection<RentalUnitViewModel>> GetAvailableRentalUnits(long companyID, string search)
+        public async Task<ICollection<RentalUnitViewModel>> GetAvailableRentalUnits(int companyID, string search)
         {
             var result = await _dataContext.rentalProperties.Include(x => x.project).Where(x => x.project.companyid == companyID
                 && x.status == RentalPropertyStatus.Vacant && (x.propertyname.Contains(search) || x.area.Contains(search)))
