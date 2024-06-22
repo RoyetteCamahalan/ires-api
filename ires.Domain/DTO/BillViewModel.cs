@@ -1,4 +1,5 @@
-﻿using ires.Domain.Enumerations;
+﻿using ires.Domain.DTO.Company;
+using ires.Domain.Enumerations;
 
 namespace ires.Domain.DTO
 {
@@ -20,5 +21,6 @@ namespace ires.Domain.DTO
         public string checkouturl { get; set; } = string.Empty;
         public string paymentid { get; set; } = string.Empty;
         public DateTime? datepaid { get; set; }
+        public CompanyViewModel? company { get; set; }
     }
 }

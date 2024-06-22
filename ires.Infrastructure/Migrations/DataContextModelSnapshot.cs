@@ -306,6 +306,8 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
+                    b.HasIndex("companyid");
+
                     b.ToTable("bill");
                 });
 
@@ -2176,6 +2178,17 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("bank");
 
                     b.Navigation("payment");
+                });
+
+            modelBuilder.Entity("ires.Infrastructure.Entities.Bill", b =>
+                {
+                    b.HasOne("ires.Infrastructure.Entities.Company", "company")
+                        .WithMany()
+                        .HasForeignKey("companyid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("company");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Booking", b =>

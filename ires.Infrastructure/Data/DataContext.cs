@@ -65,6 +65,10 @@ namespace ires.Infrastructure.Data
                 .HasOne(c => c.bank)
                 .WithMany(b => b.bankTransfers).HasForeignKey(c => c.bankid);
 
+            modelBuilder.Entity<Bill>()
+                .HasOne(c => c.company)
+                .WithMany().HasForeignKey(c => c.companyid);
+
             modelBuilder.Entity<Booking>()
                 .HasOne(c => c.car).WithMany().HasForeignKey(c => c.carid);
             modelBuilder.Entity<Booking>()

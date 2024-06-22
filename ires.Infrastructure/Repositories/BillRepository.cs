@@ -33,7 +33,7 @@ namespace ires.Infrastructure.Repositories
         }
         private async Task<Bill> GetBillByIDAsync(long billID)
         {
-            return await _dataContext.bills.FindAsync(billID);
+            return await _dataContext.bills.Include(x => x.company).FirstOrDefaultAsync(x => x.id == billID);
         }
 
         public async Task<ICollection<BillViewModel>> GetBills(int companyID, int filter)

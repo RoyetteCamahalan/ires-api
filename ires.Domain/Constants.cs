@@ -5,6 +5,7 @@ namespace ires.Domain
     public class Constants
     {
         public const string dateFormat = "MM/dd/yyyy";
+        public const string moneyFormat = "N2";
 
         public static string getReceiptDesc(ReceiptType receiptType)
         {

@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Invoice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+</head>
+<body style="background-color: #e9ecef;">
+
+    <!-- start preheader -->
+    <!--<div class="preheader" style="display: none; max-width: 0; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
+        A preheader is the short summary text that follows the subject line when an email is viewed in the inbox.
+    </div>-->
+    <!-- end preheader -->
+    <!-- start body -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+
+        <!-- start copy block -->
+        <tr>
+            <td align="center" bgcolor="#e9ecef">
+                <!--[if (gte mso 9)|(IE)]>
+                <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+                <tr>
+                <td align="center" valign="top" width="600">
+                <![endif]-->
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;" bgcolor="#ffffff">
+                    <tr>
+                        <td style="padding-top: 24px;">
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="width: 50%;padding-left: 25px;">
+                                        <a href="{main_link}" target="_blank" style="display: inline-block;">
+                                            <img style="display: block;height: 37px;max-height: 60px;min-height: 48px;" border="0" alt="Logo" src="{logo_path}">
+                                        </a>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span style="width: 60px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;font-size: 21px;line-height: 24px;background-color: #bfdbfe;align-content: center;color: #1d4ed8;font-weight: 600;padding-left: 25px;padding-right: 25px;">
+                                            INVOICE
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 57px;padding-left: 24px;padding-right: 24px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;">
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="width: 50%;">
+                                        <p style="margin: 0;font-weight: 700;">Bill To</p>
+                                        <p style="margin: 0;">{customername}</p>
+                                        <p style="margin: 0">{customeraddress}</p>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <p style="margin: 0;font-weight: 700;">Invoice #{invoiceno}</p>
+                                        <p style="margin: 0">Invoice Date: {invoicedate}</p>
+                                        <p style="margin: 0">Due Date: {duedate}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- start copy -->
+                    <tr>
+                        <td style="padding-top: 57px;padding-left: 24px;padding-right: 24px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;">
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr style="background-color: #bfdbfe;color: #1d4ed8;"><th style="width: 60%;text-align: left;padding-top: 5px;padding-bottom: 5px;padding-left: 10px;font-weight: 500;">Particular</th>
+                                        <th class="detail-header" style="width: 10%;">QTY</th>
+                                        <th class="detail-header text-center" style="width: 15%;">Price</th>
+                                        <th class="detail-header text-center" style="width: 15%;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="font-size: 14px;">
+                                        <td style="padding: 5px;">{description}</td>
+                                        <td class="text-center">1</td>
+                                        <td style="text-align: right;">PHP {amount}</td>
+                                        <td style="text-align: right;">PHP {amount}</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="text-align: right;font-weight: 600;">
+                                        <td colspan="3" style="padding-right: 11px;">Total:</td>
+                                        <td>{amount}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 57px;padding-left: 24px;padding-right: 24px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;">
+                            <p style="font-size: 14px;">
+                                Additional Notes:
+                                For payments using Credit Card/Gcash/Paymaya
+                                <br>1. Login to the system at www.hexabyt.com
+                                <br>2. Go to your profile on the upper right then select `Billing`
+                                <br>3. On Billing page, select open invoices then click `Pay` (take note that you will be leaving our website and sent to the paypal website)
+
+                                <br><br>You can also Send Money Using GCash
+                                <br>1. From the GCash dashboard, tap “Send Money” the tap “Express Send”
+                                <br>2. Enter 09260923481 as recipient's GCash mobile number.
+                                <br>3. Enter the amount to send.
+                                <br>4. Wait for the confirmation of your transaction.
+                                <br>5. Take screenshot then send a copy in our live chat in the website or you can email at sales@hexabyt.com
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- end copy -->
+                </table>
+                <!--[if (gte mso 9)|(IE)]>
+                </td>
+                </tr>
+                </table>
+                <![endif]-->
+            </td>
+        </tr>
+        <!-- end copy block -->
+        <!-- start footer -->
+
+    </table>
+    <!-- end body -->
+
+</body>
+</html>
