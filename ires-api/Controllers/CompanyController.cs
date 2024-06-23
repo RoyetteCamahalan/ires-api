@@ -103,5 +103,17 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
         }
+        [HttpPost("completetour/{id}")]
+        public async Task<IActionResult> CompleteTour(int id)
+        {
+            var serverResponse = new ServerResponse<bool>();
+            if (!await _companyService.CompleteTour(id))
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Oops! We are unable to process this request.";
+                return BadRequest(serverResponse);
+            }
+            return Ok(serverResponse);
+        }
     }
 }

@@ -112,6 +112,11 @@ namespace ires.Infrastructure.Repositories
                         }
                         await _dataContext.SaveChangesAsync();
                     }
+                    else //unsuccessful payment
+                    {
+                        bill.paymentid = "";
+                        await _dataContext.SaveChangesAsync();
+                    }
                 }
             }
             return _mapper.Map<BillViewModel>(bill);

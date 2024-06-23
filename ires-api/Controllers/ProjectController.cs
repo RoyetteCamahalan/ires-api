@@ -15,11 +15,15 @@ namespace ires_api.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IProjectService _projectService;
+        private readonly IRentalService _rentalService;
+        private readonly IBillService _billService;
 
-        public ProjectController(IMapper mapper, IProjectService projectService)
+        public ProjectController(IMapper mapper, IProjectService projectService, IRentalService rentalService, IBillService billService)
         {
             _mapper = mapper;
             _projectService = projectService;
+            _rentalService = rentalService;
+            _billService = billService;
         }
 
         [HttpGet("getrentalproperties")]
@@ -130,6 +134,18 @@ namespace ires_api.Controllers
             var identity = IdentityProfile.getIdentity(this.HttpContext);
             requestDto.companyid = identity.companyid ?? 0;
             requestDto.createdbyid = identity.employeeid;
+            var companyPlan = await _billService.GetSubscriptionPlans(requestDto.companyid);
+            if (companyPlan.surveylimit > 0)
+            {
+                var rentalUnitCount = await _rentalService.CountActiveUnits(requestDto.companyid);
+                if (rentalUnitCount >= companyPlan.surveylimit)
+                {
+                    serverResponse.Success = false;
+                    serverResponse.errorCode = 100;
+                    serverResponse.Message = $"Reached maximum number of rental units ({companyPlan.surveylimit}).Please upgrage you plan!";
+                    return BadRequest(serverResponse);
+                }
+            }
             var result = await _projectService.CreateRentalUnit(requestDto);
             if (result == null)
             {

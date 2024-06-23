@@ -84,5 +84,15 @@ namespace ires.Infrastructure.Repositories
             await _dataContext.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> CompleteTour(int id)
+        {
+            var company = await GetCompanyByID(id);
+            if (company == null)
+                return false;
+            company.apptour = 100;
+            await _dataContext.SaveChangesAsync();
+            return true;
+        }
     }
 }
