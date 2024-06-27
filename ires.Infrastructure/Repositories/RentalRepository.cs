@@ -115,7 +115,7 @@ namespace ires.Infrastructure.Repositories
             {
                 entity.custid = requestDto.custid;
                 entity.contractdate = requestDto.contractdate;
-                entity.billingstart = requestDto.billingstart;
+                entity.billingsched = requestDto.billingsched > 0 ? requestDto.billingsched : entity.contractdate.Day;
                 entity.term = requestDto.term ?? 0;
                 entity.montlyrent = requestDto.montlyrent;
                 entity.monthlypenalty = requestDto.monthlypenalty ?? 0;

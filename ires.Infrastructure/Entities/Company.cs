@@ -13,6 +13,7 @@ namespace ires.Infrastructure.Entities
         public string? address { get; set; }
         public string? contactno { get; set; }
         public bool? isactive { get; set; }
+        public string email { get; set; } = string.Empty;
 
         public bool isverified { get; set; }
         public int planid { get; set; }
@@ -22,6 +23,7 @@ namespace ires.Infrastructure.Entities
         public BillingCycle billingcycle { get; set; }
         public decimal amount { get; set; }
         public int apptour { get; set; }
+        public string logo { get; set; } = string.Empty;
 
         public List<Employee> employees { get; set; } = new List<Employee>();
         public SubscriptionPlan? subscriptionPlan { get; set; }

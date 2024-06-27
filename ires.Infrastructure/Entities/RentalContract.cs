@@ -26,7 +26,7 @@ namespace ires.Infrastructure.Entities
         public decimal monthlypenalty { get; set; }
         public int penaltyextension { get; set; }
         public string remarks { get; set; } = string.Empty;
-        public DateTime? billingstart { get; set; }
+        public int billingsched { get; set; } = 1;
         public long createdbyid { get; set; }
         public DateTime? datecreated { get; set; }
         public long updatedbyid { get; set; }

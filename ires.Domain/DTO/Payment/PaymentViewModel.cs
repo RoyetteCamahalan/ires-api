@@ -1,4 +1,5 @@
 ﻿using ires.Domain.DTO.Client;
+using ires.Domain.DTO.CreditNote;
 using ires.Domain.DTO.Employee;
 using ires.Domain.Enumerations;
 
@@ -21,9 +22,12 @@ namespace ires.Domain.DTO.Payment
         public string paidby { get; set; } = string.Empty;
         public string remarks { get; set; } = string.Empty;
         public decimal payablebalance { get; set; }
+        public long? creditmemotypeid { get; set; }
         public ClientViewModel? client { get; set; }
         public ICollection<PayableViewModel>? payables { get; set; }
         public EmployeeViewModel? createdBy { get; set; }
         public List<PaymentDetailViewModel> paymentDetails { get; set; } = new List<PaymentDetailViewModel>();
+        public CreditMemoTypeViewModel? creditMemoType { get; set; }
+        public string voidremarks { get; set; } = string.Empty;
     }
 }

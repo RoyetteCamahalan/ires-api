@@ -98,7 +98,7 @@ namespace ires_api.Controllers
         }
 
         [HttpPut("updatebillingcycle")]
-        public IActionResult UpdateBillingCycle(CompanyRequestDto requestDto)
+        public IActionResult UpdateBillingCycle(RegisterCompanyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
@@ -110,7 +110,7 @@ namespace ires_api.Controllers
         }
 
         [HttpPut("upgradeplan")]
-        public async Task<IActionResult> UpgradePlan(CompanyRequestDto requestDto)
+        public async Task<IActionResult> UpgradePlan(RegisterCompanyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);

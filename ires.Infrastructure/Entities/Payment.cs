@@ -29,12 +29,15 @@ namespace ires.Infrastructure.Entities
         public string paidby { get; set; } = string.Empty;
         public string remarks { get; set; } = string.Empty;
         public DateTime? datecreated { get; set; }
+        public long? creditmemotypeid { get; set; }
 
         public Client? client { get; set; }
         public PaymentCheck? paymentCheck { get; set; }
         public BankTransfer? bankTransfer { get; set; }
         public List<PaymentDetail> paymentDetails { get; set; } = new List<PaymentDetail>();
         public Employee? createdBy { get; set; }
+        public CreditMemoType? creditMemoType { get; set; }
+        public string voidremarks { get; set; } = string.Empty;
 
     }
 }

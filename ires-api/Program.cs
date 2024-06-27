@@ -58,6 +58,7 @@ builder.Services.AddScoped<IMailService, MailRepository>();
 builder.Services.AddScoped<IClientService, ClientRepository>();
 builder.Services.AddScoped<ISurveyService, SurveyRepository>();
 builder.Services.AddScoped<IChargeService, ChargeRepository>();
+builder.Services.AddScoped<ICreditNoteService, CreditNoteRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentRepository>();
 builder.Services.AddScoped<IAccountService, AccountRepository>();
 builder.Services.AddScoped<IBillService, BillRepository>();

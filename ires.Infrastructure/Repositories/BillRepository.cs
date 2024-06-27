@@ -122,7 +122,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<BillViewModel>(bill);
         }
 
-        public async Task<bool> UpdateBillingCycle(CompanyRequestDto requestDto)
+        public async Task<bool> UpdateBillingCycle(RegisterCompanyRequestDto requestDto)
         {
             var entity = await _dataContext.companies.FindAsync(requestDto.id);
             if (entity != null)

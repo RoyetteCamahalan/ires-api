@@ -2,7 +2,7 @@
 
 namespace ires.Domain.DTO.Company
 {
-    public class CompanyRequestDto
+    public class RegisterCompanyRequestDto
     {
         public int id { get; set; }
         public string name { get; set; } = string.Empty;

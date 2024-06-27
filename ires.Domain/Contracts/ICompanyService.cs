@@ -7,7 +7,8 @@ namespace ires.Domain.Contracts
         public Task<ICollection<CompanyViewModel>> GetCompanies();
         public Task<CompanyViewModel> GetByID(int id);
         public Task<CompanyViewModel> GetCompanyByName(string name);
-        public Task<CompanyViewModel> RegisterAsync(CompanyRequestDto requestDto);
+        public Task<CompanyViewModel> RegisterAsync(RegisterCompanyRequestDto requestDto);
+        public Task<bool> Update(UpdateCompanyRequestDto requestDto);
         public Task<bool> Verify(int id);
         public Task<bool> CompleteTour(int id);
     }

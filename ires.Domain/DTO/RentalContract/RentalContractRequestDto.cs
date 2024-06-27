@@ -16,7 +16,7 @@ namespace ires.Domain.DTO.RentalContract
         public decimal ewtpercentage { get; set; }
         public decimal? monthlypenalty { get; set; }
         public int? penaltyextension { get; set; }
-        public DateTime? billingstart { get; set; }
+        public int billingsched { get; set; } = 1;
         public string remarks { get; set; } = string.Empty;
         public long createdbyid { get; set; }
         public long updatedbyid { get; set; }

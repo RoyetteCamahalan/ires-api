@@ -9,6 +9,7 @@ using ires.Domain.DTO.BankAccount;
 using ires.Domain.DTO.CashDisbursement;
 using ires.Domain.DTO.Client;
 using ires.Domain.DTO.Company;
+using ires.Domain.DTO.CreditNote;
 using ires.Domain.DTO.Employee;
 using ires.Domain.DTO.Expense;
 using ires.Domain.DTO.ExpenseType;
@@ -61,6 +62,9 @@ namespace ires.AppService
                 .ForMember(dest => dest.isexpired,
                 opts => opts.MapFrom(src =>
                 src.subscriptionexpiry < DateTime.Now.AddDays(-1)));
+
+            CreateMap<CreditMemoTypeRequestDto, CreditMemoType>();
+            CreateMap<CreditMemoType, CreditMemoTypeViewModel>();
 
             CreateMap<EmployeeRequestDto, Employee>();
             CreateMap<Employee, EmployeeViewModel>();

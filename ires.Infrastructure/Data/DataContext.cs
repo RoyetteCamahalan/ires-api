@@ -146,6 +146,11 @@ namespace ires.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(e => e.encodedby);
 
+            modelBuilder.Entity<Payment>()
+                .HasOne(s => s.creditMemoType)
+                .WithMany()
+                .HasForeignKey(e => e.creditmemotypeid);
+
             modelBuilder.Entity<PlanModule>()
                 .HasOne(s => s.module)
                 .WithMany()
@@ -212,6 +217,7 @@ namespace ires.Infrastructure.Data
         public DbSet<CarType> carTypes { get; set; }
         public DbSet<Client> clients { get; set; }
         public DbSet<Company> companies { get; set; }
+        public DbSet<CreditMemoType> creditMemoTypes { get; set; }
         public DbSet<Employee> employees { get; set; }
         public DbSet<Expense> expenses { get; set; }
         public DbSet<ExpenseType> expenseTypes { get; set; }

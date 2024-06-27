@@ -63,7 +63,7 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<ICollection<BankViewModel>> GetBanks(int companyID, bool isEWallet, string search)
         {
-            var banks = _dataContext.banks.Where(x => x.companyid == companyID && x.isewallet == isEWallet && x.name.Contains(search)).ToList();
+            var banks = _dataContext.banks.Where(x => x.companyid == companyID && x.isewallet == isEWallet && x.name.Contains(search)).OrderBy(x => x.name).ToList();
             if (banks.Count == 0 && search == "")
             {
                 BankSeeder bankSeeder = new BankSeeder(_dataContext);

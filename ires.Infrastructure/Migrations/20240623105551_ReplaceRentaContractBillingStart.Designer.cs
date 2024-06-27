@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240623105551_ReplaceRentaContractBillingStart")]
+    partial class ReplaceRentaContractBillingStart
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -689,19 +692,11 @@ namespace ires.Infrastructure.Migrations
                     b.Property<string>("contactno")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool?>("isactive")
                         .HasColumnType("bit");
 
                     b.Property<bool>("isverified")
                         .HasColumnType("bit");
-
-                    b.Property<string>("logo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("name")
                         .HasColumnType("nvarchar(max)");
@@ -723,41 +718,6 @@ namespace ires.Infrastructure.Migrations
                     b.HasIndex("planid");
 
                     b.ToTable("company");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.CreditMemoType", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<int>("companyid")
-                        .HasColumnType("int");
-
-                    b.Property<long>("createdbyid")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("datecreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("dateupdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("isactive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("updatedbyid")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("id");
-
-                    b.ToTable("creditmemotypes");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Employee", b =>
@@ -1324,9 +1284,6 @@ namespace ires.Infrastructure.Migrations
                     b.Property<int>("companyid")
                         .HasColumnType("int");
 
-                    b.Property<long?>("creditmemotypeid")
-                        .HasColumnType("bigint");
-
                     b.Property<long>("custid")
                         .HasColumnType("bigint");
 
@@ -1383,13 +1340,7 @@ namespace ires.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("voidremarks")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("paymentid");
-
-                    b.HasIndex("creditmemotypeid");
 
                     b.HasIndex("custid");
 
@@ -2390,10 +2341,6 @@ namespace ires.Infrastructure.Migrations
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Payment", b =>
                 {
-                    b.HasOne("ires.Infrastructure.Entities.CreditMemoType", "creditMemoType")
-                        .WithMany()
-                        .HasForeignKey("creditmemotypeid");
-
                     b.HasOne("ires.Infrastructure.Entities.Client", "client")
                         .WithMany("payments")
                         .HasForeignKey("custid")
@@ -2409,8 +2356,6 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("client");
 
                     b.Navigation("createdBy");
-
-                    b.Navigation("creditMemoType");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.PaymentCheck", b =>

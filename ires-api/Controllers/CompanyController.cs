@@ -41,7 +41,7 @@ namespace ires_api.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> register([FromBody] CompanyRequestDto requestDto)
+        public async Task<IActionResult> register([FromBody] RegisterCompanyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<CompanyViewModel>();
             var company = await _companyService.GetCompanyByName(requestDto.name);
@@ -60,6 +60,21 @@ namespace ires_api.Controllers
             company = await _companyService.RegisterAsync(requestDto);
             this.sendConfirmationEmail(company.id, requestDto.email);
             serverResponse.Data = company;
+            return Ok(serverResponse);
+        }
+        [HttpPost("update")]
+        public async Task<IActionResult> Update([FromBody] UpdateCompanyRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<bool>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.id = identity.companyid ?? 0;
+            requestDto.updatedbyid = identity.employeeid;
+            if (!await _companyService.Update(requestDto))
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Oops! We are unable to process this request.";
+                return BadRequest(serverResponse);
+            }
             return Ok(serverResponse);
         }
 

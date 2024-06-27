@@ -9,7 +9,7 @@ namespace ires.Domain.Contracts
         public Task<BillViewModel> GetBillByID(long billID);
         public Task<SubscriptionPlanViewModel> GetPlanByID(long planID);
         public Task<CompanyPlanViewModel> GetSubscriptionPlans(int companyID);
-        public Task<bool> UpdateBillingCycle(CompanyRequestDto requestDto);
+        public Task<bool> UpdateBillingCycle(RegisterCompanyRequestDto requestDto);
         public Task<BillViewModel> StartPayment(int companyID, long billID, PayMongoConfig payMongoConfig);
         public Task<BillViewModel> CompletePayment(int companyID, long billID, PayMongoConfig payMongoConfig);
         public Task<bool> UpgradePlan(int companyID, int planID, long employeeid);

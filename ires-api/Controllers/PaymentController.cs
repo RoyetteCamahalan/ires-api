@@ -130,11 +130,11 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<bool>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _paymentService.VoidPayment(requestDto.paymentid, identity.employeeid);
+            serverResponse.Success = await _paymentService.VoidPayment(requestDto.paymentid, identity.employeeid, requestDto.voidremarks);
             serverResponse.Data = serverResponse.Success;
             if (!serverResponse.Success)
             {
-                serverResponse.Message = "Payment not found";
+                serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
             return Ok(serverResponse);
@@ -153,6 +153,18 @@ namespace ires_api.Controllers
             }
             var receiptNo = await _paymentService.GetReceiptNo(identity.companyid ?? 0, receiptType);
             serverResponse.Data = receiptNo;
+            return Ok(serverResponse);
+
+        }
+        [HttpGet("getcreditnotes")]
+        public async Task<IActionResult> GetCreditNotes(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
+        {
+            var serverResponse = new ServerResponse<PaginatorDto<PaymentViewModel>>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var payments = await _paymentService.GetCreditNotes(identity.companyid ?? 0, search ?? "", startDate, endDate);
+            var paginator = new PaginatorDto<PaymentViewModel>(currentPage);
+            paginator.Paginate(payments);
+            serverResponse.Data = paginator;
             return Ok(serverResponse);
 
         }

@@ -5,7 +5,6 @@ namespace ires.Domain.Contracts
 {
     public interface IPaymentService
     {
-        public Task<ICollection<PaymentViewModel>> GetPayments(int companyID, string search);
         public Task<ICollection<PaymentViewModel>> GetPayments(int companyID, string search, DateTime startDate, DateTime endDate);
         public Task<PaymentViewModel> GetPayment(long paymentID);
         public Task<ICollection<PaymentDetailViewModel>> GetPaymentDetails(long paymentID);
@@ -15,6 +14,9 @@ namespace ires.Domain.Contracts
         public Task<long> GetReceiptNo(int companyID, ReceiptType receiptType);
         public Task<bool> IsDuplicateReceipt(int companyID, ReceiptType receiptType, long receiptNo);
         public Task<PaymentViewModel> Create(PaymentRequestDto requestDto);
-        public Task<bool> VoidPayment(long paymentID, long employeeid);
+        public Task<bool> VoidPayment(long paymentID, long employeeid, string remarks);
+
+
+        public Task<ICollection<PaymentViewModel>> GetCreditNotes(int companyID, string search, DateTime startDate, DateTime endDate);
     }
 }

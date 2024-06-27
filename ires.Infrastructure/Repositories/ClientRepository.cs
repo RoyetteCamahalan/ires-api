@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
+using ires.Domain.Contracts;
+using ires.Domain.DTO.Client;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
-using ires.Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
-using ires.Domain.DTO.Client;
 
 namespace ires.Infrastructure.Repositories
 {
@@ -47,7 +47,7 @@ namespace ires.Infrastructure.Repositories
         public async Task<ICollection<ClientViewModel>> GetClients(int companyid, string search)
         {
             var result = await _dataContext.clients.Where(x => x.companyid == companyid && (x.lname.Contains(search) || x.fname.Contains(search)))
-                .OrderBy(x => x.lname + x.fname).ToListAsync();
+                .OrderBy(x => x.fname + x.lname).ToListAsync();
             return _mapper.Map<ICollection<ClientViewModel>>(result);
         }
 

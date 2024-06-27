@@ -6,6 +6,7 @@
         Projects = 6,
         Users = 8,
         Expenses = 10,
+        CreditNotes = 13,
         Rentals = 14,
         Surveying = 15,
         OtherFees = 23,
@@ -17,6 +18,7 @@
         Vendors = 22,
         OtherCharges = 24,
         Billing = 25,
+        Company = 26,
         //        1	Reservation
         //2	Sales
         //3	Payments

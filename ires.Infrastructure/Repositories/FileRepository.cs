@@ -31,11 +31,15 @@ namespace ires.Infrastructure.Repositories
                 document.isdeleted = true;
                 var company = await _dataContext.companies.FindAsync(document.companyid);
                 company.storage -= document.filesize;
-                string filename = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + document.companyid + "/" + document.filename);
-                if (File.Exists(filename))
-                    File.Delete(filename);
+                DeleteFile(document.companyid, document.filename);
                 await _dataContext.SaveChangesAsync();
             }
+        }
+        private static void DeleteFile(int companyID, string filename)
+        {
+            string file = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + companyID + "/" + filename);
+            if (File.Exists(file))
+                File.Delete(file);
         }
 
         public async Task<ICollection<AttachmentViewModel>> getFiles(int typeID, long attachableID, long lotID)
@@ -46,52 +50,69 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<AttachmentViewModel> uploadFile(AttachmentRequestDto requestDto)
         {
-            Attachment attachment = new Attachment
-            {
-                companyid = requestDto.companyid,
-                invoiceno = requestDto.invoiceno,
-                lotid = requestDto.lotid,
-                documentname = Utility.CleanFileName(requestDto.formFile.FileName),
-                filesize = Convert.ToDecimal(requestDto.formFile.Length) / 1000000,
-                attachedby = requestDto.attachedby,
-                dateattached = DateTime.Now,
-                isdeleted = false,
-                typeid = requestDto.typeid,
-                filetype = Path.GetExtension(requestDto.formFile.FileName) == ".pdf" ? 1 : 0
-            };
 
             if (requestDto.formFile.Length > 0)
             {
-                try
+                var filename = SaveFile(requestDto);
+                if (filename != "")
                 {
-                    string uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + requestDto.companyid);
-                    if (!Directory.Exists(uploads))
-                        Directory.CreateDirectory(uploads);
-                    string filename = Utility.RandomString(20) + Path.GetExtension(requestDto.formFile.FileName);
-                    string filePath = Path.Combine(uploads, filename);
-                    while (File.Exists(filePath))
+                    Attachment attachment = new Attachment
                     {
-                        filename = Utility.RandomString(20) + Path.GetExtension(requestDto.formFile.FileName);
-                        filePath = Path.Combine(uploads, filename);
-                    }
-                    using (Stream fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-                    {
-                        requestDto.formFile.CopyTo(fileStream);
-                        fileStream.Close();
-                    }
-                    attachment.filename = filename;
-                    _dataContext.attachments.Add(attachment);
+                        companyid = requestDto.companyid,
+                        invoiceno = requestDto.invoiceno,
+                        lotid = requestDto.lotid,
+                        documentname = Utility.CleanFileName(requestDto.formFile.FileName),
+                        filesize = Convert.ToDecimal(requestDto.formFile.Length) / 1000000,
+                        attachedby = requestDto.attachedby,
+                        dateattached = DateTime.Now,
+                        isdeleted = false,
+                        typeid = requestDto.typeid,
+                        filetype = Path.GetExtension(requestDto.formFile.FileName) == ".pdf" ? 1 : 0,
+                        filename = filename
+                    };
                     var company = await _dataContext.companies.FindAsync(requestDto.companyid);
+                    if (requestDto.typeid == -1)
+                    {
+                        if (company.logo != "")
+                            DeleteFile(company.id, company.logo);
+                        company.logo = filename;
+                    }
+                    else
+                        _dataContext.attachments.Add(attachment);
+
                     company.storage += attachment.filesize;
                     await _dataContext.SaveChangesAsync();
                     return _mapper.Map<AttachmentViewModel>(attachment);
                 }
-                catch (Exception)
-                {
-
-                }
             }
             return null;
+        }
+        private static string SaveFile(AttachmentRequestDto requestDto)
+        {
+            try
+            {
+                string uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + requestDto.companyid);
+                if (!Directory.Exists(uploads))
+                    Directory.CreateDirectory(uploads);
+                string filename = Utility.RandomString(20) + Path.GetExtension(requestDto.formFile.FileName);
+                string filePath = Path.Combine(uploads, filename);
+                while (File.Exists(filePath))
+                {
+                    filename = Utility.RandomString(20) + Path.GetExtension(requestDto.formFile.FileName);
+                    filePath = Path.Combine(uploads, filename);
+                }
+                using (Stream fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                {
+                    requestDto.formFile.CopyTo(fileStream);
+                    fileStream.Close();
+                }
+                return filename;
+            }
+            catch (Exception)
+            {
+
+            }
+            return "";
         }
     }
 }

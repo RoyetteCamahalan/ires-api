@@ -13,11 +13,13 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public CompanyRepository(DataContext dataContext, IMapper mapper)
+        public CompanyRepository(DataContext dataContext, IMapper mapper, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _logService = logService;
         }
         public async Task<ICollection<CompanyViewModel>> GetCompanies()
         {
@@ -25,7 +27,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<ICollection<CompanyViewModel>>(result);
         }
 
-        public async Task<Company> GetCompanyByID(int id)
+        private async Task<Company> GetCompanyByID(int id)
         {
             return await _dataContext.companies.FindAsync(id);
         }
@@ -42,13 +44,14 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<CompanyViewModel>(result);
         }
 
-        public async Task<CompanyViewModel> RegisterAsync(CompanyRequestDto requestDto)
+        public async Task<CompanyViewModel> RegisterAsync(RegisterCompanyRequestDto requestDto)
         {
             Company company = new Company
             {
                 name = requestDto.name,
                 address = requestDto.address,
                 contactno = requestDto.contactno,
+                email = requestDto.email,
                 planid = requestDto.planid,
                 isactive = false,
                 isverified = false,
@@ -93,6 +96,21 @@ namespace ires.Infrastructure.Repositories
             company.apptour = 100;
             await _dataContext.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> Update(UpdateCompanyRequestDto requestDto)
+        {
+            var entity = await GetCompanyByID(requestDto.id);
+            if (entity != null)
+            {
+                entity.name = requestDto.name;
+                entity.contactno = requestDto.contactno;
+                entity.address = requestDto.address;
+                await _dataContext.SaveChangesAsync();
+                await _logService.SaveLogAsync(entity.id, requestDto.updatedbyid, Domain.Enumerations.AppModule.Company, "Updated Company Info", "Updated Company Info", 1);
+                return true;
+            }
+            return false;
         }
     }
 }
