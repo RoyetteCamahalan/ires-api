@@ -99,7 +99,7 @@ namespace ires_api.Controllers
             var token = new JwtSecurityToken(_configuration["Jwt.Issuer"],
                 _configuration["Jwt.Audience"],
                 claims,
-                expires: DateTime.Now.AddMinutes(60),
+                expires: DateTime.Now.AddHours(3),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
