@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.CashDisbursement;
+using ires.Domain.DTO.PettyCash;
 using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
@@ -28,6 +29,8 @@ namespace ires.Infrastructure.Repositories
             var cashDisbursement = _mapper.Map<CashDisbursement>(requestDto);
             cashDisbursement.disbursementid = 0;
             cashDisbursement.datecreated = DateTime.Now;
+            if (cashDisbursement.transtype == DisbursementTransType.cashin)
+                cashDisbursement.refaccountid = null;
             _dataContext.Add(cashDisbursement);
             await _dataContext.SaveChangesAsync();
             if (cashDisbursement.transtype == DisbursementTransType.transferout)
@@ -35,7 +38,7 @@ namespace ires.Infrastructure.Repositories
                 await _accountService.UpdateOfficeBalanceAsync(cashDisbursement.accountid, cashDisbursement.amount * -1);
                 var refDisbursement = await _dataContext.cashDisbursements.AsNoTracking().FirstOrDefaultAsync(x => x.disbursementid == cashDisbursement.disbursementid);
                 refDisbursement.disbursementid = 0;
-                refDisbursement.accountid = cashDisbursement.refaccountid;
+                refDisbursement.accountid = cashDisbursement.refaccountid ?? 0;
                 refDisbursement.refaccountid = cashDisbursement.accountid;
                 refDisbursement.transtype = DisbursementTransType.transferin;
                 refDisbursement.refdisbursementid = cashDisbursement.disbursementid;
@@ -105,6 +108,12 @@ namespace ires.Infrastructure.Repositories
         public async Task<decimal> TotalPettyCashBalance(int companyID)
         {
             return await _dataContext.offices.Where(x => x.companyid == companyID && x.isactive).Select(x => x.pettycashbalance).SumAsync();
+        }
+
+        public async Task<ICollection<PettyCashAccountHistoryViewModel>> GetAccountHistory(int companyID, long accountID, DateTime startDate, DateTime endDate)
+        {
+            var result = await _dataContext.pettyCashAccountHistories.FromSqlRaw($"exec spWebReports @operation=0, @soperation=4, @search = '{accountID}', @companyid = {companyID}, @startdate = '{startDate}', @enddate = '{endDate}'").ToListAsync();
+            return _mapper.Map<ICollection<PettyCashAccountHistoryViewModel>>(result);
         }
     }
 }

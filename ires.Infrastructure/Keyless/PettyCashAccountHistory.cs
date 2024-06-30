@@ -3,19 +3,18 @@
 namespace ires.Infrastructure.Keyless
 {
     [Keyless]
-    public class RentalAccountHistory
+    public class PettyCashAccountHistory
     {
-        public DateTime? paymentdate { get; set; }
+        public long transid { get; set; }
+        public int transtype { get; set; }
         public string refno { get; set; } = string.Empty;
         public string particular { get; set; } = string.Empty;
-        public decimal interest { get; set; }
+        public DateTime? transdate { get; set; }
+        public DateTime? actualdate { get; set; }
+        public decimal amount { get; set; }
         public decimal debit { get; set; }
         public decimal credit { get; set; }
+        public string remarks { get; set; } = string.Empty;
         public decimal runningbalance { get; set; }
-        public DateTime? chargedate { get; set; }
-        public int seq { get; set; }
-        public long chargeid { get; set; }
-        public long paymentid { get; set; }
-        public long creditmemoid { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240630125846_CreateExpenseTypeCategorySeeder")]
+    partial class CreateExpenseTypeCategorySeeder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -572,7 +575,7 @@ namespace ires.Infrastructure.Migrations
                     b.Property<DateTime?>("dateupdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<long?>("refaccountid")
+                    b.Property<long>("refaccountid")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime?>("refdate")
@@ -2158,47 +2161,6 @@ namespace ires.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.ToTable("payables");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Keyless.PettyCashAccountHistory", b =>
-                {
-                    b.Property<DateTime?>("actualdate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("credit")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("debit")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("particular")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("refno")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("remarks")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("runningbalance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("transdate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("transid")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("transtype")
-                        .HasColumnType("int");
-
-                    b.ToTable("pettyCashAccountHistories");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Keyless.RentalAccountHistory", b =>

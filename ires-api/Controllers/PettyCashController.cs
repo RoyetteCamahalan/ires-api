@@ -1,6 +1,7 @@
 ﻿using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.CashDisbursement;
+using ires.Domain.DTO.PettyCash;
 using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,6 +43,17 @@ namespace ires_api.Controllers
             var paginator = new PaginatorDto<CashDisbursementViewModel>(currentPage);
             paginator.Paginate(result);
             serverResponse.Data = paginator;
+            return Ok(serverResponse);
+
+        }
+
+        [HttpGet("getaccounthistory")]
+        public async Task<IActionResult> GetAccountHistory(long id, DateTime startDate, DateTime endDate)
+        {
+            var serverResponse = new ServerResponse<ICollection<PettyCashAccountHistoryViewModel>>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            var result = await _pettyCashService.GetAccountHistory(identity.companyid ?? 0, id, startDate, endDate);
+            serverResponse.Data = result;
             return Ok(serverResponse);
 
         }

@@ -159,6 +159,12 @@ namespace ires.Infrastructure.Repositories
         {
             var result = await _dataContext.expenseTypes.Include(x => x.category).Where(x => x.companyid == companyID && (x.isactive || viewAll) && x.expensetypedesc.Contains(search))
                 .OrderBy(x => x.expensetypedesc).ToListAsync();
+            if (result.Count == 0 && search == "" && viewAll)
+            {
+                var expenseTypeSeeder = new ExpenseTypeSeeder(_dataContext);
+                await expenseTypeSeeder.Seed(companyID);
+                return await GetExpenseTypes(companyID, viewAll, search);
+            }
             return _mapper.Map<ICollection<ExpenseTypeViewModel>>(result);
         }
 

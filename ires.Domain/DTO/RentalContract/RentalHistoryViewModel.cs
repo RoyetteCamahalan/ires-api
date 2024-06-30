@@ -12,5 +12,7 @@
         public DateTime? chargedate { get; set; }
         public int seq { get; set; }
         public long chargeid { get; set; }
+        public long paymentid { get; set; }
+        public long creditmemoid { get; set; }
     }
 }

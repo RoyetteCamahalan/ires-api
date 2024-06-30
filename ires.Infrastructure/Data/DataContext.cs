@@ -16,6 +16,7 @@ namespace ires.Infrastructure.Data
         {
             modelBuilder.Entity<RentalAccountHistory>().HasNoKey();
             modelBuilder.Entity<Payable>().HasNoKey();
+            modelBuilder.Entity<PettyCashAccountHistory>().HasNoKey();
 
             base.OnModelCreating(modelBuilder);
 
@@ -191,7 +192,10 @@ namespace ires.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(e => e.moduleid);
 
-
+            modelBuilder.Entity<ExpenseTypeCategory>().HasData(
+                    new ExpenseTypeCategory { expensecatid = 1, description = "Operating Expense", isactive = true },
+                    new ExpenseTypeCategory { expensecatid = 2, description = "Non-Operating Expense", isactive = true }
+                );
 
             modelBuilder.Entity<SubscriptionPlan>().HasData(
                     new SubscriptionPlan { id = 1, moduleid = AppModule.Surveying, name = "60 Day Trial", isactive = true, storage = 1000, surveylimit = 0, monthlysubscription = 0 },
@@ -248,5 +252,6 @@ namespace ires.Infrastructure.Data
         //Keyless
         public DbSet<RentalAccountHistory> rentalAccountHistories { get; set; }
         public DbSet<Payable> payables { get; set; }
+        public DbSet<PettyCashAccountHistory> pettyCashAccountHistories { get; set; }
     }
 }

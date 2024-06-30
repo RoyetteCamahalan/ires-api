@@ -17,6 +17,7 @@ using ires.Domain.DTO.Office;
 using ires.Domain.DTO.OtherCharge;
 using ires.Domain.DTO.OtherFee;
 using ires.Domain.DTO.Payment;
+using ires.Domain.DTO.PettyCash;
 using ires.Domain.DTO.Project;
 using ires.Domain.DTO.RentalCharge;
 using ires.Domain.DTO.RentalContract;
@@ -46,6 +47,7 @@ namespace ires.AppService
             CreateMap<BankAccount, BankAccountViewModel>();
 
             CreateMap<BankTransferRequestDto, BankTransfer>();
+            CreateMap<BankTransfer, BankTransferViewModel>();
 
             CreateMap<Bill, BillViewModel>();
 
@@ -92,6 +94,7 @@ namespace ires.AppService
             CreateMap<OtherFeeRequestDto, OtherFee>();
             CreateMap<OtherFee, OtherFeeViewModel>();
 
+            CreateMap<PettyCashAccountHistory, PettyCashAccountHistoryViewModel>();
 
             CreateMap<RentalProjectRequestDto, ProjectRequestDto>();
             CreateMap<Project, RentalProjectViewModel>();
@@ -128,7 +131,8 @@ namespace ires.AppService
             CreateMap<PaymentRequestDto, Payment>();
             CreateMap<Payment, PaymentViewModel>();
             //.ForMember(dest => dest.client, opts => opts.MapFrom(src => src.client));
-            CreateMap<PaymentCheck, PaymentCheckRequestDto>().ReverseMap();
+            CreateMap<PaymentCheckRequestDto, PaymentCheck>();
+            CreateMap<PaymentCheck, PaymentCheckViewModel>();
             CreateMap<PaymentDetail, PaymentDetailViewModel>();
             CreateMap<Payable, PayableViewModel>();
             CreateMap<SubscriptionPlan, SubscriptionPlanViewModel>();
