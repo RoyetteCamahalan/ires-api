@@ -478,3 +478,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 /ires-api/appsettings.Development.json
+/ires-api/appsettings.json

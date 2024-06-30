@@ -112,7 +112,11 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<PaymentViewModel> GetPayment(long paymentID)
         {
-            var result = await GetPaymentByID(paymentID);
+            var result = await _dataContext.payments.Include(x => x.client)
+                .Include(x => x.paymentDetails)
+                .Include(x => x.paymentCheck).ThenInclude(x => x.bank)
+                .Include(x => x.bankTransfer).ThenInclude(x => x.bank)
+                .Include(x => x.createdBy).Where(x => x.paymentid == paymentID).FirstOrDefaultAsync();
             return _mapper.Map<PaymentViewModel>(result);
         }
 

@@ -28,6 +28,8 @@ namespace ires.Domain.DTO.Payment
         public EmployeeViewModel? createdBy { get; set; }
         public List<PaymentDetailViewModel> paymentDetails { get; set; } = new List<PaymentDetailViewModel>();
         public CreditMemoTypeViewModel? creditMemoType { get; set; }
+        public PaymentCheckViewModel? paymentCheck { get; set; }
+        public BankTransferViewModel? bankTransfer { get; set; }
         public string voidremarks { get; set; } = string.Empty;
     }
 }
