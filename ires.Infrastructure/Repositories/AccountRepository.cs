@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.BankAccount;
 using ires.Domain.DTO.Office;
@@ -51,7 +52,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<BankAccount>(requestDto);
             entity.accountid = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.bankAccounts.Add(entity);
             await _dataContext.SaveChangesAsync();
             await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.BankAccounts, "Create New Bank Account", "Account : " + entity.accountid + '-' + entity.accountname, 0);
@@ -92,7 +93,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<Office>(requestDto);
             entity.accountid = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.offices.Add(entity);
             await _dataContext.SaveChangesAsync();
             await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Offices, "Office", "Create New Office : " + entity.accountid + "-" + entity.accountname, 0);
@@ -108,7 +109,7 @@ namespace ires.Infrastructure.Repositories
                 entity.isactive = requestDto.isactive;
                 entity.memo = requestDto.memo;
                 entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = DateTime.Now;
+                entity.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.companyid, entity.updatedbyid, 0, "Office", "Update Office ID : " + requestDto.accountid, 0);
                 return true;

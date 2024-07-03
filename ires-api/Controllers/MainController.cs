@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.Enumerations;
@@ -35,7 +36,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetFinanceDashboard()
         {
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var totalExpenses = (await _expenseService.GetExpenses(identity.companyid ?? 0, "", DateTime.Now, DateTime.Now)).Where(x => x.status == ExpenseStatus.approved).Select(x => x.amount).Sum();
+            var totalExpenses = (await _expenseService.GetExpenses(identity.companyid ?? 0, "", Utility.GetServerTime(), Utility.GetServerTime())).Where(x => x.status == ExpenseStatus.approved).Select(x => x.amount).Sum();
             var data = new
             {
                 totalExpenses,
@@ -49,7 +50,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetSurveyDashboard()
         {
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", DateTime.Now, DateTime.Now)).Select(x => x.totalamount).Sum();
+            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", Utility.GetServerTime(), Utility.GetServerTime())).Select(x => x.totalamount).Sum();
             var data = new
             {
                 totalPayment,
@@ -64,7 +65,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetRentalDashboard()
         {
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", DateTime.Now, DateTime.Now)).Select(x => x.totalamount).Sum();
+            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", Utility.GetServerTime(), Utility.GetServerTime())).Select(x => x.totalamount).Sum();
             var data = new
             {
                 totalPayment,

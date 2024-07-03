@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Client;
 using ires.Infrastructure.Data;
@@ -21,7 +22,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<Client>(requestDto);
             entity.custid = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.clients.Add(entity);
             await _dataContext.SaveChangesAsync();
             return _mapper.Map<ClientViewModel>(entity);
@@ -70,7 +71,7 @@ namespace ires.Infrastructure.Repositories
                 entity.tinnumber = requestDto.tinnumber;
                 entity.email = requestDto.email;
                 entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = DateTime.Now;
+                entity.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 return true;
             }

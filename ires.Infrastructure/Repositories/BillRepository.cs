@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using DinkToPdf;
+using DinkToPdf.Contracts;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Company;
@@ -7,6 +10,7 @@ using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RestSharp;
 using System.Text;
@@ -17,12 +21,18 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
+        private readonly IMailService _mailService;
+        private readonly IConverter _converter;
         private readonly ILogService _logService;
 
-        public BillRepository(DataContext dataContext, IMapper mapper, ILogService logService)
+        public BillRepository(DataContext dataContext, IMapper mapper, IConfiguration configuration, IMailService mailService, IConverter converter, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _configuration = configuration;
+            _mailService = mailService;
+            _converter = converter;
             _logService = logService;
         }
 
@@ -142,23 +152,25 @@ namespace ires.Infrastructure.Repositories
             var plan = await GetPlan(planID);
             if (company.amount == 0 && plan.monthlysubscription > 0)
             {
-                company.subscriptionexpiry = DateTime.Now.AddDays(15);
+                var currentDateTime = Utility.GetServerTime();
+                company.subscriptionexpiry = currentDateTime.AddDays(15);
                 var bill = new Bill
                 {
                     companyid = companyID,
-                    billdate = DateTime.Now,
-                    datefrom = DateTime.Now,
+                    billdate = currentDateTime,
+                    datefrom = currentDateTime,
                     duedate = company.subscriptionexpiry,
                     status = BillStatus.open,
+                    issent = true
                 };
                 if (company.billingcycle == BillingCycle.monthly)
                 {
-                    bill.dateend = DateTime.Now.AddMonths(1);
+                    bill.dateend = currentDateTime.AddMonths(1);
                     bill.amount = plan.monthlysubscription;
                 }
                 else if (company.billingcycle == BillingCycle.yearly)
                 {
-                    bill.dateend = DateTime.Now.AddYears(1);
+                    bill.dateend = currentDateTime.AddYears(1);
                     bill.amount = plan.monthlysubscription * 12;
                 }
                 bill.balance = bill.amount;
@@ -181,6 +193,79 @@ namespace ires.Infrastructure.Repositories
         {
             var result = await GetPlan(planID);
             return _mapper.Map<SubscriptionPlanViewModel>(result);
+        }
+
+        public async Task<string> GenerateInvoice(long id)
+        {
+            var data = await GetBillByID(id);
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/invoices/" + data.companyid);
+            string fileurl = $"{_configuration["BaseURL"]}/attachments/invoices/" + data.companyid + "/inv-" + id + ".pdf";
+            string fullpath = path + "/inv-" + id + ".pdf";
+            if (System.IO.File.Exists(fullpath))
+                return fileurl;
+            try
+            {
+                var html = System.IO.File.ReadAllText(@"./Templates/Invoice.html");
+                var body = html.Replace("{main_link}", _configuration["uiBaseURL"])
+                    .Replace("{customername}", data.company.name)
+                    .Replace("{logo_path}", Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/banner.png"))
+                    .Replace("{customeraddress}", data.company.address)
+                    .Replace("{invoiceno}", data.id.ToString())
+                    .Replace("{invoicedate}", (data.billdate ?? DateTime.Now).ToString(Constants.dateFormat))
+                    .Replace("{duedate}", (data.duedate ?? DateTime.Now).ToString(Constants.dateFormat))
+                    .Replace("{description}", data.particular)
+                    .Replace("{amount}", data.amount.ToString(Constants.moneyFormat));
+
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
+                var doc = new HtmlToPdfDocument()
+                {
+                    GlobalSettings = {
+                    ColorMode = ColorMode.Color,
+                    PaperSize = PaperKind.A4,
+                    DocumentTitle = "Invoice-" + id,
+                    Out = fullpath,
+                },
+                    Objects = {
+                    new ObjectSettings() {
+                        PagesCount = true,
+                        HtmlContent = body,
+                        WebSettings = { DefaultEncoding = "utf-8", UserStyleSheet = @"./Templates/main.css" },
+                    }
+                }
+                };
+                _converter.Convert(doc);
+                return fileurl;
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        public async Task<ICollection<BillViewModel>> GetUnsentBills()
+        {
+            var result = await _dataContext.bills.Include(x => x.company).Where(x => !x.issent).ToListAsync();
+            return _mapper.Map<ICollection<BillViewModel>>(result);
+        }
+
+        public async Task SendBill(long id)
+        {
+            var bill = await GetBillByIDAsync(id);
+            try
+            {
+                string path = await GenerateInvoice(id);
+                if (path == "")
+                    return;
+                path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/invoices/" + bill.companyid + "/inv-" + id + ".pdf");
+                var html = File.ReadAllText(@"./Templates/BillingEmail.html");
+                var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", bill.company.name);
+                _mailService.SendEmailAsync("HexaByt Invoice", new List<string> { bill.company.email }, body, new List<string> { path }, true);
+                bill.issent = true;
+                await _dataContext.SaveChangesAsync();
+            }
+            catch (Exception) { }
         }
     }
 }

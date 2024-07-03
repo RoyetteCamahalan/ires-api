@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.CreditNote;
 using ires.Domain.Enumerations;
@@ -25,7 +26,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<CreditMemoType>(requestDto);
             entity.id = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.creditMemoTypes.Add(entity);
             await _dataContext.SaveChangesAsync();
             await _logService.SaveLogAsync(entity.companyid, requestDto.createdbyid, AppModule.CreditNotes, "Create Credit Memo Type", "ID : " + entity.id + "-" + entity.name, 0);
@@ -68,7 +69,7 @@ namespace ires.Infrastructure.Repositories
                 entity.name = requestDto.name;
                 entity.isactive = requestDto.isactive;
                 entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = DateTime.Now;
+                entity.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.companyid, requestDto.updatedbyid, AppModule.CreditNotes, "Update Credit Note Type", "ID : " + entity.id + "-" + entity.name, 0);
                 return true;

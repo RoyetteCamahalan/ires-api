@@ -37,7 +37,7 @@ namespace ires.Infrastructure.Repositories
             }
             else
                 payment.receiptno = Constants.getReceiptDesc(payment.receipttype) + payment.orno.ToString();
-            payment.datecreated = DateTime.Now;
+            payment.datecreated = Utility.GetServerTime();
             payment.paymentCheck = null;
             payment.bankTransfer = null;
             if (payment.paymentmode == PaymentMode.check)

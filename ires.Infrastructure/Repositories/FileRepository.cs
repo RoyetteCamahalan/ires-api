@@ -64,7 +64,7 @@ namespace ires.Infrastructure.Repositories
                         documentname = Utility.CleanFileName(requestDto.formFile.FileName),
                         filesize = Convert.ToDecimal(requestDto.formFile.Length) / 1000000,
                         attachedby = requestDto.attachedby,
-                        dateattached = DateTime.Now,
+                        dateattached = Utility.GetServerTime(),
                         isdeleted = false,
                         typeid = requestDto.typeid,
                         filetype = Path.GetExtension(requestDto.formFile.FileName) == ".pdf" ? 1 : 0,

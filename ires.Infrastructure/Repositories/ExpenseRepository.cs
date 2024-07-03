@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.AccountPayable;
 using ires.Domain.DTO.Expense;
@@ -31,7 +32,7 @@ namespace ires.Infrastructure.Repositories
             var entity = _mapper.Map<Expense>(requestDto);
             entity.expenseid = 0;
             entity.transno = (await _dataContext.expenses.MaxAsync(x => (long?)x.transno) ?? 0) + 1;
-            entity.transdate = DateTime.Now;
+            entity.transdate = Utility.GetServerTime();
             entity.status = ExpenseStatus.approved;
             _dataContext.expenses.Add(entity);
             await _dataContext.SaveChangesAsync();
@@ -80,7 +81,7 @@ namespace ires.Infrastructure.Repositories
                 data.payeeid = requestDto.payeeid;
                 data.usepettycash = requestDto.usepettycash;
                 data.updatedbyid = requestDto.updatedbyid;
-                data.dateupdated = DateTime.Now;
+                data.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(data.companyid, data.updatedbyid, AppModule.Expenses, "Expense", "Update Record ID : " + requestDto.expenseid, 0);
                 if (oldAccountID != requestDto.accountid && oldUsePettyCash)
@@ -131,7 +132,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<ExpenseType>(requestDto);
             entity.expensetypeid = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.expenseTypes.Add(entity);
             await _dataContext.SaveChangesAsync();
             await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Expenses, "Expense Type", "Create New Expense Type : " + entity.expensetypeid + "-" + entity.expensetypedesc, 0);
@@ -177,7 +178,7 @@ namespace ires.Infrastructure.Repositories
                 entity.expensetypecat = requestDto.expensetypecat;
                 entity.isactive = requestDto.isactive;
                 entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = DateTime.Now;
+                entity.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.companyid, entity.updatedbyid, AppModule.Expenses, "Expense Type", "Update Expense Type ID : " + entity.expensetypeid + "-" + entity.expensetypedesc, 0);
                 return true;
@@ -191,7 +192,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<Vendor>(requestDto);
             entity.vendorid = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.vendors.Add(entity);
             await _dataContext.SaveChangesAsync();
             await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Vendors, "Vendor", "Create New Vendor : " + entity.vendorid + "-" + entity.vendorname, 0);
@@ -240,7 +241,7 @@ namespace ires.Infrastructure.Repositories
                 entity.tinno = requestDto.tinno;
                 entity.isactive = requestDto.isactive;
                 entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = DateTime.Now;
+                entity.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Vendors, "Vendor", "Update Vendor ID : " + requestDto.vendorid + "-" + entity.vendorname, 0);
                 return true;
@@ -257,7 +258,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<AccountPayable>(requestDto);
             entity.chargeid = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             entity.dateposted = entity.datecreated;
             _dataContext.accountPayables.Add(entity);
             await _dataContext.SaveChangesAsync();
@@ -278,7 +279,7 @@ namespace ires.Infrastructure.Repositories
                 entity.memo = requestDto.memo;
                 entity.amount = requestDto.amount;
                 entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = DateTime.Now;
+                entity.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.companyid, entity.updatedbyid, AppModule.AccountsPayable, "Accounts Payable", "Update Record ID : " + requestDto.chargeid, 0);
                 if (oldVendorID != entity.vendorid)

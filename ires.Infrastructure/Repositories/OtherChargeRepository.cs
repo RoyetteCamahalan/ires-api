@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.OtherFee;
 using ires.Domain.Enumerations;
@@ -24,7 +25,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<OtherFee>(requestDto);
             entity.id = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.otherFees.Add(entity);
             await _dataContext.SaveChangesAsync();
             await _logService.SaveLogAsync(entity.companyid, entity.createdby, AppModule.OtherFees, "Create Other Fee", "Create New Record : " + entity.id.ToString() + " - " + entity.name, 0);
@@ -57,7 +58,7 @@ namespace ires.Infrastructure.Repositories
                 entity.description = requestDto.description;
                 entity.isactive = requestDto.isactive;
                 entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = DateTime.Now;
+                entity.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.companyid, entity.updatedbyid ?? 0, AppModule.OtherFees, "Update Other Fee", "Update Record : " + requestDto.id.ToString() + " - " + requestDto.name, 0);
                 return true;

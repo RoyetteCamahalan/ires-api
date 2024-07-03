@@ -68,7 +68,7 @@ namespace ires.Infrastructure.Repositories
                 username = requestDto.email,
                 userpass = Utility.GetHash("password"),
                 isappsysadmin = true,
-                datecreated = DateTime.Now
+                datecreated = Utility.GetServerTime()
             };
             _dataContext.employees.Add(employee);
             await _dataContext.SaveChangesAsync();
@@ -84,6 +84,7 @@ namespace ires.Infrastructure.Repositories
             if (company == null)
                 return false;
             company.isverified = true;
+            company.isactive = true;
             await _dataContext.SaveChangesAsync();
             return true;
         }

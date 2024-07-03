@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Survey;
 using ires.Domain.Enumerations;
@@ -33,7 +34,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<Survey>(requestDto);
             entity.id = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             entity.client = null;
             entity.balance = entity.contractprice;
             _dataContext.surveys.Add(entity);
@@ -75,7 +76,7 @@ namespace ires.Infrastructure.Repositories
                 survey.balance += requestDto.contractprice - survey.contractprice;
                 survey.contractprice = requestDto.contractprice;
                 survey.updatedbyid = requestDto.updatedbyid;
-                survey.dateupdated = DateTime.Now;
+                survey.dateupdated = Utility.GetServerTime();
                 if (survey.balance > 0 && survey.status == SurveyStatus.completed)
                     survey.status = SurveyStatus.surveyed;
                 await _dataContext.SaveChangesAsync();

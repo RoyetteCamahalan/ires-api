@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.CashDisbursement;
 using ires.Domain.DTO.PettyCash;
@@ -28,7 +29,7 @@ namespace ires.Infrastructure.Repositories
         {
             var cashDisbursement = _mapper.Map<CashDisbursement>(requestDto);
             cashDisbursement.disbursementid = 0;
-            cashDisbursement.datecreated = DateTime.Now;
+            cashDisbursement.datecreated = Utility.GetServerTime();
             if (cashDisbursement.transtype == DisbursementTransType.cashin)
                 cashDisbursement.refaccountid = null;
             _dataContext.Add(cashDisbursement);

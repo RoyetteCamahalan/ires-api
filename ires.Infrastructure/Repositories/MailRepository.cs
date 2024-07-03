@@ -5,7 +5,6 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
-using MimeKit.Text;
 
 namespace ires.Infrastructure.Repositories
 {
@@ -27,6 +26,11 @@ namespace ires.Infrastructure.Repositories
 
         public bool SendEmailAsync(string subject, List<string> mailTo, string body, bool isHTML = false)
         {
+            return SendEmailAsync(subject, mailTo, body, new List<string>(), isHTML);
+        }
+
+        public bool SendEmailAsync(string subject, List<string> mailTo, string body, List<string> attachmentPaths, bool isHTML = false)
+        {
             try
             {
                 var mailSetting = new MailSetting(_configuration, Constants.MailSection.noReply);
@@ -37,10 +41,18 @@ namespace ires.Infrastructure.Repositories
                     mail.To.Add(MailboxAddress.Parse(receiver));
                 }
                 mail.Subject = subject;
+
+                var builder = new BodyBuilder();
                 if (isHTML)
-                    mail.Body = new TextPart(TextFormat.Html) { Text = body };
+                    builder.HtmlBody = body;
                 else
-                    mail.Body = new TextPart(TextFormat.Plain) { Text = body };
+                    builder.TextBody = body;
+
+                foreach (var path in attachmentPaths)
+                {
+                    builder.Attachments.Add(path);
+                }
+                mail.Body = builder.ToMessageBody();
 
                 Task.Run(async () =>
                 {

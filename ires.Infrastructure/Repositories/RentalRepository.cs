@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Payment;
 using ires.Domain.DTO.RentalCharge;
@@ -31,7 +32,7 @@ namespace ires.Infrastructure.Repositories
             var entity = _mapper.Map<RentalContract>(requestDto);
             entity.contractid = 0;
             entity.status = RentStatus.Active;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             entity.contractno = (_dataContext.rentalContracts.Max(x => (long?)x.contractno) ?? 0) + 1;
             entity.advancerent = entity.noofmonthadvance * entity.montlyrent;
             entity.rentalContractDetails = new List<RentalContractDetail>();
@@ -41,7 +42,7 @@ namespace ires.Infrastructure.Repositories
                 {
                     id = 0,
                     propertyid = item.propertyid,
-                    datecreated = DateTime.Now,
+                    datecreated = Utility.GetServerTime(),
                     createdbyid = entity.createdbyid
                 });
             }
@@ -195,7 +196,7 @@ namespace ires.Infrastructure.Repositories
             var entity = _mapper.Map<RentalCharge>(requestDto);
             entity.chargeid = 0;
             entity.chargetype = ChargeType.OtherFees;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.rentalCharges.Add(entity);
             await _dataContext.SaveChangesAsync();
             var contract = await GetContractById(requestDto.contractid);
@@ -214,7 +215,7 @@ namespace ires.Infrastructure.Repositories
                 entity.chargedate = requestDto.chargedate;
                 entity.interestpercentage = requestDto.interestpercentage;
                 entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = DateTime.Now;
+                entity.dateupdated = Utility.GetServerTime();
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.rentalContract.companyid, entity.createdbyid, AppModule.Rentals, "Update Other Fee", "Updated record: " + entity.chargeid + " Amount: " + entity.chargeamount, 0);
                 await RecomputeContract(requestDto.contractid);

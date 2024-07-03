@@ -167,7 +167,7 @@ namespace ires_api.Controllers
             string token = await _employeeService.CreatePasswordResetToken(employee.employeeid);
 
             var html = System.IO.File.ReadAllText(@"./Templates/PasswordReset.html");
-            var body = html.Replace("{0}", employee.firstname).Replace("{1}", _configuration["uiBaseURL"] + "/resetpassword?token=" + token);
+            var body = html.Replace("{1}", employee.firstname).Replace("{0}", _configuration["uiBaseURL"] + "/resetpassword?token=" + token);
             _mailService.SendEmailAsync("Reset your HexaByt Password", new List<string> { stringDto.value }, body, true);
             await _logService.SaveLogAsync(employee.companyid, employee.employeeid, AppModule.Users, "Profile", "Reset Password link request :" + token, 0);
 

@@ -28,7 +28,7 @@ namespace ires.Infrastructure.Repositories
         {
             var entity = _mapper.Map<Employee>(requestDto);
             entity.employeeid = 0;
-            entity.datecreated = DateTime.Now;
+            entity.datecreated = Utility.GetServerTime();
             _dataContext.employees.Add(entity);
             await _dataContext.SaveChangesAsync();
             return _mapper.Map<EmployeeViewModel>(entity);
@@ -193,7 +193,7 @@ namespace ires.Infrastructure.Repositories
             {
                 if (userPrivilege.userprivid == 0)
                 {
-                    userPrivilege.datecreated = DateTime.Now;
+                    userPrivilege.datecreated = Utility.GetServerTime();
                     userPrivilege.createdbyid = createdByID;
                     await _dataContext.userPrivileges.AddAsync(userPrivilege);
                 }

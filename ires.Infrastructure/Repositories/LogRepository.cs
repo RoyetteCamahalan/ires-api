@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.Domain;
+using ires.Domain.Contracts;
 using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
@@ -23,7 +24,7 @@ namespace ires.Infrastructure.Repositories
                 moduleid = moduleID,
                 logtitle = title,
                 logAction = action,
-                logdate = DateTime.Now,
+                logdate = Utility.GetServerTime(),
                 withadmin = withadmin
             };
             _dataContext.logs.Add(log);

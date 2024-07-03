@@ -192,6 +192,11 @@ namespace ires.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(e => e.moduleid);
 
+            modelBuilder.Entity<AppPreference>().HasData(
+                new AppPreference { id = AppPrefKey.cron_reload_subscription, name = "CRON Reload Subsrciption", value = "1990/01/01" },
+                new AppPreference { id = AppPrefKey.cron_reload_rentals, name = "CRON Reload Rentals", value = "1990/01/01" }
+            );
+
             modelBuilder.Entity<ExpenseTypeCategory>().HasData(
                     new ExpenseTypeCategory { expensecatid = 1, description = "Operating Expense", isactive = true },
                     new ExpenseTypeCategory { expensecatid = 2, description = "Non-Operating Expense", isactive = true }
@@ -209,6 +214,7 @@ namespace ires.Infrastructure.Data
                 );
         }
         public DbSet<AccountPayable> accountPayables { get; set; }
+        public DbSet<AppPreference> appPreferences { get; set; }
         public DbSet<Attachment> attachments { get; set; }
         public DbSet<Bank> banks { get; set; }
         public DbSet<BankAccount> bankAccounts { get; set; }
@@ -247,6 +253,7 @@ namespace ires.Infrastructure.Data
         public DbSet<SubscriptionPlan> subscriptionPlans { get; set; }
         public DbSet<UserPrivilege> userPrivileges { get; set; }
         public DbSet<Vendor> vendors { get; set; }
+
 
 
         //Keyless

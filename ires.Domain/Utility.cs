@@ -5,6 +5,12 @@ namespace ires.Domain
 {
     public class Utility
     {
+        public static DateTime GetServerTime()
+        {
+            TimeZoneInfo manilaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, manilaTimeZone);
+        }
+
         public static string CleanFileName(string input)
         {
             string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));

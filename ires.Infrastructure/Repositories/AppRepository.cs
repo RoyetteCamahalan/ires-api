@@ -12,11 +12,13 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly ILogService _logService;
 
-        public AppRepository(DataContext dataContext, IMapper mapper)
+        public AppRepository(DataContext dataContext, IMapper mapper, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _logService = logService;
         }
 
         public async Task<ICollection<NotificationViewModel>> GetNotifications(long employeeID)
@@ -48,6 +50,32 @@ namespace ires.Infrastructure.Repositories
                 }).ToListAsync();
         }
 
+        public async Task ReloadRentalContracts()
+        {
+            await _logService.SaveLogAsync(0, 0, 0, "CRON Job Rental", "Job Started", 1);
+            try
+            {
+                await _dataContext.Database.ExecuteSqlRawAsync("exec spCronJobs @operation = 2, @soperation = 0");
+                await _logService.SaveLogAsync(0, 0, 0, "CRON Job Rental", "Job Completed Successfully", 1);
+            }
+            catch (Exception ex)
+            {
+                await _logService.SaveLogAsync(0, 0, 0, "CRON Job Rental", "Error encountered: " + ex.Message, 1);
+            }
+        }
 
+        public async Task ReloadSubscriptions()
+        {
+            await _logService.SaveLogAsync(0, 0, 0, "CRON Job Subscription", "Job Started", 1);
+            try
+            {
+                await _dataContext.Database.ExecuteSqlRawAsync("exec spCronJobs @operation = 2, @soperation = 1");
+                await _logService.SaveLogAsync(0, 0, 0, "CRON Job Subscription", "Job Completed Successfully", 1);
+            }
+            catch (Exception ex)
+            {
+                await _logService.SaveLogAsync(0, 0, 0, "CRON Job Subscription", "Error encountered: " + ex.Message, 1);
+            }
+        }
     }
 }
