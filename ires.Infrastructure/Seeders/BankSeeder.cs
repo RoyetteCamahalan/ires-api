@@ -1,5 +1,6 @@
 ﻿using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
+using System.Data.Entity;
 
 namespace ires.Infrastructure.Seeders
 {
@@ -13,6 +14,8 @@ namespace ires.Infrastructure.Seeders
         }
         public async Task Seed(int companyID, bool isewallet)
         {
+            if (await _dataContext.banks.Where(x => x.companyid == companyID && x.isewallet == isewallet).AnyAsync())
+                return;
             List<Bank> banks = new List<Bank> {
                 new Bank{ name="BDO UNIBANK INC", companyid = companyID, isewallet= false },
                 new Bank{ name="LAND BANK OF THE PHILIPPINES", companyid = companyID, isewallet= false },

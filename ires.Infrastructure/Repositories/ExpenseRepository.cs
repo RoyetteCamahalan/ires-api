@@ -160,7 +160,7 @@ namespace ires.Infrastructure.Repositories
         {
             var result = await _dataContext.expenseTypes.Include(x => x.category).Where(x => x.companyid == companyID && (x.isactive || viewAll) && x.expensetypedesc.Contains(search))
                 .OrderBy(x => x.expensetypedesc).ToListAsync();
-            if (result.Count == 0 && search == "" && viewAll)
+            if (result.Count == 0 && search == "")
             {
                 var expenseTypeSeeder = new ExpenseTypeSeeder(_dataContext);
                 await expenseTypeSeeder.Seed(companyID);
@@ -221,7 +221,7 @@ namespace ires.Infrastructure.Repositories
                 && (x.isactive || viewAll)
                 && (x.vendorname.Contains(search) || x.tinno.Contains(search)))
                 .OrderBy(x => x.vendorname).ToListAsync();
-            if (result.Count == 0 && search == "" && viewAll)
+            if (result.Count == 0 && search == "")
             {
                 var vendorSeeder = new VendorSeeder(_dataContext);
                 await vendorSeeder.Seed(companyID);

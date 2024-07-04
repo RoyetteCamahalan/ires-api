@@ -1,5 +1,6 @@
 ﻿using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Seeders
 {
@@ -13,6 +14,8 @@ namespace ires.Infrastructure.Seeders
         }
         public async Task Seed(int companyID)
         {
+            if (await _dataContext.expenseTypes.Where(x => x.companyid == companyID).AnyAsync())
+                return;
             List<ExpenseType> data = new()
             {
                 new ExpenseType{ expensetypecat = 1, expensetypedesc = "Maintenance And Repairs", companyid = companyID, isactive = true },

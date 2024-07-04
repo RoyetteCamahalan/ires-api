@@ -1,5 +1,6 @@
 ﻿using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Seeders
 {
@@ -14,6 +15,8 @@ namespace ires.Infrastructure.Seeders
 
         public async Task Seed(int companyID)
         {
+            if (await _dataContext.vendors.Where(x => x.companyid == companyID).AnyAsync())
+                return;
             List<Vendor> vendors = new()
             {
                 new Vendor{ vendorname="N/A", companyid = companyID, isactive = true },

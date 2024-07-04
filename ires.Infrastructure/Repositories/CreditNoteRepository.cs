@@ -52,7 +52,7 @@ namespace ires.Infrastructure.Repositories
         public async Task<ICollection<CreditMemoTypeViewModel>> GetTypes(int companyID, string search, bool viewAll)
         {
             var result = await _dataContext.creditMemoTypes.Where(x => x.companyid == companyID && x.name.Contains(search) && (x.isactive || viewAll)).OrderBy(x => x.name).ToListAsync();
-            if (result.Count == 0 && search == "" && viewAll)
+            if (result.Count == 0 && search == "")
             {
                 var seeder = new CreditMemoTypeSeeder(_dataContext);
                 await seeder.Seed(companyID);
