@@ -67,7 +67,7 @@ namespace ires.Infrastructure.Repositories
                         dateattached = Utility.GetServerTime(),
                         isdeleted = false,
                         typeid = requestDto.typeid,
-                        filetype = Path.GetExtension(requestDto.formFile.FileName) == ".pdf" ? 1 : 0,
+                        filetype = requestDto.filetype,
                         filename = filename
                     };
                     var company = await _dataContext.companies.FindAsync(requestDto.companyid);

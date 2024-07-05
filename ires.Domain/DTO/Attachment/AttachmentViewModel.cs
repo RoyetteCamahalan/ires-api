@@ -1,4 +1,6 @@
-﻿namespace ires.Domain.DTO.Attachment
+﻿using ires.Domain.Enumerations;
+
+namespace ires.Domain.DTO.Attachment
 {
     public class AttachmentViewModel
     {
@@ -7,7 +9,7 @@
         public long invoiceno { get; set; }
         public long lotid { get; set; }
         public string documentname { get; set; } = string.Empty;
-        public int filetype { get; set; }
+        public FileType filetype { get; set; }
         public bool isdeleted { get; set; }
         public long attachedby { get; set; }
         public DateTime? dateattached { get; set; }

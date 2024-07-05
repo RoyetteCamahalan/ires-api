@@ -101,6 +101,7 @@ namespace ires.Infrastructure.Repositories
                     await _rentalService.RecomputeContract(rentalCharge.contractid);
                 }
             }
+            await _logService.SaveLogAsync(payment.companyid, payment.encodedby, AppModule.Payments, "New Payment", "New Payment ID: " + payment.paymentid, 0);
             return _mapper.Map<PaymentViewModel>(payment);
         }
 

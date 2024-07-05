@@ -1,6 +1,6 @@
-﻿using DinkToPdf.Contracts;
-using ires.Domain.Contracts;
+﻿using ires.Domain.Contracts;
 using ires.Domain.DTO;
+using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Company;
 using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +13,11 @@ namespace ires_api.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IBillService _billService;
-        private readonly IConverter _converter;
 
-        public BillingController(IConfiguration configuration, IBillService billService, IConverter converter)
+        public BillingController(IConfiguration configuration, IBillService billService)
         {
             _configuration = configuration;
             _billService = billService;
-            _converter = converter;
         }
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, int filter)
@@ -123,15 +121,15 @@ namespace ires_api.Controllers
         [HttpPost("getinvoicedocument/{billid}")]
         public async Task<IActionResult> GetInvoice(long billid)
         {
-            var serverResponse = new ServerResponse<string>();
-            var filePath = await _billService.GenerateInvoice(billid);
-            if (filePath == "")
+            var serverResponse = new ServerResponse<FileViewModel>();
+            var data = await _billService.GenerateInvoice(billid);
+            if (data == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Failed to get invoice";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = filePath;
+            serverResponse.Data = data;
             return Ok(serverResponse);
         }
     }

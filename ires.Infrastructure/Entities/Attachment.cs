@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ires.Domain.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires.Infrastructure.Entities
@@ -13,7 +14,7 @@ namespace ires.Infrastructure.Entities
         public long invoiceno { get; set; }
         public long lotid { get; set; }
         public string documentname { get; set; } = string.Empty;
-        public int filetype { get; set; }
+        public FileType filetype { get; set; }
         public bool isdeleted { get; set; }
         public long attachedby { get; set; }
         public DateTime? dateattached { get; set; }

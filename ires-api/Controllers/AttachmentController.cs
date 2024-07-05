@@ -1,7 +1,9 @@
 ﻿using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Attachment;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace ires_api.Controllers
 {
@@ -28,6 +30,12 @@ namespace ires_api.Controllers
         public async Task<IActionResult> PostAsync([FromForm] AttachmentRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<AttachmentViewModel>();
+            if (requestDto.filetype == ires.Domain.Enumerations.FileType.unsupported)
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Unsupported file format";
+                return BadRequest(serverResponse);
+            }
             var attachment = await _fileService.uploadFile(requestDto);
             if (attachment == null)
             {
@@ -37,6 +45,22 @@ namespace ires_api.Controllers
             }
             serverResponse.Data = attachment;
             return Ok(serverResponse);
+        }
+        [HttpGet("download")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Download(string filename)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), filename);
+            if (!System.IO.File.Exists(filePath))
+                return BadRequest("File not found!");
+
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(filePath, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+            var bytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            return File(bytes, contentType, Path.GetFileName(filePath));
         }
         [HttpPost("deletefile")]
         public async Task<IActionResult> DeleteFileAsync(IDRequestDto requestDto)

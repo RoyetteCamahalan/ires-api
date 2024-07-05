@@ -4,6 +4,7 @@ using DinkToPdf.Contracts;
 using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
+using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Company;
 using ires.Domain.DTO.Payment;
 using ires.Domain.Enumerations;
@@ -195,14 +196,17 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<SubscriptionPlanViewModel>(result);
         }
 
-        public async Task<string> GenerateInvoice(long id)
+        public async Task<FileViewModel> GenerateInvoice(long id)
         {
+            var result = new FileViewModel();
             var data = await GetBillByID(id);
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/invoices/" + data.companyid);
-            string fileurl = $"{_configuration["BaseURL"]}/attachments/invoices/" + data.companyid + "/inv-" + id + ".pdf";
-            string fullpath = path + "/inv-" + id + ".pdf";
+            result.filename = "inv-" + id + ".pdf";
+            result.filepath = "wwwroot/attachments/invoices/" + data.companyid;
+            string path = Path.Combine(Directory.GetCurrentDirectory(), result.filepath);
+            result.url = $"{_configuration["BaseURL"]}/attachments/invoices/" + data.companyid + "/" + result.filename;
+            string fullpath = path + "/" + result.filename;
             if (System.IO.File.Exists(fullpath))
-                return fileurl;
+                return result;
             try
             {
                 var html = System.IO.File.ReadAllText(@"./Templates/Invoice.html");
@@ -236,11 +240,11 @@ namespace ires.Infrastructure.Repositories
                 }
                 };
                 _converter.Convert(doc);
-                return fileurl;
+                return result;
             }
             catch (Exception)
             {
-                return "";
+                return null;
             }
         }
 
@@ -255,10 +259,10 @@ namespace ires.Infrastructure.Repositories
             var bill = await GetBillByIDAsync(id);
             try
             {
-                string path = await GenerateInvoice(id);
-                if (path == "")
+                var data = await GenerateInvoice(id);
+                if (data == null)
                     return;
-                path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/invoices/" + bill.companyid + "/inv-" + id + ".pdf");
+                var path = Path.Combine(Directory.GetCurrentDirectory(), data.fullpath);
                 var html = File.ReadAllText(@"./Templates/BillingEmail.html");
                 var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", bill.company.name);
                 _mailService.SendEmailAsync("HexaByt Invoice", new List<string> { bill.company.email }, body, new List<string> { path }, true);

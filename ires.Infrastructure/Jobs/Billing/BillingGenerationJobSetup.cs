@@ -11,8 +11,8 @@ namespace ires.Infrastructure.Jobs.Billing
             options
                 .AddJob<BillingGenerationJob>(builder => builder.WithIdentity(jobKey))
                 .AddTrigger(trigger =>
-                    trigger.ForJob(jobKey).WithSimpleSchedule(sched => sched.WithIntervalInSeconds(60).RepeatForever()));
-            //trigger.ForJob(jobKey).WithDailyTimeIntervalSchedule(sched => sched.StartingDailyAt(TimeOfDay.HourAndMinuteOfDay(1, 0)).OnEveryDay()));
+                    //trigger.ForJob(jobKey).WithSimpleSchedule(sched => sched.WithIntervalInSeconds(60).RepeatForever()));
+                    trigger.ForJob(jobKey).WithCronSchedule("0 0 1 * * ?")); // At 1:00 AM every day);
         }
     }
 }

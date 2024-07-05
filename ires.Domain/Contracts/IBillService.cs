@@ -1,4 +1,5 @@
 ﻿using ires.Domain.DTO;
+using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Company;
 
 namespace ires.Domain.Contracts
@@ -15,7 +16,7 @@ namespace ires.Domain.Contracts
         public Task<bool> UpgradePlan(int companyID, int planID, long employeeid);
 
         public Task<ICollection<BillViewModel>> GetUnsentBills();
-        public Task<string> GenerateInvoice(long id);
+        public Task<FileViewModel> GenerateInvoice(long id);
         public Task SendBill(long id);
     }
 }
