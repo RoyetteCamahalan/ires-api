@@ -21,6 +21,7 @@ namespace ires.Infrastructure.Entities
         public int interestype { get; set; }
         public decimal interestpercentage { get; set; }
         public decimal ewt { get; set; }
+        public bool isnotified { get; set; }
         public RentalContract? rentalContract { get; set; }
         public OtherFee? otherFee { get; set; }
     }
