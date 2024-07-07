@@ -24,6 +24,7 @@ namespace ires.Infrastructure.Entities
         public decimal amount { get; set; }
         public int apptour { get; set; }
         public string logo { get; set; } = string.Empty;
+        //public string timezone { get; set; } = "Asia/Manila";
 
         public List<Employee> employees { get; set; } = new List<Employee>();
         public SubscriptionPlan? subscriptionPlan { get; set; }

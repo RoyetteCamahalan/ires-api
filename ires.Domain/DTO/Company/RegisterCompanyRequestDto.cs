@@ -11,6 +11,7 @@ namespace ires.Domain.DTO.Company
         public string adminfirstname { get; set; } = string.Empty;
         public string adminlastname { get; set; } = string.Empty;
         public string email { get; set; } = string.Empty;
+        public string password { get; set; } = string.Empty;
         public BillingCycle billingcycle { get; set; }
         public int planid { get; set; }
         public long updatedbyid { get; set; }

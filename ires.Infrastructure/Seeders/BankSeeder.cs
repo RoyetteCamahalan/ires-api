@@ -1,6 +1,6 @@
 ﻿using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Seeders
 {

@@ -66,7 +66,7 @@ namespace ires.Infrastructure.Repositories
                 email = requestDto.email,
                 isactive = true,
                 username = requestDto.email,
-                userpass = Utility.GetHash("password"),
+                userpass = Utility.GetHash(requestDto.password),
                 isappsysadmin = true,
                 datecreated = Utility.GetServerTime()
             };

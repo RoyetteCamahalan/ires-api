@@ -7,8 +7,9 @@ namespace ires.Domain
     {
         public static DateTime GetServerTime()
         {
-            TimeZoneInfo manilaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
-            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, manilaTimeZone);
+            return DateTime.Now;
+            //TimeZoneInfo manilaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            //return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, manilaTimeZone);
         }
 
         public static string CleanFileName(string input)

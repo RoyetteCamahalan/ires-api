@@ -68,7 +68,9 @@ namespace ires_api.Controllers
             }
             else if (employee != null && !(employee.company?.isverified ?? false))
             {
+                response.Data = _mapper.Map<UserLoginViewModel>(employee);
                 response.Success = false;
+                response.errorCode = 1;
                 response.Message = "Your account is unverified. Please check your email.";
                 return BadRequest(response);
             }
