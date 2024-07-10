@@ -1,4 +1,6 @@
-﻿using ires.Domain.DTO.Payment;
+﻿using ires.Domain.DTO;
+using ires.Domain.DTO.Attachment;
+using ires.Domain.DTO.Payment;
 using ires.Domain.DTO.RentalCharge;
 using ires.Domain.DTO.RentalContract;
 using ires.Domain.DTO.RentalContractDetail;
@@ -29,5 +31,8 @@ namespace ires.Domain.Contracts
         public Task<int> CountActiveUnits(int companyID);
         public Task<int> CountAvailableUnits(int companyID);
         public Task<int> CountActiveContracts(int companyID);
+
+        public Task<FileViewModel> GenerateSOA(long contractid);
+        public Task<bool> SendSOA(SendMailRequestDto requestDto);
     }
 }

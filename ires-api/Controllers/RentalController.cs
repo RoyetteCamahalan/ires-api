@@ -1,6 +1,7 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.Domain;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
-using ires.Domain.DTO.Payment;
+using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.RentalCharge;
 using ires.Domain.DTO.RentalContract;
 using ires.Domain.DTO.RentalContractDetail;
@@ -105,12 +106,17 @@ namespace ires_api.Controllers
             return Ok(serverResponse);
         }
         [HttpGet("getsoa/{id}")]
-        public async Task<IActionResult> GetSOA(long id)
+        public async Task<IActionResult> GetInvoice(long id)
         {
-            var serverResponse = new ServerResponse<ICollection<PayableViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _rentalService.GetSOA(identity.companyid ?? 0, id);
-            serverResponse.Data = result;
+            var serverResponse = new ServerResponse<FileViewModel>();
+            var data = await _rentalService.GenerateSOA(id);
+            if (data == null)
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Failed to get invoice";
+                return BadRequest(serverResponse);
+            }
+            serverResponse.Data = data;
             return Ok(serverResponse);
         }
 
@@ -183,6 +189,28 @@ namespace ires_api.Controllers
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
+            return Ok(serverResponse);
+        }
+
+        [HttpPost("sendsoa")]
+        public async Task<IActionResult> SendSoa(SendMailRequestDto requestDto)
+        {
+            var serverResponse = new ServerResponse<bool>();
+            var identity = IdentityProfile.getIdentity(this.HttpContext);
+            requestDto.createdbyid = identity.employeeid;
+            if (!Utility.IsEmailValid(requestDto.email))
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Client email is invalid";
+                return BadRequest(serverResponse);
+            }
+            if (!await _rentalService.SendSOA(requestDto))
+            {
+                serverResponse.Success = false;
+                serverResponse.Message = "Failed to generate SOA";
+                return BadRequest(serverResponse);
+            }
+            serverResponse.Data = true;
             return Ok(serverResponse);
         }
     }

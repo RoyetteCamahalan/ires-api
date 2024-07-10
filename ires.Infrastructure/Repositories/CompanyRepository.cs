@@ -46,6 +46,7 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<CompanyViewModel> RegisterAsync(RegisterCompanyRequestDto requestDto)
         {
+            var plan = await _dataContext.subscriptionPlans.FindAsync(requestDto.planid);
             Company company = new Company
             {
                 name = requestDto.name,
@@ -53,6 +54,7 @@ namespace ires.Infrastructure.Repositories
                 contactno = requestDto.contactno,
                 email = requestDto.email,
                 planid = requestDto.planid,
+                surveylimit = plan.surveylimit,
                 isactive = false,
                 isverified = false,
                 billingcycle = Domain.Enumerations.BillingCycle.monthly

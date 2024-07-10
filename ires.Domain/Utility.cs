@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Net.Mail;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ires.Domain
@@ -40,6 +41,34 @@ namespace ires.Domain
                 res.Append(valid[rnd.Next(valid.Length)]);
             }
             return res.ToString();
+        }
+
+        public static string GetNumberRank(int data)
+        {
+            var str = data.ToString();
+            var lastChar = str[^1];
+            string last2Char = "";
+            if (str.Length > 1)
+                last2Char = str.Substring(str.Length - 2);
+
+            if (lastChar == '1' && last2Char != "11")
+                return str + "st";
+            else if (lastChar == '2' && last2Char != "12")
+                return data + "nd";
+            else if (lastChar == '3' && last2Char != "13")
+                return str + "rd";
+            else
+                return str + "th";
+        }
+        public static bool IsEmailValid(string email)
+        {
+            try
+            {
+                var emailAddress = new MailAddress(email);
+                return true;
+            }
+            catch { }
+            return false;
         }
 
 

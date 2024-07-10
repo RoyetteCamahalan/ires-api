@@ -6,6 +6,7 @@ namespace ires.Domain.DTO.RentalContract
     public class RentalContractViewModel
     {
         public long contractid { get; set; }
+        public int companyid { get; set; }
         public long contractno { get; set; }
         public long custid { get; set; }
         public DateTime contractdate { get; set; }

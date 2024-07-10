@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using ires.Domain;
 using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Payment;
 using ires.Domain.DTO.RentalCharge;
 using ires.Domain.DTO.RentalContract;
@@ -10,6 +14,7 @@ using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ires.Infrastructure.Repositories
 {
@@ -18,13 +23,21 @@ namespace ires.Infrastructure.Repositories
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
         private readonly IProjectService _projectService;
+        private readonly IConfiguration _configuration;
+        private readonly IMailService _mailService;
+        private readonly IConverter _converter;
         private readonly ILogService _logService;
 
-        public RentalRepository(DataContext dataContext, IMapper mapper, IProjectService projectService, ILogService logService)
+        public RentalRepository(DataContext dataContext, IMapper mapper, IProjectService projectService,
+            IConfiguration configuration, IMailService mailService, IConverter converter,
+            ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
             _projectService = projectService;
+            _configuration = configuration;
+            _mailService = mailService;
+            _converter = converter;
             _logService = logService;
         }
         public async Task<RentalContractViewModel> Create(RentalContractRequestDto requestDto)
@@ -292,6 +305,96 @@ namespace ires.Infrastructure.Repositories
         public async Task<int> CountActiveContracts(int companyID)
         {
             return await _dataContext.rentalContracts.Where(x => x.companyid == companyID && x.status == RentStatus.Active).CountAsync();
+        }
+
+        public async Task<FileViewModel> GenerateSOA(long contractid)
+        {
+            var result = new FileViewModel();
+            var data = _mapper.Map<RentalContractViewModel>(await GetContractById(contractid));
+            result.filename = "soa-" + contractid + ".pdf";
+            result.filepath = "wwwroot/temp/rental";
+            string path = Path.Combine(Directory.GetCurrentDirectory(), result.filepath);
+            result.url = $"{_configuration["BaseURL"]}/temp/rental/" + result.filename;
+            string fullpath = path + "/" + result.filename;
+            if (System.IO.File.Exists(fullpath))
+                System.IO.File.Delete(fullpath);
+            try
+            {
+                var company = await _dataContext.companies.FindAsync(data.companyid);
+                var html = System.IO.File.ReadAllText(@"./Templates/Rental_SOA.html");
+                var logoDisplay = "none";
+                if (company.logo != "")
+                    logoDisplay = "inline-block";
+
+                data.propertyList = await GetPropertiesAsString(contractid);
+                var body = html.Replace("logo_display", logoDisplay)
+                    .Replace("{logo_path}", Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + company.id + "/" + company.logo))
+                    .Replace("{companyname}", company.name)
+                    .Replace("{companyaddress}", company.address)
+                    .Replace("{companycontact}", company.contactno)
+                    .Replace("{asofdate}", Utility.GetServerTime().ToString(Constants.dateFormat))
+                    .Replace("{customername}", data.client.fullname)
+                    .Replace("{customeraddress}", data.client.address)
+                    .Replace("{rentedproperty}", data.propertyList)
+                    .Replace("{contractno}", data.contractno.ToString())
+                    .Replace("{contractdate}", data.contractdate.ToString(Constants.dateFormat))
+                    .Replace("{billingsched}", "Every " + Utility.GetNumberRank(data.billingsched))
+                    .Replace("{monthlyrent}", data.montlyrent.ToString(Constants.moneyFormat));
+
+                var details = await GetSOA(company.id, contractid);
+                var payables = "";
+                foreach (var item in details)
+                {
+                    payables += $"<tr style=\"font-size: 14px;\"><td style=\"padding: 5px;\">{item.description}</td><td class=\"text-right\">{item.grossAmount.ToString(Constants.moneyFormat)}</td><td class=\"text-right\">{item.balance.ToString(Constants.moneyFormat)}</td></tr>";
+                }
+                var totalPayables = details.Sum(x => x.balance);
+                body = body.Replace("{details}", payables)
+                    .Replace("{totalbalance}", totalPayables.ToString(Constants.moneyFormat));
+
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
+                var doc = new HtmlToPdfDocument()
+                {
+                    GlobalSettings = {
+                    ColorMode = ColorMode.Color,
+                    PaperSize = PaperKind.A4,
+                    DocumentTitle = "SOA-" + contractid,
+                    Out = fullpath,
+                },
+                    Objects = {
+                    new ObjectSettings() {
+                        PagesCount = true,
+                        HtmlContent = body,
+                        WebSettings = { DefaultEncoding = "utf-8", UserStyleSheet = @"./Templates/main.css" },
+                    }
+                }
+                };
+                _converter.Convert(doc);
+                return result;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+        public async Task<bool> SendSOA(SendMailRequestDto requestDto)
+        {
+            var contract = _mapper.Map<RentalContractViewModel>(await GetContractById(requestDto.id));
+            try
+            {
+                var data = await GenerateSOA(requestDto.id);
+                if (data == null)
+                    return false;
+                var path = Path.Combine(Directory.GetCurrentDirectory(), data.fullpath);
+                var html = File.ReadAllText(@"./Templates/ClientSOAEmail.html");
+                var body = html.Replace("{main_link}", _configuration["uiBaseURL"]).Replace("{customername}", contract.client.fullname);
+                _mailService.SendEmailAsync("Statement Of Account", new List<string> { requestDto.email }, body, new List<string> { path }, true);
+                await _logService.SaveLogAsync(contract.companyid, requestDto.createdbyid, AppModule.Rentals, "SOA", $"Sent SOA to {requestDto.email}", 0);
+                return true;
+            }
+            catch (Exception) { }
+            return false;
         }
     }
 }

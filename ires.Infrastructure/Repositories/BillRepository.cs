@@ -179,6 +179,7 @@ namespace ires.Infrastructure.Repositories
                 _dataContext.bills.Add(bill);
             }
             company.planid = planID;
+            company.surveylimit = plan.surveylimit;
             company.amount = plan.monthlysubscription;
             await _dataContext.SaveChangesAsync();
             await _logService.SaveLogAsync(company.id, employeeid, AppModule.Billing, "Subscription Upgrade", "Subscription Upgrade : " + planID, 1);
