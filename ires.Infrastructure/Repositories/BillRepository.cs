@@ -119,7 +119,8 @@ namespace ires.Infrastructure.Repositories
                         if (!_dataContext.bills.Where(x => x.companyid == companyID && x.id != billID && x.status == BillStatus.open).Any())
                         {
                             Company company = _dataContext.companies.Find(companyID);
-                            company.subscriptionexpiry = bill.dateend ?? DateTime.Now;
+                            if (company.subscriptionexpiry < (bill.dateend ?? DateTime.Now))
+                                company.subscriptionexpiry = bill.dateend ?? DateTime.Now;
                         }
                         await _dataContext.SaveChangesAsync();
                     }
