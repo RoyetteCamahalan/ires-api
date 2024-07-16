@@ -86,7 +86,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("vendorid");
 
-                    b.ToTable("expenseposting");
+                    b.ToTable("expenseposting", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.AppPreference", b =>
@@ -105,7 +105,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("apppreferences");
+                    b.ToTable("apppreferences", (string)null);
 
                     b.HasData(
                         new
@@ -170,7 +170,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("documentid");
 
-                    b.ToTable("attachments");
+                    b.ToTable("attachments", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Bank", b =>
@@ -193,7 +193,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("bankid");
 
-                    b.ToTable("bank");
+                    b.ToTable("bank", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.BankAccount", b =>
@@ -235,7 +235,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("bankid");
 
-                    b.ToTable("bankaccounts");
+                    b.ToTable("bankaccounts", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.BankTransfer", b =>
@@ -276,7 +276,7 @@ namespace ires.Infrastructure.Migrations
                     b.HasIndex("paymentid")
                         .IsUnique();
 
-                    b.ToTable("banktobank");
+                    b.ToTable("banktobank", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Bill", b =>
@@ -344,7 +344,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("companyid");
 
-                    b.ToTable("bill");
+                    b.ToTable("bill", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Booking", b =>
@@ -403,7 +403,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("clientid");
 
-                    b.ToTable("bookings");
+                    b.ToTable("bookings", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Car", b =>
@@ -458,7 +458,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("typeid");
 
-                    b.ToTable("cars");
+                    b.ToTable("cars", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.CarMaintenance", b =>
@@ -509,7 +509,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("typeid");
 
-                    b.ToTable("carmaintenance");
+                    b.ToTable("carmaintenance", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.CarType", b =>
@@ -529,7 +529,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("cartypes");
+                    b.ToTable("cartypes", (string)null);
 
                     b.HasData(
                         new
@@ -640,7 +640,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("refaccountid");
 
-                    b.ToTable("pettycashdisbursement");
+                    b.ToTable("pettycashdisbursement", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Client", b =>
@@ -699,7 +699,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("custid");
 
-                    b.ToTable("customer");
+                    b.ToTable("customer", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>
@@ -758,7 +758,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("planid");
 
-                    b.ToTable("company");
+                    b.ToTable("company", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.CreditMemoType", b =>
@@ -793,7 +793,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("creditmemotypes");
+                    b.ToTable("creditmemotypes", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Employee", b =>
@@ -864,7 +864,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("companyid");
 
-                    b.ToTable("employees");
+                    b.ToTable("employees", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Expense", b =>
@@ -937,7 +937,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("payeeid");
 
-                    b.ToTable("expenses");
+                    b.ToTable("expenses", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.ExpenseType", b =>
@@ -977,7 +977,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("expensetypecat");
 
-                    b.ToTable("expensetypes");
+                    b.ToTable("expensetypes", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.ExpenseTypeCategory", b =>
@@ -997,7 +997,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("expensecatid");
 
-                    b.ToTable("expensetypecategory");
+                    b.ToTable("expensetypecategory", (string)null);
 
                     b.HasData(
                         new
@@ -1047,7 +1047,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("logs");
+                    b.ToTable("logs", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Lot", b =>
@@ -1118,7 +1118,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("lot_id");
 
-                    b.ToTable("lot");
+                    b.ToTable("lot", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.MaintenanceType", b =>
@@ -1139,7 +1139,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("maintenancetypes");
+                    b.ToTable("maintenancetypes", (string)null);
 
                     b.HasData(
                         new
@@ -1188,7 +1188,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("moduleid");
 
-                    b.ToTable("applicationmodules");
+                    b.ToTable("applicationmodules", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Notification", b =>
@@ -1221,7 +1221,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("notifications");
+                    b.ToTable("notifications", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Office", b =>
@@ -1263,7 +1263,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("accountid");
 
-                    b.ToTable("accounts");
+                    b.ToTable("accounts", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.OtherCharge", b =>
@@ -1313,7 +1313,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("surveyid");
 
-                    b.ToTable("othercharges");
+                    b.ToTable("othercharges", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.OtherFee", b =>
@@ -1357,7 +1357,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("otherfees");
+                    b.ToTable("otherfees", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Payment", b =>
@@ -1445,7 +1445,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("encodedby");
 
-                    b.ToTable("payment");
+                    b.ToTable("payment", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.PaymentCheck", b =>
@@ -1503,7 +1503,7 @@ namespace ires.Infrastructure.Migrations
                     b.HasIndex("paymentid")
                         .IsUnique();
 
-                    b.ToTable("checks");
+                    b.ToTable("checks", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.PaymentDetail", b =>
@@ -1570,7 +1570,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("paymentid");
 
-                    b.ToTable("paymentdetails");
+                    b.ToTable("paymentdetails", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.PlanModule", b =>
@@ -1594,7 +1594,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("moduleid");
 
-                    b.ToTable("planmodules");
+                    b.ToTable("planmodules", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Project", b =>
@@ -1667,7 +1667,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("propertyid");
 
-                    b.ToTable("property");
+                    b.ToTable("property", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.RentalCharge", b =>
@@ -1732,7 +1732,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("otherfeeid");
 
-                    b.ToTable("rentalcharges");
+                    b.ToTable("rentalcharges", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.RentalContract", b =>
@@ -1814,7 +1814,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("custid");
 
-                    b.ToTable("rentalcontracts");
+                    b.ToTable("rentalcontracts", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.RentalContractDetail", b =>
@@ -1846,7 +1846,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("propertyid");
 
-                    b.ToTable("rentalcontractdetails");
+                    b.ToTable("rentalcontractdetails", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.RentalProperty", b =>
@@ -1882,7 +1882,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("projectid");
 
-                    b.ToTable("propertyrentals");
+                    b.ToTable("propertyrentals", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.SubscriptionPlan", b =>
@@ -1918,7 +1918,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("subscriptionplan");
+                    b.ToTable("subscriptionplan", (string)null);
 
                     b.HasData(
                         new
@@ -2080,7 +2080,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("custid");
 
-                    b.ToTable("survey");
+                    b.ToTable("survey", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.UserPrivilege", b =>
@@ -2125,7 +2125,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasIndex("moduleid");
 
-                    b.ToTable("userprivileges");
+                    b.ToTable("userprivileges", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Vendor", b =>
@@ -2172,7 +2172,7 @@ namespace ires.Infrastructure.Migrations
 
                     b.HasKey("vendorid");
 
-                    b.ToTable("vendors");
+                    b.ToTable("vendors", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Keyless.Payable", b =>
@@ -2196,7 +2196,7 @@ namespace ires.Infrastructure.Migrations
                     b.Property<decimal>("paymentAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.ToTable("payables");
+                    b.ToTable("payables", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Keyless.PettyCashAccountHistory", b =>
@@ -2237,7 +2237,7 @@ namespace ires.Infrastructure.Migrations
                     b.Property<int>("transtype")
                         .HasColumnType("int");
 
-                    b.ToTable("pettyCashAccountHistories");
+                    b.ToTable("pettyCashAccountHistories", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Keyless.RentalAccountHistory", b =>
@@ -2280,7 +2280,7 @@ namespace ires.Infrastructure.Migrations
                     b.Property<int>("seq")
                         .HasColumnType("int");
 
-                    b.ToTable("rentalAccountHistories");
+                    b.ToTable("rentalAccountHistories", (string)null);
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.AccountPayable", b =>
