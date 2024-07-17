@@ -47,10 +47,10 @@ namespace ires_api.Controllers
             return Ok(serverResponse);
         }
         [HttpGet("getsurveydashboard")]
-        public async Task<IActionResult> GetSurveyDashboard()
+        public async Task<IActionResult> GetSurveyDashboard(DateTime currentDate)
         {
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", Utility.GetServerTime(), Utility.GetServerTime())).Select(x => x.totalamount).Sum();
+            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", currentDate, currentDate)).Sum(x => x.totalamount);
             var data = new
             {
                 totalPayment,
@@ -62,10 +62,10 @@ namespace ires_api.Controllers
             return Ok(serverResponse);
         }
         [HttpGet("getrentaldashboard")]
-        public async Task<IActionResult> GetRentalDashboard()
+        public async Task<IActionResult> GetRentalDashboard(DateTime currentDate)
         {
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", Utility.GetServerTime(), Utility.GetServerTime())).Select(x => x.totalamount).Sum();
+            var totalPayment = (await _paymentService.GetPayments(identity.companyid ?? 0, "", currentDate, currentDate)).Sum(x => x.totalamount);
             var data = new
             {
                 totalPayment,
@@ -91,6 +91,12 @@ namespace ires_api.Controllers
         public async Task<IActionResult> ReadNotification(IDRequestDto requestDto)
         {
             await _appService.MarkAsReadNotif(requestDto.id);
+            return Ok(new ServerResponse<string>());
+        }
+        [HttpPost("markallasreadnotifs")]
+        public async Task<IActionResult> MarkAllAsReadNotif(IDRequestDto requestDto)
+        {
+            await _appService.MarkAllAsReadNotif(requestDto.id);
             return Ok(new ServerResponse<string>());
         }
 

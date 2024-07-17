@@ -6,6 +6,7 @@ namespace ires.Domain.Contracts
     {
         public Task<ICollection<NotificationViewModel>> GetNotifications(long employeeID);
         public Task MarkAsReadNotif(long id);
+        public Task MarkAllAsReadNotif(long employeeID);
         public Task<ICollection<EventViewModel>> GetEvents(int companyID, DateTime startDate, DateTime endDate);
 
         public Task ReloadRentalContracts();

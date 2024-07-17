@@ -36,6 +36,12 @@ namespace ires.Infrastructure.Repositories
                 await _dataContext.SaveChangesAsync();
             }
         }
+        public async Task MarkAllAsReadNotif(long employeeID)
+        {
+            var notifs = await _dataContext.notifications.Where(x => x.employeeid == employeeID && !x.isread).ToListAsync();
+            notifs.ForEach(x => x.isread = true);
+            await _dataContext.SaveChangesAsync();
+        }
         public async Task<ICollection<EventViewModel>> GetEvents(int companyID, DateTime startDate, DateTime endDate)
         {
             return await _dataContext.surveys.Where(x => x.companyid == companyID && x.status != SurveyStatus.cancelled &&
