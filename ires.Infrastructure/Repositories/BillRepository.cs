@@ -155,13 +155,13 @@ namespace ires.Infrastructure.Repositories
             if (company.amount == 0 && plan.monthlysubscription > 0)
             {
                 var currentDateTime = Utility.GetServerTime();
-                company.subscriptionexpiry = currentDateTime.AddDays(15);
+                company.subscriptionexpiry = currentDateTime;
                 var bill = new Bill
                 {
                     companyid = companyID,
                     billdate = currentDateTime,
                     datefrom = currentDateTime,
-                    duedate = company.subscriptionexpiry,
+                    duedate = currentDateTime.AddDays(Constants.BillExtension),
                     status = BillStatus.open,
                     issent = true
                 };

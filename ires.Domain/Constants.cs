@@ -7,6 +7,8 @@ namespace ires.Domain
         public const string dateFormat = "MM/dd/yyyy";
         public const string moneyFormat = "N2";
 
+        public const int BillExtension = 10; //No of days before expired
+
         public static string getReceiptDesc(ReceiptType receiptType)
         {
             switch (receiptType)

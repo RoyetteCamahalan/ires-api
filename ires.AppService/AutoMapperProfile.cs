@@ -1,7 +1,6 @@
 ﻿
 
 using AutoMapper;
-using ires.Domain;
 using ires.Domain.DTO;
 using ires.Domain.DTO.AccountPayable;
 using ires.Domain.DTO.Attachment;
@@ -57,14 +56,8 @@ namespace ires.AppService
 
             CreateMap<ClientRequestDto, Client>();
             CreateMap<Client, ClientViewModel>();
-            CreateMap<Company, CompanyViewModel>()
-                .ForMember(dest => dest.isexpired,
-                opts => opts.MapFrom(src =>
-                src.subscriptionexpiry < Utility.GetServerTime().AddDays(-1)));
-            CreateMap<Company, CompanyPlanViewModel>()
-                .ForMember(dest => dest.isexpired,
-                opts => opts.MapFrom(src =>
-                src.subscriptionexpiry < Utility.GetServerTime().AddDays(-1)));
+            CreateMap<Company, CompanyViewModel>();
+            CreateMap<Company, CompanyPlanViewModel>();
 
             CreateMap<CreditMemoTypeRequestDto, CreditMemoType>();
             CreateMap<CreditMemoType, CreditMemoTypeViewModel>();
