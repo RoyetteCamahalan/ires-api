@@ -11,5 +11,6 @@ namespace ires.Domain.Contracts
 
         public Task ReloadRentalContracts();
         public Task ReloadSubscriptions();
+        public Task<bool> ExecuteJob(string job);
     }
 }

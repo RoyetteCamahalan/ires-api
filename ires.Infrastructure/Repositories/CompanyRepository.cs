@@ -54,6 +54,7 @@ namespace ires.Infrastructure.Repositories
                 contactno = requestDto.contactno,
                 email = requestDto.email,
                 planid = requestDto.planid,
+                subscriptionexpiry = Utility.GetServerTime().AddMonths(1),
                 surveylimit = plan.surveylimit,
                 isactive = false,
                 isverified = false,

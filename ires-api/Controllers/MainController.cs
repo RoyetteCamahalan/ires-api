@@ -3,6 +3,7 @@ using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.Enumerations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ires_api.Controllers
@@ -19,9 +20,10 @@ namespace ires_api.Controllers
         private readonly IExpenseService _expenseService;
         private readonly IPettyCashService _pettyCashService;
         private readonly IRentalService _rentalService;
+        private readonly ILogService _logService;
 
         public MainController(IAppService appService, IMapper mapper, ISurveyService surveyService, IClientService clientService, IPaymentService paymentService, IExpenseService expenseService,
-            IPettyCashService pettyCashService, IRentalService rentalService)
+            IPettyCashService pettyCashService, IRentalService rentalService, ILogService logService)
         {
             _appService = appService;
             _mapper = mapper;
@@ -31,6 +33,7 @@ namespace ires_api.Controllers
             _expenseService = expenseService;
             _pettyCashService = pettyCashService;
             _rentalService = rentalService;
+            _logService = logService;
         }
         [HttpGet("getfinancedashboard")]
         public async Task<IActionResult> GetFinanceDashboard()
@@ -111,5 +114,20 @@ namespace ires_api.Controllers
             return Ok(serverResponse);
         }
 
+        [HttpPost("savelog")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SaveLog([FromBody] LogRequestDto requestDto)
+        {
+            await _logService.SaveLogAsync(requestDto.companyid, requestDto.employeeid, requestDto.moduleid, requestDto.logtitle, requestDto.logAction, 0);
+            return Ok(new ServerResponse<bool> { Message = "Log successfully saved!" });
+        }
+
+        [HttpPost("runjob/{job}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SaveLog(string job)
+        {
+            var result = await _appService.ExecuteJob(job);
+            return Ok(new ServerResponse<bool> { Success = result });
+        }
     }
 }

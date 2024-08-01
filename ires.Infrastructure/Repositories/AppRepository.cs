@@ -4,7 +4,10 @@ using ires.Domain.DTO;
 using ires.Domain.DTO.Survey;
 using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
+using ires.Infrastructure.Jobs.Billing;
+using ires.Infrastructure.Jobs.RentalContract;
 using Microsoft.EntityFrameworkCore;
+using Quartz;
 
 namespace ires.Infrastructure.Repositories
 {
@@ -13,12 +16,14 @@ namespace ires.Infrastructure.Repositories
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
         private readonly ILogService _logService;
+        private readonly ISchedulerFactory _schedulerFactory;
 
-        public AppRepository(DataContext dataContext, IMapper mapper, ILogService logService)
+        public AppRepository(DataContext dataContext, IMapper mapper, ILogService logService, ISchedulerFactory schedulerFactory)
         {
             _dataContext = dataContext;
             _mapper = mapper;
             _logService = logService;
+            _schedulerFactory = schedulerFactory;
         }
 
         public async Task<ICollection<NotificationViewModel>> GetNotifications(long employeeID)
@@ -82,6 +87,23 @@ namespace ires.Infrastructure.Repositories
             {
                 await _logService.SaveLogAsync(0, 0, 0, "CRON Job Subscription", "Error encountered: " + ex.Message, 1);
             }
+        }
+
+        public async Task<bool> ExecuteJob(string job)
+        {
+            JobKey jobKey = null;
+            if (job == "bill")
+                jobKey = JobKey.Create(nameof(BillingGenerationJob));
+            else if (job == "rental")
+                jobKey = JobKey.Create(nameof(RentalContractComputationJob));
+
+            if (jobKey != null)
+            {
+                var scheduler = await _schedulerFactory.GetScheduler();
+                await scheduler.TriggerJob(jobKey);
+                return true;
+            }
+            return false;
         }
     }
 }
