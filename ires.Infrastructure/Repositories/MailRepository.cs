@@ -50,7 +50,16 @@ namespace ires.Infrastructure.Repositories
 
                 foreach (var path in attachmentPaths)
                 {
-                    builder.Attachments.Add(path);
+                    var fileName = Path.GetFileName(path);
+                    var attachment = new MimePart(MimeTypes.GetMimeType(fileName))
+                    {
+                        Content = new MimeContent(File.OpenRead(path)),
+                        ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                        ContentTransferEncoding = ContentEncoding.Base64,
+                        FileName = Path.GetFileName(path)
+                    };
+
+                    builder.Attachments.Add(attachment);
                 }
                 mail.Body = builder.ToMessageBody();
 
