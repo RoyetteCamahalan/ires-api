@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Client;
 using Microsoft.AspNetCore.Authorization;
@@ -8,16 +9,9 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ClientController : ControllerBase
+    public class ClientController(IClientService _clientService, IMailService _mailService) : ControllerBase
     {
-        private readonly IClientService _clientService;
-        private readonly IMailService _mailService;
 
-        public ClientController(IClientService clientService, IMailService mailService)
-        {
-            _clientService = clientService;
-            _mailService = mailService;
-        }
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, string? search = "")
         {
@@ -87,7 +81,7 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<Boolean>
             {
-                Success = _mailService.SendEmailAsync("Message From: " + requestDto.name, new List<string> { _mailService.GetPublicEmail() }, "Email: " + requestDto.email + " Message: " + requestDto.message)
+                Success = _mailService.SendEmailAsync("Message From: " + requestDto.name, [_mailService.GetPublicEmail()], "Email: " + requestDto.email + " Message: " + requestDto.message)
             };
             if (!serverResponse.Success)
             {

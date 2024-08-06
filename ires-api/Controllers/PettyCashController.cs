@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.CashDisbursement;
 using ires.Domain.DTO.PettyCash;
@@ -9,16 +10,9 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PettyCashController : ControllerBase
+    public class PettyCashController(IPettyCashService _pettyCashService, IAccountService _accountService) : ControllerBase
     {
-        private readonly IPettyCashService _pettyCashService;
-        private readonly IAccountService _accountService;
 
-        public PettyCashController(IPettyCashService pettyCashService, IAccountService accountService)
-        {
-            _pettyCashService = pettyCashService;
-            _accountService = accountService;
-        }
         [HttpGet]
         public async Task<IActionResult> Get(long id)
         {

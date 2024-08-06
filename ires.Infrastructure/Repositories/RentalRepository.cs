@@ -13,33 +13,22 @@ using ires.Domain.DTO.RentalUnit;
 using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class RentalRepository : IRentalService
+    public class RentalRepository(
+        DataContext _dataContext,
+        IMapper _mapper,
+        IProjectService _projectService,
+        IConfiguration _configuration,
+        IMailService _mailService,
+        IConverter _converter,
+        ILogService _logService) : IRentalService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-        private readonly IProjectService _projectService;
-        private readonly IConfiguration _configuration;
-        private readonly IMailService _mailService;
-        private readonly IConverter _converter;
-        private readonly ILogService _logService;
 
-        public RentalRepository(DataContext dataContext, IMapper mapper, IProjectService projectService,
-            IConfiguration configuration, IMailService mailService, IConverter converter,
-            ILogService logService)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-            _projectService = projectService;
-            _configuration = configuration;
-            _mailService = mailService;
-            _converter = converter;
-            _logService = logService;
-        }
         public async Task<RentalContractViewModel> Create(RentalContractRequestDto requestDto)
         {
             var entity = _mapper.Map<RentalContract>(requestDto);
@@ -48,7 +37,7 @@ namespace ires.Infrastructure.Repositories
             entity.datecreated = Utility.GetServerTime();
             entity.contractno = (_dataContext.rentalContracts.Max(x => (long?)x.contractno) ?? 0) + 1;
             entity.advancerent = entity.noofmonthadvance * entity.montlyrent;
-            entity.rentalContractDetails = new List<RentalContractDetail>();
+            entity.rentalContractDetails = [];
             foreach (var item in requestDto.rentalContractDetails)
             {
                 entity.rentalContractDetails.Add(new RentalContractDetail
@@ -186,12 +175,21 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<ICollection<RentalHistoryViewModel>> GetAccountHistory(int companyID, long contractID)
         {
-            var result = await _dataContext.rentalAccountHistories.FromSqlRaw($"exec spWebReports @operation=0, @soperation=0, @contractid = {contractID}, @companyid =  {companyID}").ToListAsync();
+
+            var result = await _dataContext.rentalAccountHistories
+                .FromSqlRaw("exec spWebReports @operation = 0, @soperation = 0, @contractid = @contractId, @companyid = @companyId",
+                new SqlParameter("@contractId", contractID),
+                new SqlParameter("@companyId", companyID))
+            .ToListAsync();
             return _mapper.Map<ICollection<RentalHistoryViewModel>>(result);
         }
         public async Task<ICollection<PayableViewModel>> GetSOA(int companyID, long contractID)
         {
-            var result = await _dataContext.payables.FromSqlRaw($"exec spWebReports @operation=0, @soperation=3, @contractid = {contractID}, @companyid =  {companyID}").ToListAsync();
+            var result = await _dataContext.payables
+                .FromSqlRaw("exec spWebReports @operation = 0, @soperation = 3, @contractid = @contractId, @companyid = @companyId",
+                    new SqlParameter("@contractId", contractID),
+                    new SqlParameter("@companyId", companyID))
+                .ToListAsync();
             return _mapper.Map<ICollection<PayableViewModel>>(result);
         }
 
@@ -389,7 +387,7 @@ namespace ires.Infrastructure.Repositories
                 var path = Path.Combine(Directory.GetCurrentDirectory(), data.fullpath);
                 var html = File.ReadAllText(@"./Templates/ClientSOAEmail.html");
                 var body = html.Replace("{main_link}", _configuration["uiBaseURL"]).Replace("{customername}", contract.client.fullname);
-                _mailService.SendEmailAsync("Statement Of Account", new List<string> { requestDto.email }, body, new List<string> { path }, true);
+                _mailService.SendEmailAsync("Statement Of Account", [requestDto.email], body, [path], true);
                 await _logService.SaveLogAsync(contract.companyid, requestDto.createdbyid, AppModule.Rentals, "SOA", $"Sent SOA to {requestDto.email}", 0);
                 return true;
             }

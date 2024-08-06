@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.AppService.Common;
 using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
@@ -10,31 +11,19 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MainController : ControllerBase
+    public class MainController(
+        IAppService _appService,
+        IMapper _mapper,
+        ISurveyService _surveyService,
+        IClientService _clientService,
+        IPaymentService _paymentService,
+        IExpenseService _expenseService,
+        IPettyCashService _pettyCashService,
+        IRentalService _rentalService,
+        ILogService _logService) : ControllerBase
     {
-        private readonly IAppService _appService;
-        private readonly IMapper _mapper;
-        private readonly ISurveyService _surveyService;
-        private readonly IClientService _clientService;
-        private readonly IPaymentService _paymentService;
-        private readonly IExpenseService _expenseService;
-        private readonly IPettyCashService _pettyCashService;
-        private readonly IRentalService _rentalService;
-        private readonly ILogService _logService;
 
-        public MainController(IAppService appService, IMapper mapper, ISurveyService surveyService, IClientService clientService, IPaymentService paymentService, IExpenseService expenseService,
-            IPettyCashService pettyCashService, IRentalService rentalService, ILogService logService)
-        {
-            _appService = appService;
-            _mapper = mapper;
-            _surveyService = surveyService;
-            _clientService = clientService;
-            _paymentService = paymentService;
-            _expenseService = expenseService;
-            _pettyCashService = pettyCashService;
-            _rentalService = rentalService;
-            _logService = logService;
-        }
+
         [HttpGet("getfinancedashboard")]
         public async Task<IActionResult> GetFinanceDashboard()
         {

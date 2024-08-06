@@ -9,18 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class CompanyRepository : ICompanyService
+    public class CompanyRepository(DataContext _dataContext, IMapper _mapper, ILogService _logService) : ICompanyService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-        private readonly ILogService _logService;
 
-        public CompanyRepository(DataContext dataContext, IMapper mapper, ILogService logService)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-            _logService = logService;
-        }
         public async Task<ICollection<CompanyViewModel>> GetCompanies()
         {
             var result = await _dataContext.companies.ToListAsync();

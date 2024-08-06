@@ -6,12 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Data
 {
-    public class DataContext : DbContext
+    public class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
     {
-        public DataContext(DbContextOptions<DataContext> options) : base(options)
-        {
-
-        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RentalAccountHistory>().HasNoKey();

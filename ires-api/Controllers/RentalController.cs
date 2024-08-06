@@ -1,4 +1,5 @@
-﻿using ires.Domain;
+﻿using ires.AppService.Common;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Attachment;
@@ -11,14 +12,9 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RentalController : ControllerBase
+    public class RentalController(IRentalService _rentalService) : ControllerBase
     {
-        private readonly IRentalService _rentalService;
 
-        public RentalController(IRentalService rentalService)
-        {
-            _rentalService = rentalService;
-        }
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] RentalContractRequestDto requestDto)
         {

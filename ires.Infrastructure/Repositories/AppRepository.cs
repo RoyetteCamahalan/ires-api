@@ -11,20 +11,12 @@ using Quartz;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class AppRepository : IAppService
+    public class AppRepository(
+        DataContext _dataContext,
+        IMapper _mapper,
+        ILogService _logService,
+        ISchedulerFactory _schedulerFactory) : IAppService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-        private readonly ILogService _logService;
-        private readonly ISchedulerFactory _schedulerFactory;
-
-        public AppRepository(DataContext dataContext, IMapper mapper, ILogService logService, ISchedulerFactory schedulerFactory)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-            _logService = logService;
-            _schedulerFactory = schedulerFactory;
-        }
 
         public async Task<ICollection<NotificationViewModel>> GetNotifications(long employeeID)
         {

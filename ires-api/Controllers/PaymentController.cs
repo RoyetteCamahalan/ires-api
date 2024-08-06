@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Payment;
 using ires.Domain.Enumerations;
@@ -8,14 +9,8 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PaymentController : ControllerBase
+    public class PaymentController(IPaymentService _paymentService) : ControllerBase
     {
-        private readonly IPaymentService _paymentService;
-
-        public PaymentController(IPaymentService paymentService)
-        {
-            _paymentService = paymentService;
-        }
 
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, DateTime startDate, DateTime endDate, string? search = "")

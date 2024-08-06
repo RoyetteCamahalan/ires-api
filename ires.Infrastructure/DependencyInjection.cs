@@ -9,10 +9,6 @@ namespace ires.Infrastructure
     {
         public static void AddInfrastructure(this IServiceCollection services)
         {
-            services.AddQuartz(options =>
-            {
-                options.UseMicrosoftDependencyInjectionJobFactory();
-            });
             services.AddQuartzHostedService(options =>
             {
                 options.WaitForJobsToComplete = true;

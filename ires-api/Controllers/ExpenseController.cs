@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.AccountPayable;
 using ires.Domain.DTO.Expense;
@@ -11,17 +12,8 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ExpenseController : ControllerBase
+    public class ExpenseController(IExpenseService _expenseService, IAccountService _accountService) : ControllerBase
     {
-        private readonly IExpenseService _expenseService;
-        private readonly IAccountService _accountService;
-
-        public ExpenseController(IExpenseService expenseService, IAccountService accountService)
-        {
-            _expenseService = expenseService;
-            _accountService = accountService;
-        }
-
 
         [HttpGet]
         public async Task<IActionResult> Get(long id)

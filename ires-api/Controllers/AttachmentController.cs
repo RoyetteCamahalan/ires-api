@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Attachment;
 using Microsoft.AspNetCore.Authorization;
@@ -9,14 +10,8 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AttachmentController : ControllerBase
+    public class AttachmentController(IFileService _fileService) : ControllerBase
     {
-        private readonly IFileService _fileService;
-
-        public AttachmentController(IFileService fileService)
-        {
-            _fileService = fileService;
-        }
 
         [HttpGet]
         public async Task<IActionResult> GetAsync(int typeID, long attachableID, long lotID)

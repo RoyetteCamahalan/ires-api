@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Company;
@@ -9,16 +10,9 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BillingController : ControllerBase
+    public class BillingController(IConfiguration _configuration, IBillService _billService) : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly IBillService _billService;
 
-        public BillingController(IConfiguration configuration, IBillService billService)
-        {
-            _configuration = configuration;
-            _billService = billService;
-        }
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, int filter)
         {
@@ -49,7 +43,7 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             var plan = await _billService.GetSubscriptionPlans(identity.companyid ?? 0);
-            serverResponse.Data = new List<CompanyPlanViewModel> { plan };
+            serverResponse.Data = [plan];
             return Ok(serverResponse);
         }
 

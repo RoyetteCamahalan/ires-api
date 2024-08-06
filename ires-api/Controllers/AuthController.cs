@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.AppService.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Employee;
@@ -15,24 +16,15 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController(
+        IConfiguration _configuration,
+        IEmployeeService _employeeService,
+        ICompanyService _companyService,
+        IMapper _mapper,
+        ILogService _logService,
+        IMailService _mailService) : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly IEmployeeService _employeeService;
-        private readonly ICompanyService _companyService;
-        private readonly IMapper _mapper;
-        private readonly ILogService _logService;
-        private readonly IMailService _mailService;
 
-        public AuthController(IConfiguration configuration, IEmployeeService employeeService, ICompanyService companyService, IMapper mapper, ILogService logService, IMailService mailService)
-        {
-            _configuration = configuration;
-            _employeeService = employeeService;
-            _companyService = companyService;
-            _mapper = mapper;
-            _logService = logService;
-            _mailService = mailService;
-        }
         [HttpGet("testconnection")]
         [AllowAnonymous]
         public IActionResult TestConnection()
@@ -170,7 +162,7 @@ namespace ires_api.Controllers
 
             var html = System.IO.File.ReadAllText(@"./Templates/PasswordReset.html");
             var body = html.Replace("{1}", employee.firstname).Replace("{0}", _configuration["uiBaseURL"] + "/resetpassword?token=" + token);
-            _mailService.SendEmailAsync("Reset your HexaByt Password", new List<string> { stringDto.value }, body, true);
+            _mailService.SendEmailAsync("Reset your HexaByt Password", [stringDto.value], body, true);
             await _logService.SaveLogAsync(employee.companyid, employee.employeeid, AppModule.Users, "Profile", "Reset Password link request :" + token, 0);
 
             return Ok(response);

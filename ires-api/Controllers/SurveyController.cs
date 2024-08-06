@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Survey;
 using ires.Domain.Enumerations;
@@ -9,16 +10,9 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SurveyController : ControllerBase
+    public class SurveyController(ISurveyService _surveyService, IPaymentService _paymentService) : ControllerBase
     {
-        private readonly ISurveyService _surveyService;
-        private readonly IPaymentService _paymentService;
 
-        public SurveyController(ISurveyService surveyService, IPaymentService paymentService)
-        {
-            _surveyService = surveyService;
-            _paymentService = paymentService;
-        }
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, string? search = "")
         {

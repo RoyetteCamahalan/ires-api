@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ires.Domain.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires.Infrastructure.Entities
@@ -15,8 +16,7 @@ namespace ires.Infrastructure.Entities
         public string platenumber { get; set; } = string.Empty;
         public string model { get; set; } = string.Empty;
         public string year { get; set; } = string.Empty;
-        public int status { get; set; }
-        public bool isactive { get; set; }
+        public CarStatus status { get; set; }
         public long createdbyid { get; set; }
         public DateTime datecreated { get; set; }
         public long updatedbyid { get; set; }

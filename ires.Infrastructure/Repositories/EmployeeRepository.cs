@@ -11,18 +11,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class EmployeeRepository : IEmployeeService
+    public class EmployeeRepository(DataContext _dataContext, IMapper _mapper, ILogService _logService) : IEmployeeService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-        private readonly ILogService _logService;
-
-        public EmployeeRepository(DataContext dataContext, IMapper mapper, ILogService logService)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-            _logService = logService;
-        }
 
         public async Task<EmployeeViewModel> CreateAsync(EmployeeRequestDto requestDto)
         {

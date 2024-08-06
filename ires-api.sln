@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ires.Domain", "ires.Domain\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ires.AppService", "ires.AppService\ires.AppService.csproj", "{F9D1C6AE-1025-4855-A579-41CEE30AD217}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ires.CarRental", "ires.CarRental\ires.CarRental.csproj", "{458F1D9E-FFF6-4D83-923C-B6D9818E38DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{F9D1C6AE-1025-4855-A579-41CEE30AD217}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9D1C6AE-1025-4855-A579-41CEE30AD217}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9D1C6AE-1025-4855-A579-41CEE30AD217}.Release|Any CPU.Build.0 = Release|Any CPU
+		{458F1D9E-FFF6-4D83-923C-B6D9818E38DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{458F1D9E-FFF6-4D83-923C-B6D9818E38DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{458F1D9E-FFF6-4D83-923C-B6D9818E38DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{458F1D9E-FFF6-4D83-923C-B6D9818E38DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

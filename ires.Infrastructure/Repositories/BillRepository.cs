@@ -18,24 +18,14 @@ using System.Text;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class BillRepository : IBillService
+    public class BillRepository(
+        DataContext _dataContext,
+        IMapper _mapper,
+        IConfiguration _configuration,
+        IMailService _mailService,
+        IConverter _converter,
+        ILogService _logService) : IBillService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
-        private readonly IMailService _mailService;
-        private readonly IConverter _converter;
-        private readonly ILogService _logService;
-
-        public BillRepository(DataContext dataContext, IMapper mapper, IConfiguration configuration, IMailService mailService, IConverter converter, ILogService logService)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-            _configuration = configuration;
-            _mailService = mailService;
-            _converter = converter;
-            _logService = logService;
-        }
 
         public async Task<BillViewModel> GetBillByID(long billID)
         {
@@ -267,7 +257,7 @@ namespace ires.Infrastructure.Repositories
                 var path = Path.Combine(Directory.GetCurrentDirectory(), data.fullpath);
                 var html = File.ReadAllText(@"./Templates/BillingEmail.html");
                 var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", bill.company.name);
-                _mailService.SendEmailAsync("HexaByt Invoice", new List<string> { bill.company.email }, body, new List<string> { path }, true);
+                _mailService.SendEmailAsync("HexaByt Invoice", [bill.company.email], body, [path], true);
                 bill.issent = true;
                 await _dataContext.SaveChangesAsync();
             }

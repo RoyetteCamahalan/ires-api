@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.BankAccount;
 using ires.Domain.DTO.Office;
@@ -9,14 +10,8 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class AccountController(IAccountService _accountService) : ControllerBase
     {
-        private readonly IAccountService _accountService;
-
-        public AccountController(IAccountService accountService)
-        {
-            _accountService = accountService;
-        }
 
         [HttpGet("getbankaccounts")]
         public async Task<IActionResult> GetBankAccounts(int currentPage, string? search = "")

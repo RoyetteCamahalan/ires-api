@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.OtherCharge;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +8,9 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ChargeController : ControllerBase
+    public class ChargeController(IChargeService _chargeService) : ControllerBase
     {
-        private readonly IChargeService _chargeService;
 
-        public ChargeController(IChargeService chargeService)
-        {
-            _chargeService = chargeService;
-        }
         [HttpGet]
         public async Task<IActionResult> GetSurveyCharges(long surveyID, int currentPage, string? search = "")
         {

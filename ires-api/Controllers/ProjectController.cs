@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ires.AppService.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Project;
@@ -11,20 +12,12 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProjectController : ControllerBase
+    public class ProjectController(
+        IMapper _mapper,
+        IProjectService _projectService,
+        IRentalService _rentalService,
+        IBillService _billService) : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly IProjectService _projectService;
-        private readonly IRentalService _rentalService;
-        private readonly IBillService _billService;
-
-        public ProjectController(IMapper mapper, IProjectService projectService, IRentalService rentalService, IBillService billService)
-        {
-            _mapper = mapper;
-            _projectService = projectService;
-            _rentalService = rentalService;
-            _billService = billService;
-        }
 
         [HttpGet("getrentalproperties")]
         public async Task<IActionResult> GetRentalProperties(int currentPage, string? search = "")

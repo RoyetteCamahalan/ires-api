@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.CreditNote;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +8,9 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CreditNoteController : ControllerBase
+    public class CreditNoteController(ICreditNoteService _creditMemoService) : ControllerBase
     {
-        private readonly ICreditNoteService _creditMemoService;
 
-        public CreditNoteController(ICreditNoteService creditMemoService)
-        {
-            _creditMemoService = creditMemoService;
-        }
         [HttpGet("getcredittype/{id}")]
         public async Task<IActionResult> GetCreditType(long id)
         {

@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.OtherFee;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +8,8 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OtherChargeController : ControllerBase
+    public class OtherChargeController(IOtherChargeService _otherChargeService) : ControllerBase
     {
-        private readonly IOtherChargeService _otherChargeService;
-
-        public OtherChargeController(IOtherChargeService otherChargeService)
-        {
-            _otherChargeService = otherChargeService;
-        }
 
         [HttpGet("getotherfees")]
         public async Task<IActionResult> GetOtherFees(int currentPage, bool viewAll, string? search = "")

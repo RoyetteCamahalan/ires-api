@@ -1,4 +1,4 @@
-﻿namespace ires.Domain.DTO
+﻿namespace ires.AppService.Common
 {
     public class ServerResponse<T>
     {

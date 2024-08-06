@@ -1,4 +1,5 @@
-﻿using ires.Domain;
+﻿using ires.AppService.Common;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Company;
@@ -9,20 +10,13 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CompanyController : ControllerBase
+    public class CompanyController(
+        IConfiguration _configuration,
+        ICompanyService _companyService,
+        IEmployeeService _employeeService,
+        IMailService _mailService) : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly ICompanyService _companyService;
-        private readonly IEmployeeService _employeeService;
-        private readonly IMailService _mailService;
 
-        public CompanyController(IConfiguration configuration, ICompanyService companyService, IEmployeeService employeeService, IMailService mailService)
-        {
-            _configuration = configuration;
-            _companyService = companyService;
-            _employeeService = employeeService;
-            _mailService = mailService;
-        }
         [HttpGet]
         public async Task<IActionResult> GetAsync()
         {
@@ -82,7 +76,7 @@ namespace ires_api.Controllers
         {
             var html = System.IO.File.ReadAllText(@"./Templates/ConfirmationEmail.html");
             var body = html.Replace("{0}", _configuration["uiBaseURL"]).Replace("{1}", _configuration["uiBaseURL"] + "/company/confirmation?ref=" + Utility.URLEncrypt(id.ToString()));
-            _mailService.SendEmailAsync("Email Confirmation", new List<string> { email }, body, true);
+            _mailService.SendEmailAsync("Email Confirmation", [email], body, true);
         }
 
         [HttpPost("resendconfirmation")]

@@ -3,16 +3,9 @@ using Quartz;
 
 namespace ires.Infrastructure.Jobs.Billing
 {
-    public class BillingGenerationJob : IJob
+    public class BillingGenerationJob(IBillService _billService, IAppService _appService) : IJob
     {
-        private readonly IBillService _billService;
-        private readonly IAppService _appService;
 
-        public BillingGenerationJob(IBillService billService, IAppService appService)
-        {
-            _billService = billService;
-            _appService = appService;
-        }
         public async Task Execute(IJobExecutionContext context)
         {
             await _appService.ReloadSubscriptions();

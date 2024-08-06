@@ -1,4 +1,5 @@
-﻿using ires.Domain.Contracts;
+﻿using ires.AppService.Common;
+using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Bank;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +8,9 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BankController : ControllerBase
+    public class BankController(IBankService _bankService) : ControllerBase
     {
-        private readonly IBankService _bankService;
 
-        public BankController(IBankService bankService)
-        {
-            _bankService = bankService;
-        }
         [HttpGet]
         public async Task<IActionResult> Get(long bankID)
         {

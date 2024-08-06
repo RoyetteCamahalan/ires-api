@@ -1,4 +1,5 @@
-﻿using ires.Domain;
+﻿using ires.AppService.Common;
+using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Employee;
@@ -10,14 +11,8 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EmployeeController : ControllerBase
+    public class EmployeeController(IEmployeeService _employeeService) : ControllerBase
     {
-        private readonly IEmployeeService _employeeService;
-
-        public EmployeeController(IEmployeeService employeeService)
-        {
-            _employeeService = employeeService;
-        }
 
         [HttpGet]
         public async Task<IActionResult> Get(int currentPage, string? search = "")
