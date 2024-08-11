@@ -1,6 +1,6 @@
 ﻿using ires.Domain.Enumerations;
 
-namespace ires.CarRental.ViewModels
+namespace ires.Application.ViewModels
 {
     public class CarViewModel
     {

@@ -2,9 +2,9 @@
 {
     public class PaginatedResult<T>()
     {
-        public IEnumerable<T>? Data { get; set; }
-        public int PageNumber { get; set; }
-        public int TotalRecord { get; set; }
-        public int TotalPages { get; set; }
+        public IEnumerable<T>? data { get; set; }
+        public int currentPage { get; set; }
+        public int totalRecord { get; set; }
+        public int totalPages { get; set; }
     }
 }

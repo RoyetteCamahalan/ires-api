@@ -11,20 +11,13 @@ using System.Data.SqlClient;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class PettyCashRepository : IPettyCashService
+    public class PettyCashRepository(
+        DataContext _dataContext,
+        IAccountService _accountService,
+        IMapper _mapper,
+        ILogService _logService) : IPettyCashService
     {
-        private readonly DataContext _dataContext;
-        private readonly IAccountService _accountService;
-        private readonly IMapper _mapper;
-        private readonly ILogService _logService;
 
-        public PettyCashRepository(DataContext dataContext, IAccountService accountService, IMapper mapper, ILogService logService)
-        {
-            _dataContext = dataContext;
-            _accountService = accountService;
-            _mapper = mapper;
-            _logService = logService;
-        }
         public async Task<CashDisbursementViewModel> Create(CashDisbursementRequestDto requestDto)
         {
             var cashDisbursement = _mapper.Map<CashDisbursement>(requestDto);
@@ -113,7 +106,9 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<ICollection<PettyCashAccountHistoryViewModel>> GetAccountHistory(int companyID, long accountID, DateTime startDate, DateTime endDate)
         {
-            var result = await _dataContext.pettyCashAccountHistories.FromSqlRaw($"exec spWebReports @operation=0, @soperation=4, @search = '{accountID}', @companyid = {companyID}, @startdate = '{startDate}', @enddate = '{endDate}'").ToListAsync();
+            var result = await _dataContext.pettyCashAccountHistories
+                .FromSqlRaw("exec spWebReports @operation = 0, @soperation = 4, @search = {0}, @companyid = {1}, @startdate = {2}, @enddate = {3}",
+                accountID, companyID, startDate, endDate).ToListAsync();
             return _mapper.Map<ICollection<PettyCashAccountHistoryViewModel>>(result);
         }
     }

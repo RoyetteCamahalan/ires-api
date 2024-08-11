@@ -1,8 +1,8 @@
-﻿using ires.CarRental.ViewModels;
+﻿using ires.Application.ViewModels;
 using ires.Domain.Enumerations;
 using MediatR;
 
-namespace ires.CarRental.Commands.Car
+namespace ires.Application.Commands.Car
 {
     public record CreateCarCommand(
         string name,

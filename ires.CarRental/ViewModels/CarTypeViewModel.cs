@@ -1,4 +1,4 @@
-﻿namespace ires.CarRental.ViewModels
+﻿namespace ires.Application.ViewModels
 {
     public class CarTypeViewModel
     {

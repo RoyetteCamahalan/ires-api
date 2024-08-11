@@ -1,10 +1,12 @@
 using DinkToPdf;
 using DinkToPdf.Contracts;
+using ires.Application;
 using ires.AppService;
 using ires.Domain.Contracts;
 using ires.Infrastructure;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Repositories;
+using ires.Infrastructure.Services;
 using ires_api.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +54,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddAutoMapper(typeof(_ForAppServiceAssembyLoadOnly).Assembly);
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IAppService, AppRepository>();
 builder.Services.AddScoped<ICompanyService, CompanyRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeRepository>();
@@ -72,8 +75,12 @@ builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
 builder.Services.AddScoped<IProjectService, ProjectRepository>();
 builder.Services.AddScoped<IRentalService, RentalRepository>();
 
+builder.Services.AddScoped<ICarService, CarRepository>();
+
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddInfrastructure();
+builder.Services.AddApplication();
 var context = new CustomAssemblyLoadContext();
 context.LoadUnmanagedLibrary(Path.Combine(Directory.GetCurrentDirectory(), "libwkhtmltox.dll"));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -1,0 +1,17 @@
+﻿namespace ires.Application.ViewModels
+{
+    public class FileDataViewModel
+    {
+        public string filename { get; set; } = string.Empty;
+        public string filepath { get; set; } = string.Empty;
+        public string url { get; set; } = string.Empty;
+
+        public string fullpath
+        {
+            get
+            {
+                return filepath + "/" + filename;
+            }
+        }
+    }
+}

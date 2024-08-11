@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using ires.CarRental.Commands.Car;
-using ires.CarRental.ViewModels;
+using ires.Application.Commands.Car;
+using ires.Application.ViewModels;
 using ires.Domain.Contracts;
 using ires.Domain.Models;
 using MediatR;
 
-namespace ires.CarRental.CommandHandlers
+namespace ires.Application.CommandHandlers
 {
     public class CarCommandHandler(ICarService _carService, IMapper _mapper) :
         IRequestHandler<CreateCarCommand, CarViewModel>,

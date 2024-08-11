@@ -4,6 +4,7 @@
     {
         Payments = 3,
         Projects = 6,
+        Clients = 7,
         Users = 8,
         Expenses = 10,
         CreditNotes = 13,

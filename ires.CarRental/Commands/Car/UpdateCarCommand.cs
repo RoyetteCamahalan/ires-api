@@ -1,7 +1,7 @@
 ﻿using ires.Domain.Enumerations;
 using MediatR;
 
-namespace ires.CarRental.Commands.Car
+namespace ires.Application.Commands.Car
 {
     public record UpdateCarCommand(
         long id,

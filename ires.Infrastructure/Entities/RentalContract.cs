@@ -34,6 +34,6 @@ namespace ires.Infrastructure.Entities
         public DateTime? dateterminated { get; set; }
 
         public Client? client { get; set; }
-        public List<RentalContractDetail> rentalContractDetails { get; set; } = new List<RentalContractDetail>();
+        public List<RentalContractDetail> rentalContractDetails { get; set; } = [];
     }
 }

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using ires.CarRental.ViewModels;
+using ires.Application.ViewModels;
 using ires.Domain.Models;
 using Entities = ires.Infrastructure.Entities;
 

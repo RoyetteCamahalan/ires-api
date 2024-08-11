@@ -1,7 +1,15 @@
-﻿using ires.AppService.Common;
-using ires.Domain.Contracts;
-using ires.Domain.DTO;
-using ires.Domain.DTO.Client;
+﻿using AutoMapper;
+using ires.Application.Commands.Car;
+using ires.Application.Commands.Client;
+using ires.Application.Commands.General;
+using ires.Application.Queries.Client;
+using ires.Application.ViewModels;
+using ires.AppService.Dto;
+using ires.AppService.Dto.Car;
+using ires.AppService.Dto.Client;
+using ires.Domain.Common;
+using ires_api.Common;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,86 +17,39 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ClientController(IClientService _clientService, IMailService _mailService) : ControllerBase
+    public class ClientController(IMediator _mediator, IMapper _mapper) : BaseController(_mediator, _mapper)
     {
 
         [HttpGet]
-        public async Task<IActionResult> Get(int currentPage, string? search = "")
+        public async Task<IActionResult> Get([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<ClientViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _clientService.GetClients(identity.companyid ?? 0, search ?? "");
-            var paginator = new PaginatorDto<ClientViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
-            return Ok(serverResponse);
-
+            return await Handle<PaginatedResult<ClientViewModel>>(new GetAllClientsQuery(request));
         }
 
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> Get(long id)
         {
-            var serverResponse = new ServerResponse<ClientViewModel>();
-            var client = await _clientService.GetByID(id);
-            if (client == null)
-            {
-                serverResponse.Success = false;
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = client;
-            return Ok(serverResponse);
+            return await Handle<ClientViewModel>(new GetClientByIdQuery(id));
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ClientRequestDto requestDto)
+        public async Task<IActionResult> Post([FromBody] CreateClientRequestDto request)
         {
-            var serverResponse = new ServerResponse<ClientViewModel>();
-            var client = await _clientService.GetClientByName(requestDto.companyid, requestDto.lname, requestDto.fname);
-            if (client != null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Client already registered.";
-                return BadRequest(serverResponse);
-            }
-            var result = await _clientService.Create(requestDto);
-            if (result == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
-            return Ok(serverResponse);
+            return await Handle<CreateClientRequestDto, CreateClientCommand, ClientViewModel>(request);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Put([FromBody] ClientRequestDto requestDto)
+        public async Task<IActionResult> Put([FromBody] UpdateClientRequestDto request)
         {
-            var serverResponse = new ServerResponse<ClientViewModel>();
-            if (!await _clientService.Update(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            return await Handle<UpdateCarRequestDto, UpdateCarCommand, object>(request);
         }
 
         [HttpPost("sendmail")]
         [AllowAnonymous]
-        public IActionResult SendMail([FromBody] SendMailRequestDto requestDto)
+        public async Task<IActionResult> SendMail([FromBody] SendMailRequestDto request)
         {
-            var serverResponse = new ServerResponse<Boolean>
-            {
-                Success = _mailService.SendEmailAsync("Message From: " + requestDto.name, [_mailService.GetPublicEmail()], "Email: " + requestDto.email + " Message: " + requestDto.message)
-            };
-            if (!serverResponse.Success)
-            {
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            return await Handle<SendMailRequestDto, SendMailInquiryCommand, object>(request);
         }
     }
 }

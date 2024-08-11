@@ -7,7 +7,6 @@ using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Bank;
 using ires.Domain.DTO.BankAccount;
 using ires.Domain.DTO.CashDisbursement;
-using ires.Domain.DTO.Client;
 using ires.Domain.DTO.Company;
 using ires.Domain.DTO.CreditNote;
 using ires.Domain.DTO.Employee;
@@ -54,8 +53,6 @@ namespace ires.AppService
             CreateMap<CashDisbursementRequestDto, CashDisbursement>();
             CreateMap<CashDisbursement, CashDisbursementViewModel>();
 
-            CreateMap<ClientRequestDto, Client>();
-            CreateMap<Client, ClientViewModel>();
             CreateMap<Company, CompanyViewModel>();
             CreateMap<Company, CompanyPlanViewModel>();
 
@@ -99,7 +96,7 @@ namespace ires.AppService
             CreateMap<RentalUnitRequestDto, RentalProperty>().ForMember(x => x.status, opt => opt.Ignore());
             CreateMap<RentalProperty, RentalUnitViewModel>();
 
-            CreateMap<RentalContractRequestDto, RentalContract>()
+            CreateMap<CreateRentalContractRequestDto, RentalContract>()
                 .ForMember(x => x.rentalContractDetails, opt => opt.Ignore())
                 .ForMember(x => x.term, opt => opt.MapFrom(y => y.term ?? 0))
                 .ForMember(x => x.noofmonthadvance, opt => opt.MapFrom(y => y.noofmonthadvance ?? 0))
@@ -108,7 +105,7 @@ namespace ires.AppService
                 .ForMember(x => x.penaltyextension, opt => opt.MapFrom(y => y.penaltyextension ?? 0));
             CreateMap<RentalContract, RentalContractViewModel>();
 
-            CreateMap<RentalContractDetailRequestDto, RentalContractDetail>();
+            CreateMap<CreateRentalContractDetailRequestDto, RentalContractDetail>();
             CreateMap<RentalContractDetail, RentalContractDetailViewModel>();
             CreateMap<RentalAccountHistory, RentalHistoryViewModel>();
 

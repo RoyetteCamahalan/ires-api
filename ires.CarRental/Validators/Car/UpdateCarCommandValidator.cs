@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
-using ires.CarRental.Commands.Car;
+using ires.Application.Commands.Car;
 using ires.Domain.Contracts;
 
-namespace ires.CarRental.Validators.Car
+namespace ires.Application.Validators.Car
 {
     public sealed class UpdateCarCommandValidator : AbstractValidator<UpdateCarCommand>
     {

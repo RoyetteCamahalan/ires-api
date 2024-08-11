@@ -8,16 +8,8 @@ using MimeKit;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class MailRepository : IMailService
+    public class MailRepository(IConfiguration _configuration, ILogService _logService) : IMailService
     {
-        private readonly IConfiguration _configuration;
-        private readonly ILogService _logService;
-
-        public MailRepository(IConfiguration configuration, ILogService logService)
-        {
-            _configuration = configuration;
-            _logService = logService;
-        }
 
         public string GetPublicEmail()
         {
@@ -26,7 +18,7 @@ namespace ires.Infrastructure.Repositories
 
         public bool SendEmailAsync(string subject, List<string> mailTo, string body, bool isHTML = false)
         {
-            return SendEmailAsync(subject, mailTo, body, new List<string>(), isHTML);
+            return SendEmailAsync(subject, mailTo, body, [], isHTML);
         }
 
         public bool SendEmailAsync(string subject, List<string> mailTo, string body, List<string> attachmentPaths, bool isHTML = false)

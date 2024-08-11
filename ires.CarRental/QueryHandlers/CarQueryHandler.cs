@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using ires.CarRental.Queries.Car;
-using ires.CarRental.ViewModels;
+using ires.Application.Queries.Car;
+using ires.Application.ViewModels;
 using ires.Domain.Common;
 using ires.Domain.Contracts;
 using MediatR;
 
-namespace ires.CarRental.QueryHandlers
+namespace ires.Application.QueryHandlers
 {
     public class CarQueryHandler(ICarService _carService, IMapper _mapper) :
         IRequestHandler<GetCarByIdQuery, CarViewModel>,

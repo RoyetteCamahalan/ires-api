@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using ires.Application.Commands.Car;
+using ires.Application.Queries.Car;
+using ires.Application.ViewModels;
 using ires.AppService.Dto.Car;
-using ires.CarRental.Commands.Car;
-using ires.CarRental.Queries.Car;
-using ires.CarRental.ViewModels;
 using ires.Domain.Common;
 using ires_api.Common;
 using MediatR;

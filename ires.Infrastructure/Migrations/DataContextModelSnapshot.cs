@@ -429,9 +429,6 @@ namespace ires.Infrastructure.Migrations
                     b.Property<DateTime?>("dateupdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("isactive")
-                        .HasColumnType("bit");
-
                     b.Property<string>("model")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

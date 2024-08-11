@@ -1,14 +1,15 @@
-﻿using ires.Domain.DTO.Client;
+﻿using ires.Domain.Common;
+using ires.Domain.Models;
 
 namespace ires.Domain.Contracts
 {
     public interface IClientService
     {
-        public Task<ClientViewModel> Create(ClientRequestDto requestDto);
-        public Task<bool> Update(ClientRequestDto requestDto);
-        public Task<ClientViewModel> GetByID(long id);
-        public Task<ICollection<ClientViewModel>> GetClients(int companyid, string search);
-        public Task<ClientViewModel> GetClientByName(int companyid, string lname, string fname);
-        public Task<int> GetCountClientAsync(int companyid);
+        public Task<Client> Create(Client request);
+        public Task Update(Client request);
+        public Task<Client> GetByID(long id);
+        public Task<PaginatedResult<Client>> GetClients(PaginationRequest request);
+        public Task<bool> IsClientNameUnique(string lname, string fname);
+        public Task<int> GetCountClientAsync();
     }
 }

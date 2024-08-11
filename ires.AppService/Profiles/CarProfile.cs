@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
+using ires.Application.Commands.Car;
+using ires.Application.ViewModels;
 using ires.AppService.Dto.Car;
-using ires.CarRental.Commands.Car;
-using ires.CarRental.ViewModels;
 using ires.Domain.Models;
 using Entities = ires.Infrastructure.Entities;
 

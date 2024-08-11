@@ -42,7 +42,7 @@
     <PackageReference Include="DinkToPdf" Version="1.0.8" />
     <PackageReference Include="EntityFramework" Version="6.5.1" />
     <PackageReference Include="MailKit" Version="4.7.1.1" />
-    <PackageReference Include="MediatR" Version="12.4.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.7" />
@@ -59,6 +59,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ires.AppService\ires.AppService.csproj" />
+    <ProjectReference Include="..\ires.CarRental\ires.Application.csproj" />
     <ProjectReference Include="..\ires.Domain\ires.Domain.csproj" />
     <ProjectReference Include="..\ires.Infrastructure\ires.Infrastructure.csproj" />
   </ItemGroup>
