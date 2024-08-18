@@ -16,6 +16,5 @@
         public string? username { get; set; }
         public string userpass { get; set; } = string.Empty;
         public string? designation { get; set; }
-        public long? createdbyid { get; set; }
     }
 }

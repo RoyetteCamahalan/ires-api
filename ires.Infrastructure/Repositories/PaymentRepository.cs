@@ -1,37 +1,39 @@
 ﻿using AutoMapper;
 using ires.Domain;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Payment;
 using ires.Domain.Enumerations;
+using ires.Domain.Exceptions;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
+using ires.Infrastructure.Extensions;
+using ires.Infrastructure.Keyless;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class PaymentRepository : IPaymentService
+    public class PaymentRepository(
+        DataContext _dataContext,
+        IMapper _mapper,
+        IRentalService _rentalService,
+        ILogService _logService,
+        ICurrentUserService _currentUserService) : IPaymentService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-        private readonly IRentalService _rentalService;
-        private readonly ILogService _logService;
-
-        public PaymentRepository(DataContext dataContext, IMapper mapper, IRentalService rentalService, ILogService logService)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-            _rentalService = rentalService;
-            _logService = logService;
-        }
 
         public async Task<PaymentViewModel> Create(PaymentRequestDto requestDto)
         {
             Payment payment = _mapper.Map<Payment>(requestDto);
             payment.paymentid = 0;
             payment.status = PaymentStatus.paid;
+            payment.companyid = _currentUserService.companyid;
+            payment.encodedby = _currentUserService.employeeid;
             if (payment.transtype == Constants.PaymentTransType.creditMemo)
             {
-                payment.orno = (await _dataContext.payments.Where(x => x.companyid == requestDto.companyid && x.transtype == Constants.PaymentTransType.creditMemo)
+                payment.orno = (await _dataContext.payments.Where(x => x.companyid == _currentUserService.companyid
+                    && x.transtype == Constants.PaymentTransType.creditMemo)
                     .MaxAsync(x => (long?)x.orno) ?? 0) + 1;
                 payment.receiptno = "CN" + payment.orno.ToString();
             }
@@ -105,10 +107,15 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<PaymentViewModel>(payment);
         }
 
-        public async Task<ICollection<PayableViewModel>> GetPayables(long clientID, string search)
+        public async Task<PaginatedResult<PayableViewModel>> GetPayables(long clientID, PaginationRequest request)
         {
-            var result = await _dataContext.payables.FromSqlRaw("exec spWebReports @operation=0, @soperation=1, @clientid = {0}, @search =  {1}", clientID, search).ToListAsync();
-            return _mapper.Map<ICollection<PayableViewModel>>(result);
+            var result = await _dataContext.payables.
+                FromSqlRaw("exec spWebReports @operation=0, @soperation=1, @clientid=@clientid, @search=@search",
+                [
+                    new SqlParameter("@clientid", SqlDbType.BigInt) { Value = clientID },
+                    new SqlParameter("@search", SqlDbType.VarChar) { Value = request.searchString }
+                ]).ToListAsync();
+            return result.AsPaginatedResult<Payable, PayableViewModel>(request, _mapper);
         }
 
         public async Task<PaymentViewModel> GetPayment(long paymentID)
@@ -125,7 +132,8 @@ namespace ires.Infrastructure.Repositories
         {
             return await _dataContext.payments.Include(x => x.client)
                 .Include(x => x.paymentDetails)
-                .Include(x => x.createdBy).Where(x => x.paymentid == paymentID).FirstOrDefaultAsync();
+                .Include(x => x.createdBy).Where(x => x.paymentid == paymentID).FirstOrDefaultAsync()
+                ?? throw new EntityNotFoundException();
         }
 
         public async Task<ICollection<PaymentDetailViewModel>> GetPaymentDetails(long paymentID)
@@ -135,33 +143,43 @@ namespace ires.Infrastructure.Repositories
         }
         public async Task<ICollection<PayableViewModel>> GetPaymentDetailsAsPayables(long paymentID)
         {
-            var result = await _dataContext.payables.FromSqlRaw("exec spWebReports @operation=0, @soperation=2, @paymentid = {0}", paymentID).ToListAsync();
+            var result = await _dataContext.payables
+                .FromSqlRaw("exec spWebReports @operation=0, @soperation=2, @paymentid=@paymentid",
+                [
+                    new SqlParameter("@paymentid", SqlDbType.BigInt) { Value = paymentID },
+                ]).ToListAsync();
             return _mapper.Map<ICollection<PayableViewModel>>(result);
         }
 
-        public async Task<ICollection<PaymentViewModel>> GetPayments(int companyID, string search, DateTime startDate, DateTime endDate)
+        public async Task<PaginatedResult<PaymentViewModel>> GetPayments(PaginationRequest request)
         {
-            var result = await _dataContext.payments.Include(x => x.client)
-                .Where(x => x.companyid == companyID && x.transtype == Constants.PaymentTransType.payment && x.paymentdate >= startDate.Date && x.paymentdate <= endDate.Date
-                    && ((x.client.fname + x.client.lname).Contains(search) || x.receiptno.Contains(search)))
+            var query = _dataContext.payments.Include(x => x.client)
+                .Where(x => x.companyid == _currentUserService.companyid
+                && x.transtype == Constants.PaymentTransType.payment && x.paymentdate >= request.startDate.Date
+                && x.paymentdate <= request.endDate.Date
+                && ((x.client.fname + x.client.lname).Contains(request.searchString) || x.receiptno.Contains(request.searchString)))
                 .OrderByDescending(x => x.paymentdate)
-                .ThenByDescending(x => x.datecreated).ToListAsync();
-            return _mapper.Map<ICollection<PaymentViewModel>>(result);
+                .ThenByDescending(x => x.datecreated).AsQueryable();
+            return await query.AsPaginatedResult<Payment, PaymentViewModel>(request, _mapper.ConfigurationProvider);
         }
 
-        public async Task<ICollection<PaymentViewModel>> GetCreditNotes(int companyID, string search, DateTime startDate, DateTime endDate)
+        public async Task<PaginatedResult<PaymentViewModel>> GetCreditNotes(PaginationRequest request)
         {
-            var result = await _dataContext.payments.Include(x => x.client)
-                .Where(x => x.companyid == companyID && x.transtype == Constants.PaymentTransType.creditMemo && x.paymentdate >= startDate.Date && x.paymentdate <= endDate.Date
-                    && (x.client.fname + x.client.lname).Contains(search) && x.receiptno.Contains(search))
+            var query = _dataContext.payments.Include(x => x.client)
+                .Where(x => x.companyid == _currentUserService.companyid
+                && x.transtype == Constants.PaymentTransType.creditMemo
+                && x.paymentdate >= request.startDate.Date && x.paymentdate <= request.endDate.Date
+                && (x.client.fname + x.client.lname).Contains(request.searchString) && x.receiptno.Contains(request.searchString))
                 .OrderByDescending(x => x.paymentdate)
-                .ThenByDescending(x => x.datecreated).ToListAsync();
-            return _mapper.Map<ICollection<PaymentViewModel>>(result);
+                .ThenByDescending(x => x.datecreated).AsQueryable();
+            return await query.AsPaginatedResult<Payment, PaymentViewModel>(request, _mapper.ConfigurationProvider);
         }
 
-        public async Task<long> GetReceiptNo(int companyID, ReceiptType receiptType)
+        public async Task<long> GetReceiptNo(ReceiptType receiptType)
         {
-            return (await _dataContext.payments.Where(x => x.companyid == companyID && x.transtype == Constants.PaymentTransType.payment && x.receipttype == receiptType).MaxAsync(x => (long?)x.orno) ?? 0) + 1;
+            return (await _dataContext.payments.Where(x => x.companyid == _currentUserService.companyid
+                && x.transtype == Constants.PaymentTransType.payment && x.receipttype == receiptType)
+                .MaxAsync(x => (long?)x.orno) ?? 0) + 1;
         }
 
         public async Task<ICollection<PaymentDetailViewModel>> GetSurveyPaymentDetails(long surveyID)
@@ -171,36 +189,33 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<ICollection<PaymentDetailViewModel>>(result);
         }
 
-        public async Task<bool> IsDuplicateReceipt(int companyID, ReceiptType receiptType, long receiptNo)
+        public async Task<bool> IsDuplicateReceipt(ReceiptType receiptType, long receiptNo)
         {
-            return await _dataContext.payments.AnyAsync(x => x.companyid == companyID && x.transtype == Constants.PaymentTransType.payment && x.receipttype == receiptType && x.status != PaymentStatus.@void && x.orno == receiptNo);
+            return await _dataContext.payments.AnyAsync(x => x.companyid == _currentUserService.companyid
+                && x.transtype == Constants.PaymentTransType.payment && x.receipttype == receiptType
+                && x.status != PaymentStatus.@void && x.orno == receiptNo);
         }
 
-        public async Task<bool> VoidPayment(long paymentID, long employeeid, string remarks)
+        public async Task VoidPayment(long paymentID, string remarks)
         {
             var entity = await GetPaymentByID(paymentID);
-            if (entity != null)
+            entity.status = PaymentStatus.@void;
+            entity.voidremarks = remarks;
+            await _dataContext.SaveChangesAsync();
+            foreach (var detail in entity.paymentDetails)
             {
-                entity.status = PaymentStatus.@void;
-                entity.voidremarks = remarks;
-                await _dataContext.SaveChangesAsync();
-                foreach (var detail in entity.paymentDetails)
+                if (detail.payableType == AppModule.Surveying)
                 {
-                    if (detail.payableType == AppModule.Surveying)
-                    {
-                        var survey = await _dataContext.surveys.FindAsync(detail.surveyid);
-                        survey.balance += detail.amount;
-                        if (survey.balance > 0 && survey.status == SurveyStatus.completed)
-                            survey.status = SurveyStatus.surveyed;
-                    }
-                    else if (detail.payableType == AppModule.Rentals)
-                        await _rentalService.RecomputeContract(detail.rentalid);
+                    var survey = await _dataContext.surveys.FindAsync(detail.surveyid);
+                    survey.balance += detail.amount;
+                    if (survey.balance > 0 && survey.status == SurveyStatus.completed)
+                        survey.status = SurveyStatus.surveyed;
                 }
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.companyid, employeeid, AppModule.Payments, "Void Payment", "Void Payment ID: " + paymentID, 0);
-                return true;
+                else if (detail.payableType == AppModule.Rentals)
+                    await _rentalService.RecomputeContract(detail.rentalid);
             }
-            return false;
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Payments, "Void Payment", "Void Payment ID: " + paymentID);
         }
     }
 }

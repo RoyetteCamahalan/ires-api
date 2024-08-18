@@ -5,7 +5,7 @@ using ires.Domain.Contracts;
 using ires.Domain.Enumerations;
 using ires.Domain.Exceptions;
 using ires.Domain.Models;
-using ires.Infrastructure.Common;
+using ires.Infrastructure.Extensions;
 using ires.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +35,7 @@ namespace ires.Infrastructure.Repositories
         public async Task<PaginatedResult<Car>> GetAllCars(PaginationRequest request)
         {
             var query = _dataContext.cars.Include(x => x.carType)
-                .Where(x => (x.name.Contains(request.Search) || x.platenumber.Contains(request.Search))).AsQueryable();
+                .Where(x => (x.name.Contains(request.searchString) || x.platenumber.Contains(request.searchString))).AsQueryable();
             return await query.AsPaginatedResult<Entities.Car, Car>(request, _mapper.ConfigurationProvider);
         }
 

@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using ires.Domain;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.CreditNote;
 using ires.Domain.Enumerations;
+using ires.Domain.Exceptions;
+using ires.Infrastructure.Extensions;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using ires.Infrastructure.Seeders;
@@ -10,71 +13,62 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class CreditNoteRepository : ICreditNoteService
+    public class CreditNoteRepository(DataContext _dataContext,
+        ICurrentUserService _currentUserService,
+        ILogService _logService,
+        IMapper _mapper) : ICreditNoteService
     {
-        private readonly DataContext _dataContext;
-        private readonly ILogService _logService;
-        private readonly IMapper _mapper;
 
-        public CreditNoteRepository(DataContext dataContext, ILogService logService, IMapper mapper)
-        {
-            _dataContext = dataContext;
-            _logService = logService;
-            _mapper = mapper;
-        }
         public async Task<CreditMemoTypeViewModel> CreateType(CreditMemoTypeRequestDto requestDto)
         {
             var entity = _mapper.Map<CreditMemoType>(requestDto);
             entity.id = 0;
+            entity.companyid = _currentUserService.companyid;
+            entity.createdbyid = _currentUserService.employeeid;
             entity.datecreated = Utility.GetServerTime();
             _dataContext.creditMemoTypes.Add(entity);
             await _dataContext.SaveChangesAsync();
-            await _logService.SaveLogAsync(entity.companyid, requestDto.createdbyid, AppModule.CreditNotes, "Create Credit Memo Type", "ID : " + entity.id + "-" + entity.name, 0);
+            await _logService.SaveLogAsync(AppModule.CreditNotes, "Create Credit Memo Type", "ID : " + entity.id + "-" + entity.name);
             return _mapper.Map<CreditMemoTypeViewModel>(entity);
         }
 
 
         public async Task<CreditMemoType> GetTypeByID(long id)
         {
-            return await _dataContext.creditMemoTypes.FindAsync(id);
+            return await _dataContext.creditMemoTypes.FindAsync(id) ?? throw new EntityNotFoundException();
         }
         public async Task<CreditMemoTypeViewModel> GetType(long id)
         {
             return _mapper.Map<CreditMemoTypeViewModel>(await GetTypeByID(id));
         }
 
-        public async Task<CreditMemoTypeViewModel> GetTypeByName(int companyID, string name)
+        public async Task<CreditMemoTypeViewModel> GetTypeByName(string name)
         {
-            var result = await _dataContext.creditMemoTypes.Where(x => x.companyid == companyID && x.name == name).FirstOrDefaultAsync();
+            var result = await _dataContext.creditMemoTypes.Where(x => x.companyid == _currentUserService.companyid && x.name == name).FirstOrDefaultAsync();
             return _mapper.Map<CreditMemoTypeViewModel>(result);
         }
 
-        public async Task<ICollection<CreditMemoTypeViewModel>> GetTypes(int companyID, string search, bool viewAll)
+        public async Task<PaginatedResult<CreditMemoTypeViewModel>> GetTypes(PaginationRequest request)
         {
-            var result = await _dataContext.creditMemoTypes.Where(x => x.companyid == companyID && x.name.Contains(search) && (x.isactive || viewAll)).OrderBy(x => x.name).ToListAsync();
-            if (result.Count == 0 && search == "")
+            var query = _dataContext.creditMemoTypes.Where(x => x.companyid == _currentUserService.companyid &&
+                x.name.Contains(request.searchString) && (x.isactive || request.viewAll)).OrderBy(x => x.name).AsQueryable();
+            if (!query.Any() && request.search == "")
             {
                 var seeder = new CreditMemoTypeSeeder(_dataContext);
-                await seeder.Seed(companyID);
-                return await GetTypes(companyID, search, viewAll);
+                await seeder.Seed(_currentUserService.companyid);
+                return await GetTypes(request);
             }
-            return _mapper.Map<ICollection<CreditMemoTypeViewModel>>(result);
+            return await query.AsPaginatedResult<CreditMemoType, CreditMemoTypeViewModel>(request, _mapper.ConfigurationProvider);
         }
 
-        public async Task<bool> UpdateType(CreditMemoTypeRequestDto requestDto)
+        public async Task UpdateType(CreditMemoTypeRequestDto requestDto)
         {
-            var entity = await GetTypeByID(requestDto.id);
-            if (entity != null)
-            {
-                entity.name = requestDto.name;
-                entity.isactive = requestDto.isactive;
-                entity.updatedbyid = requestDto.updatedbyid;
-                entity.dateupdated = Utility.GetServerTime();
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.companyid, requestDto.updatedbyid, AppModule.CreditNotes, "Update Credit Note Type", "ID : " + entity.id + "-" + entity.name, 0);
-                return true;
-            }
-            return false;
+            var entity = await GetTypeByID(requestDto.id); entity.name = requestDto.name;
+            entity.isactive = requestDto.isactive;
+            entity.updatedbyid = _currentUserService.employeeid;
+            entity.dateupdated = Utility.GetServerTime();
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.CreditNotes, "Update Credit Note Type", "ID : " + entity.id + "-" + entity.name);
         }
     }
 }

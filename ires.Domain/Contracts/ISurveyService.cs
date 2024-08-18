@@ -1,4 +1,5 @@
-﻿using ires.Domain.DTO.Survey;
+﻿using ires.Domain.Common;
+using ires.Domain.DTO.Survey;
 using ires.Domain.Enumerations;
 
 namespace ires.Domain.Contracts
@@ -6,12 +7,12 @@ namespace ires.Domain.Contracts
     public interface ISurveyService
     {
         public Task<SurveyViewModel> Create(SurveyRequestDto requestDto);
-        public Task<bool> Update(SurveyRequestDto requestDto);
-        public Task<bool> UpdateStatus(long ID, SurveyStatus status);
-        public Task<ICollection<SurveyViewModel>> GetSurveys(int companyID, string search);
+        public Task Update(SurveyRequestDto requestDto);
+        public Task UpdateStatus(long ID, SurveyStatus status);
+        public Task<PaginatedResult<SurveyViewModel>> GetSurveys(PaginationRequest request);
         public Task<SurveyViewModel> GetByID(long id);
-        public Task<int> CountPending(int companyID);
-        public Task<int> CountCompleted(int companyID);
+        public Task<int> CountPending();
+        public Task<int> CountCompleted();
 
     }
 }

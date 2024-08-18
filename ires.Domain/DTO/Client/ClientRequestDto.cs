@@ -1,0 +1,15 @@
+﻿namespace ires.Domain.DTO.Client
+{
+    public class ClientRequestDto
+    {
+        public long custid { get; set; }
+        public string lname { get; set; } = string.Empty;
+        public string fname { get; set; } = string.Empty;
+        public string mname { get; set; } = string.Empty;
+        public DateTime? birthdate { get; set; }
+        public string address { get; set; } = string.Empty;
+        public string contactno { get; set; } = string.Empty;
+        public string tinnumber { get; set; } = string.Empty;
+        public string email { get; set; } = string.Empty;
+    }
+}

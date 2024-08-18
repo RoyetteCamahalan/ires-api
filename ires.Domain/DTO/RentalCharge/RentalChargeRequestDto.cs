@@ -8,7 +8,5 @@
         public DateTime chargedate { get; set; }
         public decimal chargeamount { get; set; }
         public decimal interestpercentage { get; set; }
-        public long createdbyid { get; set; }
-        public long updatedbyid { get; set; }
     }
 }

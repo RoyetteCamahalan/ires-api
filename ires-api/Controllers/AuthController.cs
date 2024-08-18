@@ -22,7 +22,8 @@ namespace ires_api.Controllers
         ICompanyService _companyService,
         IMapper _mapper,
         ILogService _logService,
-        IMailService _mailService) : ControllerBase
+        IMailService _mailService,
+        ICurrentUserService _currentUserService) : ControllerBase
     {
 
         [HttpGet("testconnection")]
@@ -55,7 +56,7 @@ namespace ires_api.Controllers
             if (employee == null)
             {
                 response.Success = false;
-                response.Message = "Invalid login credentials";
+                response.message = "Invalid login credentials";
                 return BadRequest(response);
             }
             else if (employee != null && !(employee.company?.isverified ?? false))
@@ -63,7 +64,7 @@ namespace ires_api.Controllers
                 response.Data = _mapper.Map<UserLoginViewModel>(employee);
                 response.Success = false;
                 response.errorCode = 1;
-                response.Message = "Your account is unverified. Please check your email.";
+                response.message = "Your account is unverified. Please check your email.";
                 return BadRequest(response);
             }
 
@@ -82,14 +83,14 @@ namespace ires_api.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, employee.username ?? ""),
-                new Claim(ClaimTypes.PrimarySid, employee.employeeid.ToString()),
-                new Claim(ClaimTypes.PrimaryGroupSid, employee.companyid.ToString()),
-                new Claim(ClaimTypes.Email, employee.email ?? ""),
-                new Claim(ClaimTypes.GivenName, employee.firstname ?? ""),
-                new Claim(ClaimTypes.Surname, employee.lastname ?? ""),
-                new Claim(ClaimTypes.Role, (employee.isappsysadmin) ? "Admin" : "User")
-            };
+                    new Claim(ClaimTypes.NameIdentifier, employee.username ?? ""),
+                    new Claim(ClaimTypes.PrimarySid, employee.employeeid.ToString()),
+                    new Claim(ClaimTypes.PrimaryGroupSid, employee.companyid.ToString()),
+                    new Claim(ClaimTypes.Email, employee.email ?? ""),
+                    new Claim(ClaimTypes.GivenName, employee.firstname ?? ""),
+                    new Claim(ClaimTypes.Surname, employee.lastname ?? ""),
+                    new Claim(ClaimTypes.Role, (employee.isappsysadmin) ? "Admin" : "User")
+                };
             var token = new JwtSecurityToken(_configuration["Jwt.Issuer"],
                 _configuration["Jwt.Audience"],
                 claims,
@@ -102,37 +103,30 @@ namespace ires_api.Controllers
         public async Task<IActionResult> SystemOverride(UserLoginRequestDto requestDto)
         {
             var response = new ServerResponse<UserLoginViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                response.Success = false;
-                response.Message = "Unable to process request";
-                return BadRequest(response);
-            }
             var employee = await _employeeService.LoginAsync(requestDto.username, ires.Domain.Utility.GetHash(requestDto.password));
 
             if (employee == null)
             {
                 response.Success = false;
-                response.Message = "Invalid login credentials";
+                response.message = "Invalid login credentials";
                 return BadRequest(response);
             }
-            else if (employee != null && employee.companyid != (identity.companyid ?? 0))
+            else if (employee != null && employee.companyid != (_currentUserService.companyid))
             {
                 response.Success = false;
-                response.Message = "Invalid login credentials";
+                response.message = "Invalid login credentials";
                 return BadRequest(response);
             }
             else if (employee != null && !(employee.company?.isverified ?? false))
             {
                 response.Success = false;
-                response.Message = "Your account is unverified. Please check your email.";
+                response.message = "Your account is unverified. Please check your email.";
                 return BadRequest(response);
             }
             else if (employee != null && !(employee.isappsysadmin))
             {
                 response.Success = false;
-                response.Message = "Your account is not an Admin.";
+                response.message = "Your account is not an Admin.";
                 return BadRequest(response);
             }
 
@@ -149,13 +143,13 @@ namespace ires_api.Controllers
             if (employee == null)
             {
                 response.Success = false;
-                response.Message = "Sorry, we couldn't find you email in our list";
+                response.message = "Sorry, we couldn't find you email in our list";
                 return BadRequest(response);
             }
             if (!(employee.isactive) || !(employee.company.isverified))
             {
                 response.Success = false;
-                response.Message = "Sorry, your account is not active or unverified";
+                response.message = "Sorry, your account is not active or unverified";
                 return BadRequest(response);
             }
             string token = await _employeeService.CreatePasswordResetToken(employee.employeeid);
@@ -186,7 +180,7 @@ namespace ires_api.Controllers
             if (employee == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Sorry, your password reset link is expired";
+                serverResponse.message = "Sorry, your password reset link is expired";
                 return BadRequest(serverResponse);
             }
             await _employeeService.ChangePassword(employee.employeeid, ires.Domain.Utility.GetHash(requestDto.newuserpass), true);

@@ -32,13 +32,13 @@ namespace ires_api.Common
                 }
                 catch (Exception ex)
                 {
-                    result.Message = ex.Message;
+                    result.message = ex.Message;
                     //return FilterException(ex);
                 }
             }
             else
             {
-                result.Message = ModelState.Values.SelectMany(m => m.Errors)
+                result.message = ModelState.Values.SelectMany(m => m.Errors)
                     .Select(e => e.ErrorMessage).FirstOrDefault("");
             }
 

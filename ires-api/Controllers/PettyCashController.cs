@@ -1,4 +1,5 @@
 ﻿using ires.AppService.Common;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.CashDisbursement;
@@ -21,7 +22,7 @@ namespace ires_api.Controllers
             if (result == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Record not found";
+                serverResponse.message = "Record not found";
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
@@ -29,14 +30,12 @@ namespace ires_api.Controllers
         }
 
         [HttpGet("getall")]
-        public async Task<IActionResult> GetAll(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
+        public async Task<IActionResult> GetAll([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<CashDisbursementViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _pettyCashService.GetCashDisbursements(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<CashDisbursementViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<CashDisbursementViewModel>>
+            {
+                Data = await _pettyCashService.GetCashDisbursements(request)
+            };
             return Ok(serverResponse);
 
         }
@@ -45,8 +44,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetAccountHistory(long id, DateTime startDate, DateTime endDate)
         {
             var serverResponse = new ServerResponse<ICollection<PettyCashAccountHistoryViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _pettyCashService.GetAccountHistory(identity.companyid ?? 0, id, startDate, endDate);
+            var result = await _pettyCashService.GetAccountHistory(id, startDate, endDate);
             serverResponse.Data = result;
             return Ok(serverResponse);
 
@@ -55,24 +53,21 @@ namespace ires_api.Controllers
         public async Task<IActionResult> Post([FromBody] CashDisbursementRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<CashDisbursementViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (requestDto.transtype == DisbursementTransType.transferout)
             {
                 var office = await _accountService.GetOfficeByID(requestDto.accountid);
                 if (office.pettycashbalance < requestDto.amount)
                 {
                     serverResponse.Success = false;
-                    serverResponse.Message = "Insufficient petty cash balance";
+                    serverResponse.message = "Insufficient petty cash balance";
                     return BadRequest(serverResponse);
                 }
             }
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdbyid = identity.employeeid;
             var result = await _pettyCashService.Create(requestDto);
             if (result == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
+                serverResponse.message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
@@ -83,14 +78,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> VoidDisbursement([FromBody] IDRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _pettyCashService.VoidDisbursement(requestDto.id, false, identity.employeeid);
-            serverResponse.Data = serverResponse.Success;
-            if (!serverResponse.Success)
-            {
-                serverResponse.Message = "Record not found";
-                return BadRequest(serverResponse);
-            }
+            await _pettyCashService.VoidDisbursement(requestDto.id, false);
             return Ok(serverResponse);
         }
     }

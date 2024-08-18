@@ -6,5 +6,6 @@
         public int currentPage { get; set; }
         public int totalRecord { get; set; }
         public int totalPages { get; set; }
+        public string info { get; set; } = string.Empty;
     }
 }

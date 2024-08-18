@@ -4,10 +4,10 @@ namespace ires.Domain.Contracts
 {
     public interface IAppService
     {
-        public Task<ICollection<NotificationViewModel>> GetNotifications(long employeeID);
+        public Task<ICollection<NotificationViewModel>> GetNotifications();
         public Task MarkAsReadNotif(long id);
-        public Task MarkAllAsReadNotif(long employeeID);
-        public Task<ICollection<EventViewModel>> GetEvents(int companyID, DateTime startDate, DateTime endDate);
+        public Task MarkAllAsReadNotif();
+        public Task<ICollection<EventViewModel>> GetEvents(DateTime startDate, DateTime endDate);
 
         public Task ReloadRentalContracts();
         public Task ReloadSubscriptions();

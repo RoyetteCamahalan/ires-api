@@ -4,14 +4,21 @@ using DinkToPdf.Contracts;
 using ires.Domain;
 using ires.Domain.Common;
 using ires.Domain.Contracts;
+using ires.Domain.DTO;
+using ires.Domain.DTO.Payment;
+using ires.Domain.DTO.RentalCharge;
+using ires.Domain.DTO.RentalContract;
+using ires.Domain.DTO.RentalContractDetail;
+using ires.Domain.DTO.RentalUnit;
 using ires.Domain.Enumerations;
 using ires.Domain.Exceptions;
-using ires.Domain.Models;
-using ires.Infrastructure.Common;
 using ires.Infrastructure.Data;
+using ires.Infrastructure.Entities;
+using ires.Infrastructure.Extensions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Data;
 
 namespace ires.Infrastructure.Repositories
 {
@@ -26,20 +33,22 @@ namespace ires.Infrastructure.Repositories
         ILogService _logService) : IRentalService
     {
 
-        public async Task<RentalContract> Create(RentalContract request)
+        public async Task<RentalContractViewModel> Create(RentalContractRequestDto requestDto)
         {
-            var entity = _mapper.Map<Entities.RentalContract>(request);
+            var entity = _mapper.Map<RentalContract>(requestDto);
+            entity.contractid = 0;
             entity.status = RentStatus.Active;
-            entity.datecreated = Utility.GetServerTime();
             entity.companyid = _currentUserService.companyid;
             entity.createdbyid = _currentUserService.employeeid;
+            entity.datecreated = Utility.GetServerTime();
             entity.contractno = (_dataContext.rentalContracts.Max(x => (long?)x.contractno) ?? 0) + 1;
             entity.advancerent = entity.noofmonthadvance * entity.montlyrent;
             entity.rentalContractDetails = [];
-            foreach (var item in request.rentalContractDetails)
+            foreach (var item in requestDto.rentalContractDetails)
             {
-                entity.rentalContractDetails.Add(new Entities.RentalContractDetail
+                entity.rentalContractDetails.Add(new RentalContractDetail
                 {
+                    id = 0,
                     propertyid = item.propertyid,
                     datecreated = Utility.GetServerTime(),
                     createdbyid = entity.createdbyid
@@ -47,43 +56,43 @@ namespace ires.Infrastructure.Repositories
             }
             _dataContext.rentalContracts.Add(entity);
             await _dataContext.SaveChangesAsync();
-            await _logService.SaveLogAsync(_currentUserService.companyid, _currentUserService.employeeid, AppModule.Rentals, "Create Rental Contract", "Create New Record : " + entity.contractid, 0);
-            foreach (var item in request.rentalContractDetails)
+            await _logService.SaveLogAsync(AppModule.Rentals, "Create Rental Contract", "Create New Record : " + entity.contractid);
+            foreach (var item in requestDto.rentalContractDetails)
             {
                 await _projectService.UpdateRentalUnitStatus(item.propertyid, RentalPropertyStatus.Occupied);
             }
             await RecomputeContract(entity.contractid);
-            return _mapper.Map<RentalContract>(entity);
+            return _mapper.Map<RentalContractViewModel>(entity);
         }
 
-        public async Task<RentalContract> Get(long contractID)
+        public async Task<RentalContractViewModel> Get(long contractID)
         {
             var entity = await GetContractById(contractID);
-            return _mapper.Map<RentalContract>(entity);
+            return _mapper.Map<RentalContractViewModel>(entity);
         }
 
-        public async Task<PaginatedResult<RentalContract>> GetAll(PaginationRequest request)
+        public async Task<PaginatedResult<RentalContractViewModel>> GetAll(PaginationRequest request)
         {
             var query = _dataContext.rentalContracts.Include(x => x.client).Include(x => x.rentalContractDetails).ThenInclude(x => x.rentalProperty)
                 .Where(x => x.companyid == _currentUserService.companyid
-                && (request.filterByID == 2 || (int)x.status == request.filterByID || (request.filterByID == 3 && x.totalbalance > 0))
-                && (x.client.lname.Contains(request.Search) || x.client.fname.Contains(request.Search) || x.remarks.Contains(request.Search)))
+                && (request.filterBy == 2 || (int)x.status == request.filterBy || (request.filterBy == 3 && x.totalbalance > 0))
+                && (x.client.lname.Contains(request.searchString) || x.client.fname.Contains(request.searchString) || x.remarks.Contains(request.searchString)))
                 .OrderByDescending(x => x.contractno).AsQueryable();
-            return await query.AsPaginatedResult<Entities.RentalContract, RentalContract>(request, _mapper.ConfigurationProvider); ;
+            return await query.AsPaginatedResult<RentalContract, RentalContractViewModel>(request, _mapper.ConfigurationProvider);
         }
 
-        public async Task<ICollection<RentalContractDetail>> GetDetails(long contractID)
+        public async Task<ICollection<RentalContractDetailViewModel>> GetDetails(long contractID)
         {
             var result = await _dataContext.rentalContractDetails.Include(x => x.rentalProperty).ThenInclude(x => x.project).Where(x => x.contractid == contractID)
                 .OrderBy(x => x.rentalProperty.project.propertyname).ToListAsync();
-            return _mapper.Map<ICollection<RentalContractDetail>>(result);
+            return _mapper.Map<ICollection<RentalContractDetailViewModel>>(result);
         }
 
-        public async Task<ICollection<RentalProperty>> GetProperties(long contractID)
+        public async Task<ICollection<RentalUnitViewModel>> GetProperties(long contractID)
         {
             var result = await _dataContext.rentalContractDetails.Include(x => x.rentalProperty).ThenInclude(x => x.project).Where(x => x.contractid == contractID)
                 .Select(x => x.rentalProperty).OrderBy(x => x.project.propertyname).ToListAsync();
-            return _mapper.Map<ICollection<RentalProperty>>(result);
+            return _mapper.Map<ICollection<RentalUnitViewModel>>(result);
         }
 
         public async Task<string> GetPropertiesAsString(long contractID)
@@ -106,58 +115,52 @@ namespace ires.Infrastructure.Repositories
             return string.Join(" ", strings) + ")";
         }
 
-        public async Task<bool> Update(RentalContract request)
+        public async Task Update(RentalContractRequestDto requestDto)
         {
-            var entity = await GetContractById(request.contractid);
-            if (entity != null)
+            var entity = await GetContractById(requestDto.contractid);
+            entity.custid = requestDto.custid;
+            entity.contractdate = requestDto.contractdate;
+            entity.billingsched = requestDto.billingsched > 0 ? requestDto.billingsched : entity.contractdate.Day;
+            entity.term = requestDto.term ?? 0;
+            entity.montlyrent = requestDto.montlyrent;
+            entity.monthlypenalty = requestDto.monthlypenalty ?? 0;
+            entity.penaltyextension = requestDto.penaltyextension ?? 0;
+            entity.noofmonthadvance = requestDto.noofmonthadvance ?? 0;
+            entity.deposit = requestDto.deposit ?? 0;
+            entity.advancerent = entity.noofmonthadvance * entity.montlyrent;
+            entity.remarks = requestDto.remarks;
+            entity.updatedbyid = _currentUserService.employeeid;
+            entity.dateupdated = Utility.GetServerTime();
+            var details = await GetContractDetails(entity.contractid);
+            foreach (var item in details)
             {
-                entity.custid = request.custid;
-                entity.contractdate = request.contractdate;
-                entity.billingsched = request.billingsched > 0 ? request.billingsched : entity.contractdate.Day;
-                entity.term = request.term;
-                entity.montlyrent = request.montlyrent;
-                entity.monthlypenalty = request.monthlypenalty;
-                entity.penaltyextension = request.penaltyextension;
-                entity.noofmonthadvance = request.noofmonthadvance;
-                entity.deposit = request.deposit;
-                entity.advancerent = entity.noofmonthadvance * entity.montlyrent;
-                entity.remarks = request.remarks;
-                entity.updatedbyid = _currentUserService.employeeid;
-                entity.dateupdated = Utility.GetServerTime();
-                var details = await GetContractDetails(entity.contractid);
-                foreach (var item in details)
+                if (!requestDto.rentalContractDetails.Where(x => x.propertyid == item.propertyid).Any())
                 {
-                    if (!request.rentalContractDetails.Where(x => x.propertyid == item.propertyid).Any())
-                    {
-                        _dataContext.rentalContractDetails.Remove(item);
-                        await _projectService.UpdateRentalUnitStatus(item.propertyid, RentalPropertyStatus.Vacant);
-                    }
+                    _dataContext.rentalContractDetails.Remove(item);
+                    await _projectService.UpdateRentalUnitStatus(item.propertyid, RentalPropertyStatus.Vacant);
                 }
-                foreach (var item in request.rentalContractDetails)
-                {
-                    if (!details.Where(x => x.propertyid == item.propertyid).Any())
-                    {
-                        var detail = _mapper.Map<Entities.RentalContractDetail>(item);
-                        detail.id = 0;
-                        detail.contractid = request.contractid;
-                        _dataContext.rentalContractDetails.Add(detail);
-                        await _projectService.UpdateRentalUnitStatus(detail.propertyid, RentalPropertyStatus.Occupied);
-                    }
-                }
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(AppModule.Rentals, "Update Rental Contract", "Update Record : " + request.contractid.ToString(), 0);
-                await RecomputeContract(request.contractid);
-                return true;
             }
-            return false;
+            foreach (var item in requestDto.rentalContractDetails)
+            {
+                if (!details.Where(x => x.propertyid == item.propertyid).Any())
+                {
+                    var detail = _mapper.Map<RentalContractDetail>(item);
+                    detail.id = 0;
+                    detail.contractid = requestDto.contractid;
+                    _dataContext.rentalContractDetails.Add(detail);
+                    await _projectService.UpdateRentalUnitStatus(detail.propertyid, RentalPropertyStatus.Occupied);
+                }
+            }
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Rentals, "Update Rental Contract", "Update Record : " + requestDto.contractid.ToString(), 0);
+            await RecomputeContract(requestDto.contractid);
         }
 
-        private async Task<Entities.RentalContract> GetContractById(long id)
+        private async Task<RentalContract> GetContractById(long id)
         {
-            return await _dataContext.rentalContracts.Include(x => x.client).Where(x => x.contractid == id).FirstOrDefaultAsync() ??
-                throw new EntityNotFoundException();
+            return await _dataContext.rentalContracts.Include(x => x.client).Where(x => x.contractid == id).FirstOrDefaultAsync() ?? throw new EntityNotFoundException();
         }
-        private async Task<ICollection<Entities.RentalContractDetail>> GetContractDetails(long contractID)
+        private async Task<ICollection<RentalContractDetail>> GetContractDetails(long contractID)
         {
             return await _dataContext.rentalContractDetails.Where(x => x.contractid == contractID).ToListAsync();
         }
@@ -171,86 +174,79 @@ namespace ires.Infrastructure.Repositories
             catch (Exception) { }
         }
 
-        public async Task<ICollection<RentalAccountHistory>> GetAccountHistory(long contractID)
+        public async Task<ICollection<RentalHistoryViewModel>> GetAccountHistory(long contractID)
         {
-
             var result = await _dataContext.rentalAccountHistories
-                .FromSqlRaw("exec spWebReports @operation = 0, @soperation = 0, @contractid = @contractId, @companyid = @companyId",
-                new SqlParameter("@contractId", contractID),
-                new SqlParameter("@companyId", _currentUserService.companyid))
-            .ToListAsync();
-            return _mapper.Map<ICollection<RentalAccountHistory>>(result);
+                .FromSqlRaw("exec spWebReports @operation=0, @soperation=0," +
+                " @contractid=@contractid, @companyid=@companyid",
+                [
+                    new SqlParameter("@contractid", SqlDbType.BigInt) { Value = contractID },
+                    new SqlParameter("@companyid", SqlDbType.BigInt) { Value = _currentUserService.companyid }
+                ])
+                .ToListAsync();
+            return _mapper.Map<ICollection<RentalHistoryViewModel>>(result);
         }
-        public async Task<ICollection<Payable>> GetSOA(long contractID)
+        public async Task<ICollection<PayableViewModel>> GetSOA(long contractID)
         {
             var result = await _dataContext.payables
-                .FromSqlRaw("exec spWebReports @operation = 0, @soperation = 3, @contractid = @contractId, @companyid = @companyId",
-                    new SqlParameter("@contractId", contractID),
-                    new SqlParameter("@companyId", _currentUserService.companyid))
+                .FromSqlRaw("exec spWebReports @operation=0, @soperation=3, " +
+                "@contractid=@contractid, @companyid=@companyid",
+                [
+                    new SqlParameter("@contractid", SqlDbType.BigInt) { Value = contractID },
+                    new SqlParameter("@companyid", SqlDbType.BigInt) { Value = _currentUserService.companyid }
+                ])
                 .ToListAsync();
-            return _mapper.Map<ICollection<Payable>>(result);
+            return _mapper.Map<ICollection<PayableViewModel>>(result);
         }
 
 
 
-
-
-        private async Task<Entities.RentalCharge> GetRentalChargeByID(long id)
+        private async Task<RentalCharge> GetRentalChargeByID(long id)
         {
             return await _dataContext.rentalCharges.Include(x => x.rentalContract).Include(x => x.otherFee).FirstOrDefaultAsync(x => x.chargeid == id) ??
-                throw new EntityNotFoundException();
+                throw new EntityNotFoundException(); ;
         }
 
-        public async Task<RentalCharge> CreateOtherCharge(RentalCharge request)
+        public async Task<RentalChargeViewModel> CreateOtherCharge(RentalChargeRequestDto requestDto)
         {
-            var entity = _mapper.Map<Entities.RentalCharge>(request);
+            var entity = _mapper.Map<RentalCharge>(requestDto);
+            entity.chargeid = 0;
             entity.chargetype = ChargeType.OtherFees;
             entity.createdbyid = _currentUserService.employeeid;
             entity.datecreated = Utility.GetServerTime();
             _dataContext.rentalCharges.Add(entity);
             await _dataContext.SaveChangesAsync();
-            var contract = await GetContractById(request.contractid);
-            await _logService.SaveLogAsync(AppModule.Rentals, "Posted New Fee", "Created new record: " + entity.chargeid + " Amount: " + entity.chargeamount, 0);
-            await RecomputeContract(request.contractid);
-            return _mapper.Map<RentalCharge>(entity);
+            await _logService.SaveLogAsync(AppModule.Rentals, "Posted New Fee", "Created new record: " + entity.chargeid + " Amount: " + entity.chargeamount);
+            await RecomputeContract(requestDto.contractid);
+            return _mapper.Map<RentalChargeViewModel>(entity);
         }
 
-        public async Task<bool> UpdateOtherCharge(RentalCharge request)
+        public async Task UpdateOtherCharge(RentalChargeRequestDto requestDto)
         {
-            var entity = await GetRentalChargeByID(request.chargeid);
-            if (entity != null)
-            {
-                entity.otherfeeid = request.otherfeeid;
-                entity.chargeamount = request.chargeamount;
-                entity.chargedate = request.chargedate;
-                entity.interestpercentage = request.interestpercentage;
-                entity.updatedbyid = _currentUserService.employeeid;
-                entity.dateupdated = Utility.GetServerTime();
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(AppModule.Rentals, "Update Other Fee", "Updated record: " + entity.chargeid + " Amount: " + entity.chargeamount, 0);
-                await RecomputeContract(request.contractid);
-                return true;
-            }
-            return false;
+            var entity = await GetRentalChargeByID(requestDto.chargeid);
+            entity.otherfeeid = requestDto.otherfeeid;
+            entity.chargeamount = requestDto.chargeamount;
+            entity.chargedate = requestDto.chargedate;
+            entity.interestpercentage = requestDto.interestpercentage;
+            entity.updatedbyid = _currentUserService.employeeid;
+            entity.dateupdated = Utility.GetServerTime();
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Rentals, "Update Other Fee", "Updated record: " + entity.chargeid + " Amount: " + entity.chargeamount);
+            await RecomputeContract(requestDto.contractid);
         }
 
-        public async Task<bool> DeleteOtherCharge(long id)
+        public async Task DeleteOtherCharge(long id)
         {
             var entity = await GetRentalChargeByID(id);
-            if (entity != null)
-            {
-                _dataContext.rentalCharges.Remove(entity);
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(AppModule.Rentals, "Removed Fee", "Removed record: " + entity.chargeid + " Name: " + entity.otherFee.name + " Amount: " + entity.chargeamount, 0);
-                await RecomputeContract(entity.contractid);
-                return true;
-            }
-            return false;
+            _dataContext.rentalCharges.Remove(entity);
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Rentals, "Removed Fee", "Removed record: " + entity.chargeid + " Name: " + entity.otherFee.name + " Amount: " + entity.chargeamount, 0);
+            await RecomputeContract(entity.contractid);
         }
 
-        public async Task<RentalCharge> GetRentalCharge(long id)
+        public async Task<RentalChargeViewModel> GetRentalCharge(long id)
         {
-            return _mapper.Map<RentalCharge>(await GetRentalChargeByID(id));
+            return _mapper.Map<RentalChargeViewModel>(await GetRentalChargeByID(id));
 
         }
 
@@ -259,59 +255,50 @@ namespace ires.Infrastructure.Repositories
             return _dataContext.paymentDetails.Include(x => x.payment).Where(x => x.rentalchargeid == id && x.payment.status == PaymentStatus.paid).AnyAsync();
         }
 
-        public async Task<bool> UpdateContractStatus(RentalContract request)
+        public async Task UpdateContractStatus(RentalTerminateRequestDto requestDto)
         {
-            var entity = await GetContractById(request.contractid);
-            if (entity != null)
+            var entity = await GetContractById(requestDto.contractid);
+            entity.status = requestDto.status;
+            entity.dateterminated = requestDto.status == RentStatus.Inactive ? requestDto.dateterminated : null;
+            entity.updatedbyid = _currentUserService.employeeid;
+            var contractDetails = await _dataContext.rentalContractDetails.Include(x => x.rentalProperty).Where(x => x.contractid == requestDto.contractid).ToListAsync();
+            foreach (var detail in contractDetails)
             {
-                entity.status = request.status;
-                entity.dateterminated = request.status == RentStatus.Inactive ? request.dateterminated : null;
-                entity.updatedbyid = _currentUserService.employeeid;
-                entity.dateupdated = Utility.GetServerTime();
-                var contractDetails = await _dataContext.rentalContractDetails.Include(x => x.rentalProperty).Where(x => x.contractid == request.contractid).ToListAsync();
-                foreach (var detail in contractDetails)
+                if (requestDto.status == RentStatus.Inactive)
                 {
-                    if (request.status == RentStatus.Inactive)
-                    {
-                        var hasOtherContract = await _dataContext.rentalContractDetails.Include(x => x.rentalContract).Where(x => x.rentalContract.status == RentStatus.Active && x.contractid != request.contractid && x.propertyid == detail.propertyid).AnyAsync();
-                        if (!hasOtherContract)
-                            detail.rentalProperty.status = RentalPropertyStatus.Vacant;
-                    }
-                    else
-                        detail.rentalProperty.status = RentalPropertyStatus.Occupied;
+                    var hasOtherContract = await _dataContext.rentalContractDetails.Include(x => x.rentalContract).Where(x => x.rentalContract.status == RentStatus.Active && x.contractid != requestDto.contractid && x.propertyid == detail.propertyid).AnyAsync();
+                    if (!hasOtherContract)
+                        detail.rentalProperty.status = RentalPropertyStatus.Vacant;
                 }
-                await _dataContext.SaveChangesAsync();
-                if (request.status == RentStatus.Inactive)
-                    await _logService.SaveLogAsync(entity.companyid, request.updatedbyid, AppModule.Rentals, "Contract Terminated", "Contract Terminated: " + entity.contractid, 0);
                 else
-                    await _logService.SaveLogAsync(entity.companyid, request.updatedbyid, AppModule.Rentals, "Contract Reactivated", "Contract Reactivated: " + entity.contractid, 0);
-                return true;
+                    detail.rentalProperty.status = RentalPropertyStatus.Occupied;
             }
-            return false;
+            await _dataContext.SaveChangesAsync();
+            if (requestDto.status == RentStatus.Inactive)
+                await _logService.SaveLogAsync(AppModule.Rentals, "Contract Terminated", "Contract Terminated: " + entity.contractid);
+            else
+                await _logService.SaveLogAsync(AppModule.Rentals, "Contract Reactivated", "Contract Reactivated: " + entity.contractid);
         }
 
         public async Task<int> CountActiveUnits()
         {
-            return await _dataContext.rentalProperties.Include(x => x.project)
-                .Where(x => x.project.companyid == _currentUserService.companyid && x.status != RentalPropertyStatus.Inactive).CountAsync();
+            return await _dataContext.rentalProperties.Include(x => x.project).Where(x => x.project.companyid == _currentUserService.companyid && x.status != RentalPropertyStatus.Inactive).CountAsync();
         }
 
         public async Task<int> CountAvailableUnits()
         {
-            return await _dataContext.rentalProperties.Include(x => x.project)
-                .Where(x => x.project.companyid == _currentUserService.companyid && x.status == RentalPropertyStatus.Vacant).CountAsync();
+            return await _dataContext.rentalProperties.Include(x => x.project).Where(x => x.project.companyid == _currentUserService.companyid && x.status == RentalPropertyStatus.Vacant).CountAsync();
         }
 
         public async Task<int> CountActiveContracts()
         {
-            return await _dataContext.rentalContracts
-                .Where(x => x.companyid == _currentUserService.companyid && x.status == RentStatus.Active).CountAsync();
+            return await _dataContext.rentalContracts.Where(x => x.companyid == _currentUserService.companyid && x.status == RentStatus.Active).CountAsync();
         }
 
-        public async Task<FileData> GenerateSOA(long contractid)
+        public async Task<FileDataViewModel> GenerateSOA(long contractid)
         {
-            var result = new FileData();
-            var data = await GetContractById(contractid);
+            var result = new FileDataViewModel();
+            var data = _mapper.Map<RentalContractViewModel>(await GetContractById(contractid));
             result.filename = "soa-" + contractid + ".pdf";
             result.filepath = "wwwroot/temp/rental";
             string path = Path.Combine(Directory.GetCurrentDirectory(), result.filepath);
@@ -327,16 +314,16 @@ namespace ires.Infrastructure.Repositories
                 if (company.logo != "")
                     logoDisplay = "inline-block";
 
-                var propertyList = await GetPropertiesAsString(contractid);
+                data.propertyList = await GetPropertiesAsString(contractid);
                 var body = html.Replace("logo_display", logoDisplay)
                     .Replace("{logo_path}", Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + company.id + "/" + company.logo))
                     .Replace("{companyname}", company.name)
                     .Replace("{companyaddress}", company.address)
                     .Replace("{companycontact}", company.contactno)
                     .Replace("{asofdate}", Utility.GetServerTime().ToString(Constants.dateFormat))
-                    .Replace("{customername}", data.client.fname + " " + data.client.lname)
+                    .Replace("{customername}", data.client.fullname)
                     .Replace("{customeraddress}", data.client.address)
-                    .Replace("{rentedproperty}", propertyList)
+                    .Replace("{rentedproperty}", data.propertyList)
                     .Replace("{contractno}", data.contractno.ToString())
                     .Replace("{contractdate}", data.contractdate.ToString(Constants.dateFormat))
                     .Replace("{billingsched}", "Every " + Utility.GetNumberRank(data.billingsched))
@@ -379,24 +366,22 @@ namespace ires.Infrastructure.Repositories
                 return null;
             }
         }
-        public async Task<bool> SendSOA(MailingInfo info)
+        public async Task<bool> SendSOA(SendMailRequestDto requestDto)
         {
-            var contract = await GetContractById(info.id);
+            var contract = _mapper.Map<RentalContractViewModel>(await GetContractById(requestDto.id));
             try
             {
-                var data = await GenerateSOA(info.id);
+                var data = await GenerateSOA(requestDto.id);
                 if (data == null)
                     return false;
                 var path = Path.Combine(Directory.GetCurrentDirectory(), data.fullpath);
                 var html = File.ReadAllText(@"./Templates/ClientSOAEmail.html");
-                var body = html.Replace("{main_link}", _configuration["uiBaseURL"]).Replace("{customername}", contract.client.fname + " " + contract.client.lname);
-                _mailService.SendEmailAsync("Statement Of Account", [info.email], body, [path], true);
-                await _logService.SaveLogAsync(contract.companyid, _currentUserService.employeeid, AppModule.Rentals, "SOA", $"Sent SOA to {info.email}", 0);
+                var body = html.Replace("{main_link}", _configuration["uiBaseURL"]).Replace("{customername}", contract.client.fullname);
+                _mailService.SendEmailAsync("Statement Of Account", [requestDto.email], body, [path], true);
+                await _logService.SaveLogAsync(AppModule.Rentals, "SOA", $"Sent SOA to {requestDto.email}", 0);
                 return true;
             }
-            catch (Exception)
-            {
-            }
+            catch (Exception) { }
             return false;
         }
     }

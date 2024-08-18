@@ -1,6 +1,6 @@
 ﻿using ires.AppService.Common;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
-using ires.Domain.DTO;
 using ires.Domain.DTO.OtherCharge;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,13 +12,12 @@ namespace ires_api.Controllers
     {
 
         [HttpGet]
-        public async Task<IActionResult> GetSurveyCharges(long surveyID, int currentPage, string? search = "")
+        public async Task<IActionResult> GetSurveyCharges(long surveyID, [FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<OtherChargeViewModel>>();
-            var result = await _chargeService.GetOtherCharges(surveyID, search ?? "");
-            var paginator = new PaginatorDto<OtherChargeViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<OtherChargeViewModel>>
+            {
+                Data = await _chargeService.GetOtherCharges(surveyID, request)
+            };
             return Ok(serverResponse);
 
         }
@@ -45,7 +44,7 @@ namespace ires_api.Controllers
             if (result == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
+                serverResponse.message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
@@ -55,14 +54,8 @@ namespace ires_api.Controllers
         [HttpPut]
         public async Task<IActionResult> Put([FromBody] OtherChargeRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<bool>();
-            if (!await _chargeService.Update(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            await _chargeService.Update(requestDto);
+            return Ok(new ServerResponse<bool>());
         }
     }
 }

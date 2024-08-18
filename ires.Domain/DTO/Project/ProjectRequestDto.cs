@@ -5,7 +5,6 @@ namespace ires.Domain.DTO.Project
     public class ProjectRequestDto
     {
         public long propertyid { get; set; }
-        public int companyid { get; set; }
         public string propertyname { get; set; } = string.Empty;
         public string address { get; set; } = string.Empty;
         public string alias { get; set; } = string.Empty;
@@ -23,7 +22,5 @@ namespace ires.Domain.DTO.Project
         public int interesttype { get; set; }
         public decimal addoninterestpermonth { get; set; }
         public ProjectType projectypeid { get; set; }
-        public long createdbyid { get; set; }
-        public long updatedbyid { get; set; }
     }
 }

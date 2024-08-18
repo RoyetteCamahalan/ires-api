@@ -1,7 +1,7 @@
 ﻿using ires.AppService.Common;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
-using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Company;
 using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
@@ -14,20 +14,12 @@ namespace ires_api.Controllers
     {
 
         [HttpGet]
-        public async Task<IActionResult> Get(int currentPage, int filter)
+        public async Task<IActionResult> Get([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<BillViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
+            var serverResponse = new ServerResponse<PaginatedResult<BillViewModel>>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var billDtos = await _billService.GetBills(identity.companyid ?? 0, filter);
-            var paginator = new PaginatorDto<BillViewModel>(currentPage);
-            paginator.Paginate(billDtos);
-            serverResponse.Data = paginator;
+                Data = await _billService.GetBills(request)
+            };
             return Ok(serverResponse);
 
         }
@@ -35,14 +27,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetPlans()
         {
             var serverResponse = new ServerResponse<ICollection<CompanyPlanViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var plan = await _billService.GetSubscriptionPlans(identity.companyid ?? 0);
+            var plan = await _billService.GetSubscriptionPlans();
             serverResponse.Data = [plan];
             return Ok(serverResponse);
         }
@@ -50,16 +35,10 @@ namespace ires_api.Controllers
         [HttpPost("processpayment")]
         public async Task<IActionResult> ProcessPayment(IDRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<BillViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
+            var serverResponse = new ServerResponse<BillViewModel>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var bill = await _billService.StartPayment(identity.companyid ?? 0, requestDto.id, new PayMongoConfig(_configuration));
-            serverResponse.Data = bill;
+                Data = await _billService.StartPayment(requestDto.id, new PayMongoConfig(_configuration))
+            };
             return Ok(serverResponse);
         }
 
@@ -67,20 +46,13 @@ namespace ires_api.Controllers
         public async Task<IActionResult> CompletePayment(IDRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<BillViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var bill = await _billService.CompletePayment(identity.companyid ?? 0, requestDto.id, new PayMongoConfig(_configuration));
+            var bill = await _billService.CompletePayment(requestDto.id, new PayMongoConfig(_configuration));
             if (bill != null && bill.status == BillStatus.paid)
                 serverResponse.Data = bill;
             else
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
+                serverResponse.message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
             return Ok(serverResponse);
@@ -90,9 +62,6 @@ namespace ires_api.Controllers
         public IActionResult UpdateBillingCycle(RegisterCompanyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.id = identity.companyid ?? 0;
-            requestDto.updatedbyid = identity.employeeid;
             _billService.UpdateBillingCycle(requestDto);
             serverResponse.Data = true;
             return Ok(serverResponse);
@@ -102,25 +71,19 @@ namespace ires_api.Controllers
         public async Task<IActionResult> UpgradePlan(RegisterCompanyRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (!await _billService.UpgradePlan(identity.companyid ?? 0, requestDto.planid, identity.employeeid))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
+            await _billService.UpgradePlan(requestDto.planid);
             serverResponse.Data = true;
             return Ok(serverResponse);
         }
         [HttpPost("getinvoicedocument/{billid}")]
         public async Task<IActionResult> GetInvoice(long billid)
         {
-            var serverResponse = new ServerResponse<FileViewModel>();
+            var serverResponse = new ServerResponse<FileDataViewModel>();
             var data = await _billService.GenerateInvoice(billid);
             if (data == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Failed to get invoice";
+                serverResponse.message = "Failed to get invoice";
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = data;

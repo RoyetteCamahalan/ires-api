@@ -2,6 +2,8 @@
 using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Company;
+using ires.Domain.Enumerations;
+using ires.Domain.Exceptions;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using ires.Infrastructure.Seeders;
@@ -9,7 +11,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class CompanyRepository(DataContext _dataContext, IMapper _mapper, ILogService _logService) : ICompanyService
+    public class CompanyRepository(
+        DataContext _dataContext,
+        IMapper _mapper,
+        ILogService _logService,
+        ICurrentUserService _currentUserService) : ICompanyService
     {
 
         public async Task<ICollection<CompanyViewModel>> GetCompanies()
@@ -20,12 +26,12 @@ namespace ires.Infrastructure.Repositories
 
         private async Task<Company> GetCompanyByID(int id)
         {
-            return await _dataContext.companies.FindAsync(id);
+            return await _dataContext.companies.FindAsync(id) ?? throw new EntityNotFoundException();
         }
 
-        public async Task<CompanyViewModel> GetByID(int id)
+        public async Task<CompanyViewModel> GetByID()
         {
-            var result = await GetCompanyByID(id);
+            var result = await GetCompanyByID(_currentUserService.companyid);
             return _mapper.Map<CompanyViewModel>(result);
         }
 
@@ -72,40 +78,29 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<CompanyViewModel>(company);
         }
 
-        public async Task<bool> Verify(int id)
+        public async Task Verify(int id)
         {
             var company = await GetCompanyByID(id);
-            if (company == null)
-                return false;
             company.isverified = true;
             company.isactive = true;
             await _dataContext.SaveChangesAsync();
-            return true;
         }
 
-        public async Task<bool> CompleteTour(int id)
+        public async Task CompleteTour(int id)
         {
             var company = await GetCompanyByID(id);
-            if (company == null)
-                return false;
             company.apptour = 100;
             await _dataContext.SaveChangesAsync();
-            return true;
         }
 
-        public async Task<bool> Update(UpdateCompanyRequestDto requestDto)
+        public async Task Update(UpdateCompanyRequestDto requestDto)
         {
-            var entity = await GetCompanyByID(requestDto.id);
-            if (entity != null)
-            {
-                entity.name = requestDto.name;
-                entity.contactno = requestDto.contactno;
-                entity.address = requestDto.address;
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.id, requestDto.updatedbyid, Domain.Enumerations.AppModule.Company, "Updated Company Info", "Updated Company Info", 1);
-                return true;
-            }
-            return false;
+            var entity = await GetCompanyByID(_currentUserService.companyid);
+            entity.name = requestDto.name;
+            entity.contactno = requestDto.contactno;
+            entity.address = requestDto.address;
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Company, "Updated Company Info", "Updated Company Info", 1);
         }
     }
 }

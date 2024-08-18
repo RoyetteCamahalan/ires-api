@@ -1,6 +1,6 @@
 ﻿using ires.AppService.Common;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
-using ires.Domain.DTO;
 using ires.Domain.DTO.Payment;
 using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +13,12 @@ namespace ires_api.Controllers
     {
 
         [HttpGet]
-        public async Task<IActionResult> Get(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
+        public async Task<IActionResult> Get([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<PaymentViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var payments = await _paymentService.GetPayments(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<PaymentViewModel>(currentPage);
-            paginator.Paginate(payments);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<PaymentViewModel>>
+            {
+                Data = await _paymentService.GetPayments(request)
+            };
             return Ok(serverResponse);
 
         }
@@ -29,9 +27,8 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetCollection(DateTime startDate, DateTime endDate)
         {
             var serverResponse = new ServerResponse<PaymentCollectionViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var payments = await _paymentService.GetPayments(identity.companyid ?? 0, "", startDate, endDate);
-            payments = payments.Where(x => x.status != PaymentStatus.@void).ToList();
+            var paymentList = await _paymentService.GetPayments(new PaginationRequest { startDate = startDate, endDate = endDate });
+            var payments = paymentList.data.Where(x => x.status != PaymentStatus.@void).ToList();
             var collection = new PaymentCollectionViewModel
             {
                 payments = payments,
@@ -50,13 +47,6 @@ namespace ires_api.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var serverResponse = new ServerResponse<PaymentViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
             var payment = await _paymentService.GetPayment(id);
             payment.payables = await _paymentService.GetPaymentDetailsAsPayables(payment.paymentid);
             serverResponse.Data = payment;
@@ -64,13 +54,12 @@ namespace ires_api.Controllers
 
         }
         [HttpGet("getpayables")]
-        public async Task<IActionResult> GetPayables(long clientID, int currentPage, string? search = "")
+        public async Task<IActionResult> GetPayables(long clientID, [FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<PayableViewModel>>();
-            var payableDtos = await _paymentService.GetPayables(clientID, search ?? "");
-            var paginator = new PaginatorDto<PayableViewModel>(currentPage);
-            paginator.Paginate(payableDtos);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<PayableViewModel>>
+            {
+                Data = await _paymentService.GetPayables(clientID, request)
+            };
             return Ok(serverResponse);
 
         }
@@ -80,16 +69,16 @@ namespace ires_api.Controllers
         public async Task<IActionResult> Post([FromBody] PaymentRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<PaymentViewModel>();
-            var payableDtos = await _paymentService.GetPayables(requestDto.custid, "");
+            var payableDtos = await _paymentService.GetPayables(requestDto.custid, new PaginationRequest());
             if (requestDto.payables.Count == 0)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Payment details not specified";
+                serverResponse.message = "Payment details not specified";
                 return BadRequest(serverResponse);
             }
             foreach (var item in requestDto.payables)
             {
-                var payable = payableDtos.Where(x => x.payableID == item.payableID && x.payableType == x.payableType).FirstOrDefault();
+                var payable = payableDtos.data.Where(x => x.payableID == item.payableID && x.payableType == x.payableType).FirstOrDefault();
                 if (payable == null) // Payment was already paid
                 {
                     serverResponse.Success = false;
@@ -101,10 +90,10 @@ namespace ires_api.Controllers
                     item.balance = payable.balance;
                 }
             }
-            if (await _paymentService.IsDuplicateReceipt(requestDto.companyid, requestDto.receipttype, requestDto.orno))
+            if (await _paymentService.IsDuplicateReceipt(requestDto.receipttype, requestDto.orno))
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Duplicated receipt number";
+                serverResponse.message = "Duplicated receipt number";
                 return BadRequest(serverResponse);
             }
             if (!serverResponse.Success)
@@ -114,7 +103,7 @@ namespace ires_api.Controllers
             if (result == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
+                serverResponse.message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
@@ -123,43 +112,27 @@ namespace ires_api.Controllers
         [HttpPut("voidPayment")]
         public async Task<IActionResult> VoidPayment(PaymentRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _paymentService.VoidPayment(requestDto.paymentid, identity.employeeid, requestDto.voidremarks);
-            serverResponse.Data = serverResponse.Success;
-            if (!serverResponse.Success)
-            {
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            await _paymentService.VoidPayment(requestDto.paymentid, requestDto.voidremarks);
+            return Ok(new ServerResponse<bool>());
 
         }
         [HttpGet("getreceiptno")]
         public async Task<IActionResult> GetReceiptNo(ReceiptType receiptType)
         {
-            var serverResponse = new ServerResponse<long>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
+            var serverResponse = new ServerResponse<long>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var receiptNo = await _paymentService.GetReceiptNo(identity.companyid ?? 0, receiptType);
-            serverResponse.Data = receiptNo;
+                Data = await _paymentService.GetReceiptNo(receiptType)
+            };
             return Ok(serverResponse);
 
         }
         [HttpGet("getcreditnotes")]
-        public async Task<IActionResult> GetCreditNotes(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
+        public async Task<IActionResult> GetCreditNotes([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<PaymentViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var payments = await _paymentService.GetCreditNotes(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<PaymentViewModel>(currentPage);
-            paginator.Paginate(payments);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<PaymentViewModel>>
+            {
+                Data = await _paymentService.GetCreditNotes(request)
+            };
             return Ok(serverResponse);
 
         }

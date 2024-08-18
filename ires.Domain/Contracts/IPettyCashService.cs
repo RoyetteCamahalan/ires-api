@@ -1,4 +1,5 @@
-﻿using ires.Domain.DTO.CashDisbursement;
+﻿using ires.Domain.Common;
+using ires.Domain.DTO.CashDisbursement;
 using ires.Domain.DTO.PettyCash;
 
 namespace ires.Domain.Contracts
@@ -7,11 +8,11 @@ namespace ires.Domain.Contracts
     {
         public Task<CashDisbursementViewModel> Create(CashDisbursementRequestDto requestDto);
         public Task<CashDisbursementViewModel> GetDisbursementByID(long id);
-        public Task<ICollection<CashDisbursementViewModel>> GetCashDisbursements(int companyID, string search, DateTime startDate, DateTime endDate);
-        public Task<decimal> TotalPettyCashBalance(int companyID);
-        public Task<bool> VoidDisbursement(long id, bool isRefDisbursement, long employeeid);
+        public Task<PaginatedResult<CashDisbursementViewModel>> GetCashDisbursements(PaginationRequest request);
+        public Task<decimal> TotalPettyCashBalance();
+        public Task VoidDisbursement(long id, bool isRefDisbursement);
         public Task ReComputePettyCash(long accountID);
 
-        public Task<ICollection<PettyCashAccountHistoryViewModel>> GetAccountHistory(int companyID, long accountID, DateTime startDate, DateTime endDate);
+        public Task<ICollection<PettyCashAccountHistoryViewModel>> GetAccountHistory(long accountID, DateTime startDate, DateTime endDate);
     }
 }

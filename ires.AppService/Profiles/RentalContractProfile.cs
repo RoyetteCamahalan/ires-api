@@ -1,22 +1,22 @@
 ﻿using AutoMapper;
-using ires.Application.Commands.General;
-using ires.Application.Commands.RentalContract;
-using ires.AppService.Dto.RentalContract;
 using ires.Domain.DTO.RentalContract;
-using ires.Domain.Models;
+using Entities = ires.Infrastructure.Entities;
 
 namespace ires.AppService.Profiles
 {
-    public class RentalProfile : Profile
+    public class RentalContractProfile : Profile
     {
-        public RentalProfile()
+        public RentalContractProfile()
         {
-            CreateMap<CreateRentalContractRequestDto, CreateRentalContractCommand>();
-            CreateMap<CreateRentalContractCommand, RentalContract>();
-            CreateMap<UpdateRentalContractRequestDto, UpdateRentalContractCommand>();
-            CreateMap<UpdateRentalContractCommand, RentalContract>();
-            CreateMap<SendRentalSOARequestDto, SendRentalSOACommand>();
-            CreateMap<SendRentalSOACommand, MailingInfo>();
+
+            CreateMap<RentalContractRequestDto, Entities.RentalContract>()
+                .ForMember(x => x.rentalContractDetails, opt => opt.Ignore())
+                .ForMember(x => x.term, opt => opt.MapFrom(y => y.term ?? 0))
+                .ForMember(x => x.noofmonthadvance, opt => opt.MapFrom(y => y.noofmonthadvance ?? 0))
+                .ForMember(x => x.deposit, opt => opt.MapFrom(y => y.deposit ?? 0))
+                .ForMember(x => x.monthlypenalty, opt => opt.MapFrom(y => y.monthlypenalty ?? 0))
+                .ForMember(x => x.penaltyextension, opt => opt.MapFrom(y => y.penaltyextension ?? 0));
+            CreateMap<Entities.RentalContract, RentalContractViewModel>();
         }
     }
 }

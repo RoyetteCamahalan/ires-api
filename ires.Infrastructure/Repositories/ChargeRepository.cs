@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.OtherCharge;
+using ires.Domain.Exceptions;
+using ires.Infrastructure.Extensions;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -8,16 +11,10 @@ using System.Data.Entity.SqlServer;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class ChargeRepository : IChargeService
+    public class ChargeRepository(
+        DataContext _dataContext,
+        IMapper _mapper) : IChargeService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-
-        public ChargeRepository(DataContext dataContext, IMapper mapper)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-        }
 
         public async Task<OtherChargeViewModel> Create(OtherChargeRequestDto requestDto)
         {
@@ -31,7 +28,7 @@ namespace ires.Infrastructure.Repositories
 
         private async Task<OtherCharge> GetOtherChargeByIDAsync(long id)
         {
-            return await _dataContext.otherCharges.FindAsync(id);
+            return await _dataContext.otherCharges.FindAsync(id) ?? throw new EntityNotFoundException();
         }
 
         public async Task<OtherChargeViewModel> GetOtherChargeByID(long id)
@@ -40,11 +37,11 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<OtherChargeViewModel>(result);
         }
 
-        public async Task<ICollection<OtherChargeViewModel>> GetOtherCharges(long surveyID, string search)
+        public async Task<PaginatedResult<OtherChargeViewModel>> GetOtherCharges(long surveyID, PaginationRequest request)
         {
-            var result = await _dataContext.otherCharges.Include(x => x.fee).Where(x => x.surveyid == surveyID && x.surveyid > 0
-                && (x.fee!.name.Contains(search) || SqlFunctions.StringConvert(x.chargeamount).Contains(search))).ToListAsync();
-            return _mapper.Map<ICollection<OtherChargeViewModel>>(result);
+            var query = _dataContext.otherCharges.Include(x => x.fee).Where(x => x.surveyid == surveyID && x.surveyid > 0
+                && (x.fee!.name.Contains(request.searchString) || SqlFunctions.StringConvert(x.chargeamount).Contains(request.searchString))).AsQueryable();
+            return await query.AsPaginatedResult<OtherCharge, OtherChargeViewModel>(request, _mapper.ConfigurationProvider);
         }
 
         public async Task<ICollection<OtherChargeViewModel>> GetOtherCharges(long invoiceNo, long lotID, string search)
@@ -54,17 +51,12 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<ICollection<OtherChargeViewModel>>(result);
         }
 
-        public async Task<bool> Update(OtherChargeRequestDto requestDto)
+        public async Task Update(OtherChargeRequestDto requestDto)
         {
             var otherCharge = await GetOtherChargeByIDAsync(requestDto.chargeid);
-            if (otherCharge != null)
-            {
-                otherCharge.chargedate = requestDto.chargedate;
-                otherCharge.chargeamount = requestDto.chargeamount;
-                await _dataContext.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            otherCharge.chargedate = requestDto.chargedate;
+            otherCharge.chargeamount = requestDto.chargeamount;
+            await _dataContext.SaveChangesAsync();
         }
     }
 }

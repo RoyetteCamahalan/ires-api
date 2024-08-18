@@ -8,17 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class FileRepository : IFileService
+    public class FileRepository(
+        DataContext _dataContext,
+        IMapper _mapper,
+        ICurrentUserService _currentUserService) : IFileService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-
-        public FileRepository(DataContext dataContext, IMapper mapper)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-        }
-
         private Attachment GetAttachmentByID(long ID)
         {
             return _dataContext.attachments.Find(ID);
@@ -58,19 +52,19 @@ namespace ires.Infrastructure.Repositories
                 {
                     Attachment attachment = new Attachment
                     {
-                        companyid = requestDto.companyid,
+                        companyid = _currentUserService.companyid,
                         invoiceno = requestDto.invoiceno,
                         lotid = requestDto.lotid,
                         documentname = Utility.CleanFileName(requestDto.formFile.FileName),
                         filesize = Convert.ToDecimal(requestDto.formFile.Length) / 1000000,
-                        attachedby = requestDto.attachedby,
+                        attachedby = _currentUserService.employeeid,
                         dateattached = Utility.GetServerTime(),
                         isdeleted = false,
                         typeid = requestDto.typeid,
                         filetype = requestDto.filetype,
                         filename = filename
                     };
-                    var company = await _dataContext.companies.FindAsync(requestDto.companyid);
+                    var company = await _dataContext.companies.FindAsync(_currentUserService.companyid);
                     if (requestDto.typeid == -1)
                     {
                         if (company.logo != "")
@@ -87,11 +81,11 @@ namespace ires.Infrastructure.Repositories
             }
             return null;
         }
-        private static string SaveFile(AttachmentRequestDto requestDto)
+        private string SaveFile(AttachmentRequestDto requestDto)
         {
             try
             {
-                string uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + requestDto.companyid);
+                string uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/attachments/" + _currentUserService.companyid);
                 if (!Directory.Exists(uploads))
                     Directory.CreateDirectory(uploads);
                 string filename = Utility.RandomString(20) + Path.GetExtension(requestDto.formFile.FileName);

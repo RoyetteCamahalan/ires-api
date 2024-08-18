@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using ires.AppService.Common;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
-using ires.Domain.DTO;
 using ires.Domain.DTO.Project;
 using ires.Domain.DTO.RentalUnit;
 using ires.Domain.Enumerations;
@@ -20,14 +20,12 @@ namespace ires_api.Controllers
     {
 
         [HttpGet("getrentalproperties")]
-        public async Task<IActionResult> GetRentalProperties(int currentPage, string? search = "")
+        public async Task<IActionResult> GetRentalProperties([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<RentalProjectViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _projectService.GetRentalProperties(identity.companyid ?? 0, search ?? "");
-            var paginator = new PaginatorDto<RentalProjectViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<RentalProjectViewModel>>
+            {
+                Data = await _projectService.GetRentalProperties(request)
+            };
             return Ok(serverResponse);
 
         }
@@ -49,60 +47,38 @@ namespace ires_api.Controllers
         public async Task<IActionResult> CreateRentalProperty([FromBody] RentalProjectRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<RentalProjectViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.companyid = identity.companyid ?? 0;
             requestDto.projectypeid = ProjectType.Rental;
-            requestDto.createdbyid = identity.employeeid;
-            var result = await _projectService.Create(_mapper.Map<ProjectRequestDto>(requestDto));
-            if (result == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = _mapper.Map<RentalProjectViewModel>(result);
+            serverResponse.Data = await _projectService.Create(_mapper.Map<ProjectRequestDto>(requestDto));
             return Ok(serverResponse);
         }
         [HttpPut("updaterentalproperty")]
         public async Task<IActionResult> UpdateRentalProperty([FromBody] RentalProjectRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<RentalProjectViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.updatedbyid = identity.employeeid;
-            var data = await _projectService.Update(_mapper.Map<ProjectRequestDto>(requestDto));
-            if (data == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            ;
+            await _projectService.Update(_mapper.Map<ProjectRequestDto>(requestDto));
+            return Ok(new ServerResponse<RentalProjectViewModel>());
         }
 
 
 
 
         [HttpGet("getrentalunits")]
-        public async Task<IActionResult> GetRentalUnits(long projectID, int currentPage, string? search = "")
+        public async Task<IActionResult> GetRentalUnits([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<RentalUnitViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _projectService.GetRentalUnits(identity.companyid ?? 0, projectID, search ?? "");
-            var paginator = new PaginatorDto<RentalUnitViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<RentalUnitViewModel>>
+            {
+                Data = await _projectService.GetRentalUnits(request)
+            };
             return Ok(serverResponse);
         }
 
         [HttpGet("getavailablerentalunits")]
-        public async Task<IActionResult> GetAvailableRentalUnits(int currentPage, string? search = "")
+        public async Task<IActionResult> GetAvailableRentalUnits([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<RentalUnitViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _projectService.GetAvailableRentalUnits(identity.companyid ?? 0, search ?? "");
-            var paginator = new PaginatorDto<RentalUnitViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<RentalUnitViewModel>>
+            {
+                Data = await _projectService.GetAvailableRentalUnits(request)
+            };
             return Ok(serverResponse);
         }
 
@@ -110,59 +86,36 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetRentalUnit(long id)
         {
-            var serverResponse = new ServerResponse<RentalUnitViewModel>();
-            var result = await _projectService.GetRentalUnitByIdAsync(id);
-            if (result == null)
+            var serverResponse = new ServerResponse<RentalUnitViewModel>
             {
-                serverResponse.Success = false;
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = _mapper.Map<RentalUnitViewModel>(result);
+                Data = await _projectService.GetRentalUnitByIdAsync(id)
+            };
             return Ok(serverResponse);
         }
         [HttpPost("createrentalunit")]
         public async Task<IActionResult> CreateRentalUnit([FromBody] RentalUnitRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<RentalUnitViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdbyid = identity.employeeid;
-            var companyPlan = await _billService.GetSubscriptionPlans(requestDto.companyid);
+            var companyPlan = await _billService.GetSubscriptionPlans();
             if (companyPlan.surveylimit > 0)
             {
-                var rentalUnitCount = await _rentalService.CountActiveUnits(requestDto.companyid);
+                var rentalUnitCount = await _rentalService.CountActiveUnits();
                 if (rentalUnitCount >= companyPlan.surveylimit)
                 {
                     serverResponse.Success = false;
                     serverResponse.errorCode = 100;
-                    serverResponse.Message = $"Reached maximum number of rental units ({companyPlan.surveylimit}).Please upgrage you plan!";
+                    serverResponse.message = $"Reached maximum number of rental units ({companyPlan.surveylimit}).Please upgrage you plan!";
                     return BadRequest(serverResponse);
                 }
             }
-            var result = await _projectService.CreateRentalUnit(requestDto);
-            if (result == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = _mapper.Map<RentalUnitViewModel>(result);
+            serverResponse.Data = await _projectService.CreateRentalUnit(requestDto);
             return Ok(serverResponse);
         }
         [HttpPut("updaterentalunit")]
         public async Task<IActionResult> UpdateRentalUnit([FromBody] RentalUnitRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<RentalUnitViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.updatedbyid = identity.employeeid;
-            if (!(await _projectService.UpdateRentalUnit(requestDto)))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            await _projectService.UpdateRentalUnit(requestDto);
+            return Ok(new ServerResponse<bool>());
         }
     }
 }

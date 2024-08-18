@@ -1,23 +1,31 @@
 ﻿using AutoMapper;
 using ires.Domain;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Employee;
 using ires.Domain.DTO.User;
 using ires.Domain.Enumerations;
+using ires.Domain.Exceptions;
+using ires.Infrastructure.Extensions;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class EmployeeRepository(DataContext _dataContext, IMapper _mapper, ILogService _logService) : IEmployeeService
+    public class EmployeeRepository(DataContext _dataContext,
+        IMapper _mapper,
+        ILogService _logService,
+        ICurrentUserService _currentUserService) : IEmployeeService
     {
 
         public async Task<EmployeeViewModel> CreateAsync(EmployeeRequestDto requestDto)
         {
             var entity = _mapper.Map<Employee>(requestDto);
             entity.employeeid = 0;
+            entity.companyid = _currentUserService.companyid;
+            entity.createdbyid = _currentUserService.employeeid;
             entity.datecreated = Utility.GetServerTime();
             _dataContext.employees.Add(entity);
             await _dataContext.SaveChangesAsync();
@@ -32,7 +40,7 @@ namespace ires.Infrastructure.Repositories
 
         private async Task<Employee> GetEmployeeByID(long id)
         {
-            return await _dataContext.employees.FindAsync(id);
+            return await _dataContext.employees.FindAsync(id) ?? throw new EntityNotFoundException();
         }
 
         public async Task<EmployeeViewModel> GetByID(long id)
@@ -47,10 +55,16 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<EmployeeViewModel>(result);
         }
 
-        public async Task<ICollection<EmployeeViewModel>> GetEmployees(int companyID, string search)
+        public async Task<PaginatedResult<EmployeeViewModel>> GetEmployees(PaginationRequest request)
         {
-            var result = await _dataContext.employees.Where(x => x.companyid == companyID && (x.firstname.Contains(search) || x.lastname.Contains(search) || (x.designation ?? "").Contains(search)))
-                .OrderBy(x => x.lastname + x.firstname).ToListAsync();
+            var query = _dataContext.employees.Where(x => x.companyid == _currentUserService.companyid
+                && (x.firstname.Contains(request.searchString) || x.lastname.Contains(request.searchString) || (x.designation ?? "").Contains(request.searchString)))
+                .OrderBy(x => x.lastname + x.firstname).AsQueryable();
+            return await query.AsPaginatedResult<Employee, EmployeeViewModel>(request, _mapper.ConfigurationProvider);
+        }
+        public async Task<ICollection<EmployeeViewModel>> GetEmployees(long companyID)
+        {
+            var result = await _dataContext.employees.Where(x => x.companyid == companyID).OrderBy(x => x.lastname + x.firstname).ToListAsync();
             return _mapper.Map<ICollection<EmployeeViewModel>>(result);
         }
 
@@ -61,26 +75,21 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<EmployeeViewModel>(result);
         }
 
-        public async Task<bool> UpdateAsync(EmployeeRequestDto requestDto)
+        public async Task UpdateAsync(EmployeeRequestDto requestDto)
         {
             var employee = await GetEmployeeByID(requestDto.employeeid);
-            if (employee != null)
-            {
-                employee.firstname = requestDto.firstname;
-                employee.lastname = requestDto.lastname;
-                employee.middlename = requestDto.middlename;
-                employee.mobileno = requestDto.mobileno;
-                employee.gender = requestDto.gender;
-                employee.designation = requestDto.designation;
-                employee.email = requestDto.email;
-                employee.username = requestDto.username;
-                employee.isactive = requestDto.isactive;
-                employee.isappsysadmin = requestDto.isappsysadmin;
+            employee.firstname = requestDto.firstname;
+            employee.lastname = requestDto.lastname;
+            employee.middlename = requestDto.middlename;
+            employee.mobileno = requestDto.mobileno;
+            employee.gender = requestDto.gender;
+            employee.designation = requestDto.designation;
+            employee.email = requestDto.email;
+            employee.username = requestDto.username;
+            employee.isactive = requestDto.isactive;
+            employee.isappsysadmin = requestDto.isappsysadmin;
 
-                await _dataContext.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            await _dataContext.SaveChangesAsync();
         }
 
         public async Task<StringViewModel> ChangePassword(long id, string newPassword, bool withToken = false)

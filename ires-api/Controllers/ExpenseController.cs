@@ -1,4 +1,5 @@
 ﻿using ires.AppService.Common;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.AccountPayable;
@@ -18,37 +19,29 @@ namespace ires_api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(long id)
         {
-            var serverResponse = new ServerResponse<ExpenseViewModel>();
-            var result = await _expenseService.GetExpenseByID(id);
-            if (result == null)
+            var serverResponse = new ServerResponse<ExpenseViewModel>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Record not found";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+                Data = await _expenseService.GetExpenseByID(id)
+            };
             return Ok(serverResponse);
         }
 
         [HttpGet("getall")]
-        public async Task<IActionResult> GetAll(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
+        public async Task<IActionResult> GetAll([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<ExpenseViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetExpenses(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<ExpenseViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<ExpenseViewModel>>
+            {
+                Data = await _expenseService.GetExpenses(request)
+            };
             return Ok(serverResponse);
 
         }
 
         [HttpGet("getexpensereport")]
-        public async Task<IActionResult> GetExpenseReport(DateTime startDate, DateTime endDate)
+        public async Task<IActionResult> GetExpenseReport([FromQuery] PaginationRequest request)
         {
             var serverResponse = new ServerResponse<ExpenseReportViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetExpenses(identity.companyid ?? 0, "", startDate, endDate);
+            var result = (await _expenseService.GetExpenses(request)).data;
             result = result.Where(x => x.status != ExpenseStatus.@void).ToList();
             var expenseReport = new ExpenseReportViewModel
             {
@@ -63,27 +56,17 @@ namespace ires_api.Controllers
         public async Task<IActionResult> Post([FromBody] ExpenseRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<ExpenseViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
             if (requestDto.usepettycash)
             {
                 var office = await _accountService.GetOfficeByID(requestDto.accountid);
                 if (office.pettycashbalance < requestDto.amount)
                 {
                     serverResponse.Success = false;
-                    serverResponse.Message = "Insufficient petty cash balance";
+                    serverResponse.message = "Insufficient petty cash balance";
                     return BadRequest(serverResponse);
                 }
             }
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdbyid = identity.employeeid;
-            var result = await _expenseService.Create(requestDto);
-            if (result == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+            serverResponse.Data = await _expenseService.Create(requestDto);
             return Ok(serverResponse);
         }
 
@@ -91,8 +74,6 @@ namespace ires_api.Controllers
         public async Task<IActionResult> Put([FromBody] ExpenseRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-
             if (requestDto.usepettycash)
             {
                 var expense = await _expenseService.GetExpenseByID(requestDto.expenseid);
@@ -106,33 +87,19 @@ namespace ires_api.Controllers
                 if (office.pettycashbalance < forDeduction && forDeduction > 0)
                 {
                     serverResponse.Success = false;
-                    serverResponse.Message = "Insufficient petty cash balance";
+                    serverResponse.message = "Insufficient petty cash balance";
                     return BadRequest(serverResponse);
                 }
             }
-            requestDto.updatedbyid = identity.employeeid;
-            if (!await _expenseService.Update(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
+            await _expenseService.Update(requestDto);
             return Ok(serverResponse);
         }
 
         [HttpPut("voidexpense")]
         public async Task<IActionResult> VoidExpense([FromBody] IDRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _expenseService.VoidExpense(requestDto.id, identity.employeeid);
-            serverResponse.Data = serverResponse.Success;
-            if (!serverResponse.Success)
-            {
-                serverResponse.Message = "Record not found";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            await _expenseService.VoidExpense(requestDto.id);
+            return Ok(new ServerResponse<bool>());
         }
 
 
@@ -146,7 +113,7 @@ namespace ires_api.Controllers
             if (result == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Record not found";
+                serverResponse.message = "Record not found";
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = result;
@@ -155,14 +122,12 @@ namespace ires_api.Controllers
         }
 
         [HttpGet("getexpensetypes")]
-        public async Task<IActionResult> GetExpenseTypes(int currentPage, bool viewAll, string? search = "")
+        public async Task<IActionResult> GetExpenseTypes([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<ExpenseTypeViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetExpenseTypes(identity.companyid ?? 0, viewAll, search ?? "");
-            var paginator = new PaginatorDto<ExpenseTypeViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<ExpenseTypeViewModel>>
+            {
+                Data = await _expenseService.GetExpenseTypes(request)
+            };
             return Ok(serverResponse);
 
         }
@@ -170,24 +135,14 @@ namespace ires_api.Controllers
         public async Task<IActionResult> CreateExpenseType([FromBody] ExpenseTypeRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<ExpenseTypeViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetExpenseTypeByName(requestDto.companyid, requestDto.expensetypedesc);
+            var result = await _expenseService.GetExpenseTypeByName(requestDto.expensetypedesc);
             if (result != null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Record already exist.";
+                serverResponse.message = "Record already exist.";
                 return BadRequest(serverResponse);
             }
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdbyid = identity.employeeid;
-            result = await _expenseService.CreateExpenseType(requestDto);
-            if (result == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+            serverResponse.Data = await _expenseService.CreateExpenseType(requestDto);
             return Ok(serverResponse);
         }
 
@@ -195,14 +150,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> UpdateExpenseType([FromBody] ExpenseTypeRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.updatedbyid = identity.employeeid;
-            if (!await _expenseService.UpdateExpenseType(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
+            await _expenseService.UpdateExpenseType(requestDto);
             return Ok(serverResponse);
         }
 
@@ -213,28 +161,21 @@ namespace ires_api.Controllers
         [HttpGet("getvendor")]
         public async Task<IActionResult> GetVendor(long id)
         {
-            var serverResponse = new ServerResponse<VendorViewModel>();
-            var result = await _expenseService.GetVendorByID(id);
-            if (result == null)
+            var serverResponse = new ServerResponse<VendorViewModel>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Record not found";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+                Data = await _expenseService.GetVendorByID(id)
+            };
             return Ok(serverResponse);
 
         }
 
         [HttpGet("getvendors")]
-        public async Task<IActionResult> GetVendors(int currentPage, bool viewAll, string? search = "")
+        public async Task<IActionResult> GetVendors([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<VendorViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetVendors(identity.companyid ?? 0, viewAll, search ?? "");
-            var paginator = new PaginatorDto<VendorViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<VendorViewModel>>
+            {
+                Data = await _expenseService.GetVendors(request)
+            };
             return Ok(serverResponse);
 
         }
@@ -242,24 +183,14 @@ namespace ires_api.Controllers
         public async Task<IActionResult> CreateVendor([FromBody] VendorRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<VendorViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetVendorByName(requestDto.companyid, requestDto.vendorname);
+            var result = await _expenseService.GetVendorByName(requestDto.vendorname);
             if (result != null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Record already exist.";
+                serverResponse.message = "Record already exist.";
                 return BadRequest(serverResponse);
             }
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdbyid = identity.employeeid;
-            result = await _expenseService.CreateVendor(requestDto);
-            if (result == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+            serverResponse.Data = await _expenseService.CreateVendor(requestDto);
             return Ok(serverResponse);
         }
 
@@ -267,14 +198,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> UpdateVendor([FromBody] VendorRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.updatedbyid = identity.employeeid;
-            if (!await _expenseService.UpdateVendor(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
+            await _expenseService.UpdateVendor(requestDto);
             return Ok(serverResponse);
         }
         #endregion
@@ -284,45 +208,30 @@ namespace ires_api.Controllers
         [HttpGet("getaccountpayable")]
         public async Task<IActionResult> GetAccountPayable(long id)
         {
-            var serverResponse = new ServerResponse<AccountPayableViewModel>();
-            var result = await _expenseService.GetAccountPayableByID(id);
-            if (result == null)
+            var serverResponse = new ServerResponse<AccountPayableViewModel>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Record not found";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+                Data = await _expenseService.GetAccountPayableByID(id)
+            };
             return Ok(serverResponse);
         }
 
         [HttpGet("getaccountpayables")]
-        public async Task<IActionResult> GetAccountPayables(int currentPage, DateTime startDate, DateTime endDate, string? search = "")
+        public async Task<IActionResult> GetAccountPayables([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<AccountPayableViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetAccountPayables(identity.companyid ?? 0, search ?? "", startDate, endDate);
-            var paginator = new PaginatorDto<AccountPayableViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<AccountPayableViewModel>>
+            {
+                Data = await _expenseService.GetAccountPayables(request)
+            };
             return Ok(serverResponse);
 
         }
         [HttpPost("createaccountpayable")]
         public async Task<IActionResult> CreateAccountPayable([FromBody] AccountPayableRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<AccountPayableViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdbyid = identity.employeeid;
-            var result = await _expenseService.CreateAccountPayable(requestDto);
-            if (result == null)
+            var serverResponse = new ServerResponse<AccountPayableViewModel>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+                Data = await _expenseService.CreateAccountPayable(requestDto)
+            };
             return Ok(serverResponse);
         }
 
@@ -330,14 +239,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> UpdateAccountPayable([FromBody] AccountPayableRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.updatedbyid = identity.employeeid;
-            if (!await _expenseService.UpdateAccountPayable(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
+            await _expenseService.UpdateAccountPayable(requestDto);
             return Ok(serverResponse);
         }
 
@@ -345,14 +247,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> VoidAccountPayable([FromBody] IDRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            serverResponse.Success = await _expenseService.VoidAccountPayable(requestDto.id, identity.employeeid);
-            serverResponse.Data = serverResponse.Success;
-            if (!serverResponse.Success)
-            {
-                serverResponse.Message = "Record not found";
-                return BadRequest(serverResponse);
-            }
+            await _expenseService.VoidAccountPayable(requestDto.id);
             return Ok(serverResponse);
         }
         #endregion

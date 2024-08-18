@@ -1,6 +1,6 @@
 ﻿using ires.AppService.Common;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
-using ires.Domain.DTO;
 using ires.Domain.DTO.OtherFee;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,60 +12,38 @@ namespace ires_api.Controllers
     {
 
         [HttpGet("getotherfees")]
-        public async Task<IActionResult> GetOtherFees(int currentPage, bool viewAll, string? search = "")
+        public async Task<IActionResult> GetOtherFees([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<OtherFeeViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _otherChargeService.GetOtherFees(identity.companyid ?? 0, search ?? "", viewAll);
-            var paginator = new PaginatorDto<OtherFeeViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<OtherFeeViewModel>>
+            {
+                Data = await _otherChargeService.GetOtherFees(request)
+            };
             return Ok(serverResponse);
         }
 
         [HttpGet("getotherfee/{id}")]
         public async Task<IActionResult> GetOtherFee(long id)
         {
-            var serverResponse = new ServerResponse<OtherFeeViewModel>();
-            var result = await _otherChargeService.GetOtherFee(id);
-            if (result == null)
+            var serverResponse = new ServerResponse<OtherFeeViewModel>
             {
-                serverResponse.Success = false;
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+                Data = await _otherChargeService.GetOtherFee(id)
+            };
             return Ok(serverResponse);
         }
         [HttpPost("createotherfee")]
         public async Task<IActionResult> CreateOtherFee([FromBody] OtherFeeRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<OtherFeeViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdby = identity.employeeid;
-            var result = await _otherChargeService.CreateOtherFee(requestDto);
-            if (result == null)
+            var serverResponse = new ServerResponse<OtherFeeViewModel>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+                Data = await _otherChargeService.CreateOtherFee(requestDto)
+            };
             return Ok(serverResponse);
         }
         [HttpPut("updateotherfee")]
         public async Task<IActionResult> UpdateOtherFee([FromBody] OtherFeeRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.updatedbyid = identity.employeeid;
-            if (!await _otherChargeService.UpdateOtherFee(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            await _otherChargeService.UpdateOtherFee(requestDto);
+            return Ok(new ServerResponse<bool>());
         }
     }
 }

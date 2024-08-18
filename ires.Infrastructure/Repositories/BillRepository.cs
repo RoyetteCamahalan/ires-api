@@ -2,12 +2,14 @@
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using ires.Domain;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
-using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Company;
 using ires.Domain.DTO.Payment;
 using ires.Domain.Enumerations;
+using ires.Domain.Exceptions;
+using ires.Infrastructure.Extensions;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +26,8 @@ namespace ires.Infrastructure.Repositories
         IConfiguration _configuration,
         IMailService _mailService,
         IConverter _converter,
-        ILogService _logService) : IBillService
+        ILogService _logService,
+        ICurrentUserService _currentUserService) : IBillService
     {
 
         public async Task<BillViewModel> GetBillByID(long billID)
@@ -34,28 +37,28 @@ namespace ires.Infrastructure.Repositories
         }
         private async Task<Bill> GetBillByIDAsync(long billID)
         {
-            return await _dataContext.bills.Include(x => x.company).FirstOrDefaultAsync(x => x.id == billID);
+            return await _dataContext.bills.Include(x => x.company).FirstOrDefaultAsync(x => x.id == billID) ?? throw new EntityNotFoundException();
         }
 
-        public async Task<ICollection<BillViewModel>> GetBills(int companyID, int filter)
+        public async Task<PaginatedResult<BillViewModel>> GetBills(PaginationRequest request)
         {
-            ICollection<Bill> result;
-            if (filter == 0)
-                result = await _dataContext.bills.Where(x => x.companyid == companyID && x.status == BillStatus.open).OrderBy(x => x.billdate).ToListAsync();
-            else if (filter == 1)
-                result = await _dataContext.bills.Where(x => x.companyid == companyID && x.status != BillStatus.open).OrderBy(x => x.billdate).ToListAsync();
+            IQueryable<Bill> query;
+            if (request.filterBy == 0)
+                query = _dataContext.bills.Where(x => x.companyid == _currentUserService.companyid && x.status == BillStatus.open).OrderBy(x => x.billdate).AsQueryable();
+            else if (request.filterBy == 1)
+                query = _dataContext.bills.Where(x => x.companyid == _currentUserService.companyid && x.status != BillStatus.open).OrderBy(x => x.billdate).AsQueryable();
             else
-                result = await _dataContext.bills.Where(x => x.companyid == companyID).OrderBy(x => x.billdate).ToListAsync();
-            return _mapper.Map<ICollection<BillViewModel>>(result);
+                query = _dataContext.bills.Where(x => x.companyid == _currentUserService.companyid).OrderBy(x => x.billdate).AsQueryable();
+            return await query.AsPaginatedResult<Bill, BillViewModel>(request, _mapper.ConfigurationProvider);
         }
 
-        public async Task<CompanyPlanViewModel> GetSubscriptionPlans(int companyID)
+        public async Task<CompanyPlanViewModel> GetSubscriptionPlans()
         {
-            var result = await _dataContext.companies.Include(x => x.subscriptionPlan).Where(x => x.id == companyID).FirstOrDefaultAsync();
+            var result = await _dataContext.companies.Include(x => x.subscriptionPlan).Where(x => x.id == _currentUserService.companyid).FirstOrDefaultAsync();
             return _mapper.Map<CompanyPlanViewModel>(result);
         }
 
-        public async Task<BillViewModel> StartPayment(int companyID, long billID, PayMongoConfig payMongoConfig)
+        public async Task<BillViewModel> StartPayment(long billID, PayMongoConfig payMongoConfig)
         {
             var client = new RestClient(payMongoConfig.apiURL);
             var request = new RestRequest
@@ -66,7 +69,7 @@ namespace ires.Infrastructure.Repositories
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(payMongoConfig.secretKey)));
             var bill = await GetBillByIDAsync(billID);
-            if (bill.companyid != companyID)
+            if (bill.companyid != _currentUserService.companyid)
                 return null;
             PayMongoRequestDto requestDto = new PayMongoRequestDto(_mapper.Map<BillViewModel>(bill), payMongoConfig);
             request.AddParameter("application/json", JsonConvert.SerializeObject(new { data = requestDto }), ParameterType.RequestBody);
@@ -83,7 +86,7 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<BillViewModel>(bill);
         }
 
-        public async Task<BillViewModel> CompletePayment(int companyID, long billID, PayMongoConfig payMongoConfig)
+        public async Task<BillViewModel> CompletePayment(long billID, PayMongoConfig payMongoConfig)
         {
             var bill = await GetBillByIDAsync(billID);
             if (bill != null && bill.paymentid.Length > 0)
@@ -106,9 +109,9 @@ namespace ires.Infrastructure.Repositories
                         bill.paymentmode = responseDto.data.attributes.payment_method_used;
                         bill.status = BillStatus.paid;
                         bill.datepaid = DateTimeOffset.FromUnixTimeSeconds(responseDto.data.attributes.payments[0].attributes.paid_at).DateTime;
-                        if (!_dataContext.bills.Where(x => x.companyid == companyID && x.id != billID && x.status == BillStatus.open).Any())
+                        if (!_dataContext.bills.Where(x => x.companyid == _currentUserService.companyid && x.id != billID && x.status == BillStatus.open).Any())
                         {
-                            Company company = _dataContext.companies.Find(companyID);
+                            Company company = _dataContext.companies.Find(_currentUserService.companyid);
                             if (company.subscriptionexpiry < (bill.dateend ?? DateTime.Now))
                                 company.subscriptionexpiry = bill.dateend ?? DateTime.Now;
                         }
@@ -124,22 +127,17 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<BillViewModel>(bill);
         }
 
-        public async Task<bool> UpdateBillingCycle(RegisterCompanyRequestDto requestDto)
+        public async Task UpdateBillingCycle(RegisterCompanyRequestDto requestDto)
         {
-            var entity = await _dataContext.companies.FindAsync(requestDto.id);
-            if (entity != null)
-            {
-                entity.billingcycle = requestDto.billingcycle;
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.id, requestDto.updatedbyid, AppModule.Billing, "Billing Cycle", "Updated Billing Cycle : " + (requestDto.billingcycle == BillingCycle.yearly ? "Yearly" : "Monthly"), 1);
-                return true;
-            }
-            return false;
+            var entity = await _dataContext.companies.FindAsync(requestDto.id) ?? throw new EntityNotFoundException();
+            entity.billingcycle = requestDto.billingcycle;
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Billing, "Billing Cycle", "Updated Billing Cycle : " + (requestDto.billingcycle == BillingCycle.yearly ? "Yearly" : "Monthly"), 1);
         }
 
-        public async Task<bool> UpgradePlan(int companyID, int planID, long employeeid)
+        public async Task UpgradePlan(int planID)
         {
-            var company = _dataContext.companies.Find(companyID);
+            var company = _dataContext.companies.Find(_currentUserService.companyid) ?? throw new EntityNotFoundException();
 
             var plan = await GetPlan(planID);
             if (company.amount == 0 && plan.monthlysubscription > 0)
@@ -148,7 +146,7 @@ namespace ires.Infrastructure.Repositories
                 company.subscriptionexpiry = currentDateTime;
                 var bill = new Bill
                 {
-                    companyid = companyID,
+                    companyid = _currentUserService.companyid,
                     billdate = currentDateTime,
                     datefrom = currentDateTime,
                     duedate = currentDateTime.AddDays(Constants.BillExtension),
@@ -173,13 +171,12 @@ namespace ires.Infrastructure.Repositories
             company.surveylimit = plan.surveylimit;
             company.amount = plan.monthlysubscription;
             await _dataContext.SaveChangesAsync();
-            await _logService.SaveLogAsync(company.id, employeeid, AppModule.Billing, "Subscription Upgrade", "Subscription Upgrade : " + planID, 1);
-            return true;
+            await _logService.SaveLogAsync(AppModule.Billing, "Subscription Upgrade", "Subscription Upgrade : " + planID, 1);
         }
 
         private async Task<SubscriptionPlan> GetPlan(long planID)
         {
-            return await _dataContext.subscriptionPlans.Where(x => x.id == planID).FirstOrDefaultAsync();
+            return await _dataContext.subscriptionPlans.Where(x => x.id == planID).FirstOrDefaultAsync() ?? throw new EntityNotFoundException();
         }
 
         public async Task<SubscriptionPlanViewModel> GetPlanByID(long planID)
@@ -188,9 +185,9 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<SubscriptionPlanViewModel>(result);
         }
 
-        public async Task<FileViewModel> GenerateInvoice(long id)
+        public async Task<FileDataViewModel> GenerateInvoice(long id)
         {
-            var result = new FileViewModel();
+            var result = new FileDataViewModel();
             var data = await GetBillByID(id);
             result.filename = "inv-" + id + ".pdf";
             result.filepath = "wwwroot/attachments/invoices/" + data.companyid;

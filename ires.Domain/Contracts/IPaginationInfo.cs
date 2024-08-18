@@ -2,8 +2,7 @@
 {
     public interface IPaginationInfo
     {
-        string Search { get; }
-        int PageNumber { get; }
+        int currentPage { get; }
         int PageSize { get; }
     }
 }

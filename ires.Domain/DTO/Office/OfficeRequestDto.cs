@@ -7,7 +7,5 @@
         public string accountname { get; set; } = string.Empty;
         public bool isactive { get; set; }
         public string memo { get; set; } = string.Empty;
-        public long createdbyid { get; set; }
-        public long updatedbyid { get; set; }
     }
 }

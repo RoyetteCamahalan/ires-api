@@ -1,103 +1,98 @@
 ﻿using AutoMapper;
 using ires.Domain;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Survey;
 using ires.Domain.Enumerations;
+using ires.Domain.Exceptions;
+using ires.Infrastructure.Extensions;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class SurveyRepository : ISurveyService
+    public class SurveyRepository(
+        DataContext _dataContext,
+        IMapper _mapper,
+        ILogService _logService,
+        ICurrentUserService _currentUserService) : ISurveyService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
 
-        public SurveyRepository(DataContext dataContext, IMapper mapper)
+        public async Task<int> CountCompleted()
         {
-            _dataContext = dataContext;
-            _mapper = mapper;
+            return await _dataContext.surveys.Where(x => x.companyid == _currentUserService.companyid &&
+                x.status == SurveyStatus.completed).CountAsync();
         }
 
-        public async Task<int> CountCompleted(int companyID)
+        public async Task<int> CountPending()
         {
-            return await _dataContext.surveys.Where(x => x.companyid == companyID && x.status == SurveyStatus.completed).CountAsync();
-        }
-
-        public async Task<int> CountPending(int companyID)
-        {
-            return await _dataContext.surveys.Where(x => x.companyid == companyID && x.status == SurveyStatus.pending).CountAsync();
+            return await _dataContext.surveys.Where(x => x.companyid == _currentUserService.companyid &&
+                x.status == SurveyStatus.pending).CountAsync();
         }
 
         public async Task<SurveyViewModel> Create(SurveyRequestDto requestDto)
         {
             var entity = _mapper.Map<Survey>(requestDto);
             entity.id = 0;
+            entity.companyid = _currentUserService.companyid;
+            entity.createdbyid = _currentUserService.employeeid;
             entity.datecreated = Utility.GetServerTime();
             entity.client = null;
             entity.balance = entity.contractprice;
             _dataContext.surveys.Add(entity);
             await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Surveying, "Create Survey", "New Survey - " + entity.id);
             return _mapper.Map<SurveyViewModel>(entity);
         }
 
         private async Task<Survey> GetSurveyByID(long id)
         {
-            return await _dataContext.surveys.Include(x => x.client).SingleAsync(x => x.id == id);
+            return await _dataContext.surveys.Include(x => x.client).SingleAsync(x => x.id == id) ?? throw new EntityNotFoundException();
         }
         public async Task<SurveyViewModel> GetByID(long id)
         {
-            var result = await _dataContext.surveys.Include(x => x.client).SingleAsync(x => x.id == id);
+            var result = await GetSurveyByID(id);
             return _mapper.Map<SurveyViewModel>(result);
         }
 
-        public async Task<ICollection<SurveyViewModel>> GetSurveys(int companyID, string search)
+        public async Task<PaginatedResult<SurveyViewModel>> GetSurveys(PaginationRequest request)
         {
-            var result = await _dataContext.surveys.Include(x => x.client).Where(x => x.companyid == companyID &&
-                (x.propertyname.Contains(search) || x.address.Contains(search) || (x.client.fname ?? "").Contains(search) || (x.client.lname ?? "").Contains(search)))
-                .OrderByDescending(x => x.datecreated).ToListAsync();
-            return _mapper.Map<ICollection<SurveyViewModel>>(result);
+            var query = _dataContext.surveys.Include(x => x.client).Where(x => x.companyid == _currentUserService.companyid &&
+                (x.propertyname.Contains(request.searchString) || x.address.Contains(request.searchString) || (x.client.fname ?? "").Contains(request.searchString) || (x.client.lname ?? "").Contains(request.searchString)))
+                .OrderByDescending(x => x.datecreated).AsQueryable();
+            return await query.AsPaginatedResult<Survey, SurveyViewModel>(request, _mapper.ConfigurationProvider);
         }
 
-        public async Task<bool> Update(SurveyRequestDto requestDto)
+        public async Task Update(SurveyRequestDto requestDto)
         {
             Survey survey = await GetSurveyByID(requestDto.id);
-            if (survey != null)
-            {
-                survey.custid = requestDto.custid;
-                survey.owner = requestDto.owner;
-                survey.titleno = requestDto.titleno;
-                survey.surveyno = requestDto.surveyno;
-                survey.surveydate = requestDto.surveydate;
-                survey.propertyname = requestDto.propertyname;
-                survey.address = requestDto.address;
-                survey.details = requestDto.details;
-                survey.balance += requestDto.contractprice - survey.contractprice;
-                survey.contractprice = requestDto.contractprice;
-                survey.updatedbyid = requestDto.updatedbyid;
-                survey.dateupdated = Utility.GetServerTime();
-                if (survey.balance > 0 && survey.status == SurveyStatus.completed)
-                    survey.status = SurveyStatus.surveyed;
-                await _dataContext.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            survey.custid = requestDto.custid;
+            survey.owner = requestDto.owner;
+            survey.titleno = requestDto.titleno;
+            survey.surveyno = requestDto.surveyno;
+            survey.surveydate = requestDto.surveydate;
+            survey.propertyname = requestDto.propertyname;
+            survey.address = requestDto.address;
+            survey.details = requestDto.details;
+            survey.balance += requestDto.contractprice - survey.contractprice;
+            survey.contractprice = requestDto.contractprice;
+            survey.updatedbyid = _currentUserService.employeeid;
+            survey.dateupdated = Utility.GetServerTime();
+            if (survey.balance > 0 && survey.status == SurveyStatus.completed)
+                survey.status = SurveyStatus.surveyed;
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Surveying, "Update Survey", "Survey ID- " + survey.id);
         }
 
-        public async Task<bool> UpdateStatus(long ID, SurveyStatus status)
+        public async Task UpdateStatus(long ID, SurveyStatus status)
         {
             Survey survey = await GetSurveyByID(ID);
-            if (survey != null)
-            {
-                if (status == SurveyStatus.surveyed && survey.balance <= 0)
-                    status = SurveyStatus.completed;
+            if (status == SurveyStatus.surveyed && survey.balance <= 0)
+                status = SurveyStatus.completed;
 
-                survey.status = status;
-                await _dataContext.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            survey.status = status;
+            await _dataContext.SaveChangesAsync();
         }
     }
 }

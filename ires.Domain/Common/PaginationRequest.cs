@@ -10,12 +10,18 @@ namespace ires.Domain.Common
         }
         public PaginationRequest(int PageNumber, string Search)
         {
-            this.PageNumber = PageNumber;
-            this.Search = Search;
+            this.currentPage = PageNumber;
+            this.search = Search;
         }
-        public int PageNumber { get; set; }
+        public int currentPage { get; set; }
         public int PageSize { get; set; } = 10;
-        public string Search { get; set; } = string.Empty;
-        public int filterByID { get; set; }
+        public string? search { get; set; }
+        public string searchString { get => search ?? ""; }
+        public int filterBy { get; set; }
+        public bool viewAll { get; set; }
+        public bool isEWallet { get; set; }
+        public DateTime startDate { get; set; }
+        public DateTime endDate { get; set; }
+        public long projectID { get; set; }
     }
 }

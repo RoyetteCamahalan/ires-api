@@ -20,16 +20,10 @@ namespace ires_api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAsync()
         {
-            var serverResponse = new ServerResponse<CompanyViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
+            var serverResponse = new ServerResponse<CompanyViewModel>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var company = await _companyService.GetByID(identity.companyid ?? 0);
-            serverResponse.Data = company;
+                Data = await _companyService.GetByID()
+            };
             return Ok(serverResponse);
         }
 
@@ -42,13 +36,13 @@ namespace ires_api.Controllers
             if (company != null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Company is already registered.";
+                serverResponse.message = "Company is already registered.";
                 return BadRequest(serverResponse);
             }
             if (await _employeeService.GetEmployeeByEmail(requestDto.email) != null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Email already in use.";
+                serverResponse.message = "Email already in use.";
                 return BadRequest(serverResponse);
             }
             company = await _companyService.RegisterAsync(requestDto);
@@ -59,17 +53,8 @@ namespace ires_api.Controllers
         [HttpPost("update")]
         public async Task<IActionResult> Update([FromBody] UpdateCompanyRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<bool>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.id = identity.companyid ?? 0;
-            requestDto.updatedbyid = identity.employeeid;
-            if (!await _companyService.Update(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Oops! We are unable to process this request.";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            await _companyService.Update(requestDto);
+            return Ok(new ServerResponse<bool>());
         }
 
         private void sendConfirmationEmail(int id, string email)
@@ -83,12 +68,12 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ResendConfirmationAsync(IDRequestDto requestDto)
         {
-            var employees = await _employeeService.GetEmployees((int)requestDto.id, "");
+            var employees = await _employeeService.GetEmployees((int)requestDto.id);
             if (employees.Count > 0)
             {
                 sendConfirmationEmail((int)requestDto.id, employees.First().email);
             }
-            return Ok(new ServerResponse<Boolean> { Data = true });
+            return Ok(new ServerResponse<bool>());
         }
 
         [HttpPost("verify")]
@@ -99,30 +84,21 @@ namespace ires_api.Controllers
             try
             {
                 int id = Convert.ToInt32(Utility.URLDecrypt(slug.value));
-                var verified = await _companyService.Verify(id);
-                if (!verified)
-                    throw new Exception("null");
-
+                await _companyService.Verify(id);
                 return Ok(serverResponse);
             }
             catch (Exception)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Oops! We are unable to process this request.";
+                serverResponse.message = "Oops! We are unable to process this request.";
                 return BadRequest(serverResponse);
             }
         }
         [HttpPost("completetour/{id}")]
         public async Task<IActionResult> CompleteTour(int id)
         {
-            var serverResponse = new ServerResponse<bool>();
-            if (!await _companyService.CompleteTour(id))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Oops! We are unable to process this request.";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            await _companyService.CompleteTour(id);
+            return Ok(new ServerResponse<bool>());
         }
     }
 }

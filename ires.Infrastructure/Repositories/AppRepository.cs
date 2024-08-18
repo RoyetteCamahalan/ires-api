@@ -15,12 +15,13 @@ namespace ires.Infrastructure.Repositories
         DataContext _dataContext,
         IMapper _mapper,
         ILogService _logService,
-        ISchedulerFactory _schedulerFactory) : IAppService
+        ISchedulerFactory _schedulerFactory,
+        ICurrentUserService _currentUserService) : IAppService
     {
 
-        public async Task<ICollection<NotificationViewModel>> GetNotifications(long employeeID)
+        public async Task<ICollection<NotificationViewModel>> GetNotifications()
         {
-            var result = await _dataContext.notifications.Where(x => x.employeeid == employeeID && !x.isread).OrderByDescending(x => x.datecreated).ToListAsync();
+            var result = await _dataContext.notifications.Where(x => x.employeeid == _currentUserService.employeeid && !x.isread).OrderByDescending(x => x.datecreated).ToListAsync();
             return _mapper.Map<ICollection<NotificationViewModel>>(result);
         }
 
@@ -33,15 +34,15 @@ namespace ires.Infrastructure.Repositories
                 await _dataContext.SaveChangesAsync();
             }
         }
-        public async Task MarkAllAsReadNotif(long employeeID)
+        public async Task MarkAllAsReadNotif()
         {
-            var notifs = await _dataContext.notifications.Where(x => x.employeeid == employeeID && !x.isread).ToListAsync();
+            var notifs = await _dataContext.notifications.Where(x => x.employeeid == _currentUserService.employeeid && !x.isread).ToListAsync();
             notifs.ForEach(x => x.isread = true);
             await _dataContext.SaveChangesAsync();
         }
-        public async Task<ICollection<EventViewModel>> GetEvents(int companyID, DateTime startDate, DateTime endDate)
+        public async Task<ICollection<EventViewModel>> GetEvents(DateTime startDate, DateTime endDate)
         {
-            return await _dataContext.surveys.Where(x => x.companyid == companyID && x.status != SurveyStatus.cancelled &&
+            return await _dataContext.surveys.Where(x => x.companyid == _currentUserService.companyid && x.status != SurveyStatus.cancelled &&
                 (x.surveydate ?? DateTime.MaxValue) >= startDate && (x.surveydate ?? DateTime.MaxValue) <= endDate)
                 .Select(x => new EventViewModel
                 {

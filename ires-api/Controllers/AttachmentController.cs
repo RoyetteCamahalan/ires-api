@@ -28,14 +28,14 @@ namespace ires_api.Controllers
             if (requestDto.filetype == ires.Domain.Enumerations.FileType.unsupported)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Unsupported file format";
+                serverResponse.message = "Unsupported file format";
                 return BadRequest(serverResponse);
             }
             var attachment = await _fileService.uploadFile(requestDto);
             if (attachment == null)
             {
                 serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
+                serverResponse.message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
             serverResponse.Data = attachment;

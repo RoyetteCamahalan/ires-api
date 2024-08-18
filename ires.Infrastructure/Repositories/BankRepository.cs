@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Bank;
 using ires.Domain.Enumerations;
+using ires.Domain.Exceptions;
+using ires.Infrastructure.Extensions;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using ires.Infrastructure.Seeders;
@@ -9,44 +12,40 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class BankRepository : IBankService
+    public class BankRepository(
+        DataContext _dataContext,
+        IMapper _mapper,
+        ILogService _logService,
+        ICurrentUserService _currentUserService) : IBankService
     {
-        private readonly DataContext _dataContext;
-        private readonly IMapper _mapper;
-        private readonly ILogService _logService;
 
-        public BankRepository(DataContext dataContext, IMapper mapper, ILogService logService)
-        {
-            _dataContext = dataContext;
-            _mapper = mapper;
-            _logService = logService;
-        }
         public async Task<BankViewModel> Create(BankRequestDto requestDto)
         {
             var entity = _mapper.Map<Bank>(requestDto);
             entity.bankid = 0;
+            entity.companyid = _currentUserService.companyid;
             _dataContext.banks.Add(entity);
             await _dataContext.SaveChangesAsync();
-            await _logService.SaveLogAsync(entity.companyid, requestDto.createdbyid, AppModule.Banks, "Create New Bank", "Bank ID : " + entity.bankid + "-" + entity.name, 0);
+            await _logService.SaveLogAsync(AppModule.Banks, "Create New Bank", "Bank ID : " + entity.bankid + "-" + entity.name);
             return _mapper.Map<BankViewModel>(entity);
         }
 
-        public async Task<ICollection<BankViewModel>> GetAllBanks(int companyID, string search)
+        public async Task<PaginatedResult<BankViewModel>> GetAllBanks(PaginationRequest request)
         {
-            var banks = _dataContext.banks.Where(x => x.companyid == companyID && x.name.Contains(search)).OrderBy(x => x.name).ToList();
-            if (banks.Count == 0 && search == "")
+            var query = _dataContext.banks.Where(x => x.companyid == _currentUserService.companyid && x.name.Contains(request.searchString)).OrderBy(x => x.name).AsQueryable();
+            if (!query.Any() && request.search == "")
             {
                 BankSeeder bankSeeder = new BankSeeder(_dataContext);
-                await bankSeeder.Seed(companyID, true);
-                await bankSeeder.Seed(companyID, false);
-                return await GetAllBanks(companyID, search);
+                await bankSeeder.Seed(_currentUserService.companyid, true);
+                await bankSeeder.Seed(_currentUserService.companyid, false);
+                return await GetAllBanks(request);
             }
-            return _mapper.Map<ICollection<BankViewModel>>(banks);
+            return await query.AsPaginatedResult<Bank, BankViewModel>(request, _mapper.ConfigurationProvider);
         }
 
         private async Task<Bank> GetBank(long bankID)
         {
-            return await _dataContext.banks.FindAsync(bankID);
+            return await _dataContext.banks.FindAsync(bankID) ?? throw new EntityNotFoundException();
         }
 
         public async Task<BankViewModel> GetBankByID(long bankID)
@@ -55,36 +54,32 @@ namespace ires.Infrastructure.Repositories
             return _mapper.Map<BankViewModel>(result);
         }
 
-        public async Task<BankViewModel> GetBankByName(int companyID, string name)
+        public async Task<BankViewModel> GetBankByName(string name)
         {
-            var result = await _dataContext.banks.Where(x => x.companyid == companyID && x.name == name).FirstOrDefaultAsync();
+            var result = await _dataContext.banks.Where(x => x.companyid == _currentUserService.companyid && x.name == name).FirstOrDefaultAsync();
             return _mapper.Map<BankViewModel>(result);
         }
 
-        public async Task<ICollection<BankViewModel>> GetBanks(int companyID, bool isEWallet, string search)
+        public async Task<PaginatedResult<BankViewModel>> GetBanks(PaginationRequest request)
         {
-            var banks = _dataContext.banks.Where(x => x.companyid == companyID && x.isewallet == isEWallet && x.name.Contains(search)).OrderBy(x => x.name).ToList();
-            if (banks.Count == 0 && search == "")
+            var query = _dataContext.banks.Where(x => x.companyid == _currentUserService.companyid && x.isewallet == request.isEWallet &&
+                x.name.Contains(request.searchString)).OrderBy(x => x.name).AsQueryable();
+            if (!query.Any() && request.search == "")
             {
                 BankSeeder bankSeeder = new BankSeeder(_dataContext);
-                await bankSeeder.Seed(companyID, isEWallet);
-                return await GetBanks(companyID, isEWallet, search);
+                await bankSeeder.Seed(_currentUserService.companyid, request.isEWallet);
+                return await GetBanks(request);
             }
-            return _mapper.Map<ICollection<BankViewModel>>(banks);
+            return await query.AsPaginatedResult<Bank, BankViewModel>(request, _mapper.ConfigurationProvider);
         }
 
-        public async Task<bool> Update(BankRequestDto requestDto)
+        public async Task Update(BankRequestDto requestDto)
         {
             var entity = await GetBank(requestDto.bankid);
-            if (entity != null)
-            {
-                entity.name = requestDto.name;
-                entity.isewallet = requestDto.isewallet;
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.companyid, requestDto.updatedbyid, AppModule.Banks, "Update Bank", "Bank ID : " + entity.bankid + "-" + entity.name, 0);
-                return true;
-            }
-            return false;
+            entity.name = requestDto.name;
+            entity.isewallet = requestDto.isewallet;
+            await _dataContext.SaveChangesAsync();
+            await _logService.SaveLogAsync(AppModule.Banks, "Update Bank", "Bank ID : " + entity.bankid + "-" + entity.name, 0);
         }
     }
 }

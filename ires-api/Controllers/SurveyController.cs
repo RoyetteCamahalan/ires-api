@@ -1,6 +1,6 @@
 ﻿using ires.AppService.Common;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
-using ires.Domain.DTO;
 using ires.Domain.DTO.Survey;
 using ires.Domain.Enumerations;
 using Microsoft.AspNetCore.Authorization;
@@ -14,14 +14,12 @@ namespace ires_api.Controllers
     {
 
         [HttpGet]
-        public async Task<IActionResult> Get(int currentPage, string? search = "")
+        public async Task<IActionResult> Get([FromQuery] PaginationRequest request)
         {
-            var serverResponse = new ServerResponse<PaginatorDto<SurveyViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _surveyService.GetSurveys(identity.companyid ?? 0, search ?? "");
-            var paginator = new PaginatorDto<SurveyViewModel>(currentPage);
-            paginator.Paginate(result);
-            serverResponse.Data = paginator;
+            var serverResponse = new ServerResponse<PaginatedResult<SurveyViewModel>>
+            {
+                Data = await _surveyService.GetSurveys(request)
+            };
             return Ok(serverResponse);
 
         }
@@ -30,43 +28,28 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Get(long id)
         {
-            var serverResponse = new ServerResponse<SurveyViewModel>();
-            var result = await _surveyService.GetByID(id);
-            if (result == null)
+            var serverResponse = new ServerResponse<SurveyViewModel>
             {
-                serverResponse.Success = false;
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+                Data = await _surveyService.GetByID(id)
+            };
             return Ok(serverResponse);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] SurveyRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<SurveyViewModel>();
-            var result = await _surveyService.Create(requestDto);
-            if (result == null)
+            var serverResponse = new ServerResponse<SurveyViewModel>
             {
-                serverResponse.Success = false;
-                serverResponse.Message = "Record not found";
-                return BadRequest(serverResponse);
-            }
-            serverResponse.Data = result;
+                Data = await _surveyService.Create(requestDto)
+            };
             return Ok(serverResponse);
         }
 
         [HttpPut]
         public async Task<IActionResult> Put([FromBody] SurveyRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<bool>();
-            if (!await _surveyService.Update(requestDto))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Record not found";
-                return BadRequest(serverResponse);
-            }
-            return Ok(serverResponse);
+            await _surveyService.Update(requestDto);
+            return Ok(new ServerResponse<bool>());
         }
 
         [HttpPut("updatestatus")]
@@ -79,21 +62,16 @@ namespace ires_api.Controllers
                 if (paymentDetails.Count > 0)
                 {
                     serverResponse.Success = false;
-                    serverResponse.Message = "Please void payment: (";
+                    serverResponse.message = "Please void payment: (";
                     foreach (var detail in paymentDetails)
                     {
-                        serverResponse.Message += detail.payment.receiptno + ", ";
+                        serverResponse.message += detail.payment.receiptno + ", ";
                     }
-                    serverResponse.Message = serverResponse.Message.Substring(0, serverResponse.Message.Length - 2) + ")";
+                    serverResponse.message = serverResponse.message.Substring(0, serverResponse.message.Length - 2) + ")";
                     return BadRequest(serverResponse);
                 }
             }
-            if (!await _surveyService.UpdateStatus(requestDto.id, requestDto.status))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Survey not found";
-                return BadRequest(serverResponse);
-            }
+            await _surveyService.UpdateStatus(requestDto.id, requestDto.status);
             return Ok(serverResponse);
         }
     }
