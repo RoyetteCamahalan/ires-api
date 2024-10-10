@@ -1,14 +1,9 @@
 ﻿using ires.Domain.Enumerations;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ires.Infrastructure.Entities
+namespace ires.Domain.Models
 {
-    [Table("bookings")]
-    public class Booking : BaseModel
+    public class Booking
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long id { get; set; }
         public Guid guid { get; set; }
         public int companyid { get; set; }
@@ -20,7 +15,6 @@ namespace ires.Infrastructure.Entities
         public BookingRateType ratetype { get; set; }
         public decimal rate { get; set; }
         public decimal totalrate { get; set; }
-        [MaxLength(250)]
         public string drivername { get; set; } = string.Empty;
         public bool isselfdrive { get; set; }
         public BookingStatus status { get; set; }

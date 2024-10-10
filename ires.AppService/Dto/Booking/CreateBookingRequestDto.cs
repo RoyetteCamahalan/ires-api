@@ -1,32 +1,26 @@
 ﻿using ires.Domain.Enumerations;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ires.Infrastructure.Entities
+namespace ires.AppService.Dto.Booking
 {
-    [Table("bookings")]
-    public class Booking : BaseModel
+    public class CreateBookingRequestDto
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long id { get; set; }
-        public Guid guid { get; set; }
-        public int companyid { get; set; }
+        [Required]
         public long clientid { get; set; }
+        [Required]
         public long carid { get; set; }
+        [Required]
         public DateTime startdate { get; set; }
+        [Required]
         public DateTime enddate { get; set; }
         public int noofdays { get; set; }
+        [Required]
         public BookingRateType ratetype { get; set; }
+        [Required]
         public decimal rate { get; set; }
-        public decimal totalrate { get; set; }
         [MaxLength(250)]
         public string drivername { get; set; } = string.Empty;
         public bool isselfdrive { get; set; }
-        public BookingStatus status { get; set; }
         public string remarks { get; set; } = string.Empty;
-
-        public Car car { get; set; } = new Car();
-        public Client client { get; set; } = new Client();
     }
 }

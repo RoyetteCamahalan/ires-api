@@ -20,7 +20,8 @@
         OtherCharges = 24,
         Billing = 25,
         Company = 26,
-        Car = 27
+        Car = 27,
+        Booking = 28
         //        1	Reservation
         //2	Sales
         //3	Payments

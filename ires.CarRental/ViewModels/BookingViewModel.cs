@@ -1,14 +1,10 @@
 ﻿using ires.Domain.Enumerations;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ires.Infrastructure.Entities
+namespace ires.Application.ViewModels
 {
-    [Table("bookings")]
-    public class Booking : BaseModel
+    public class BookingViewModel
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long id { get; set; }
         public Guid guid { get; set; }
         public int companyid { get; set; }
@@ -26,7 +22,7 @@ namespace ires.Infrastructure.Entities
         public BookingStatus status { get; set; }
         public string remarks { get; set; } = string.Empty;
 
-        public Car car { get; set; } = new Car();
-        public Client client { get; set; } = new Client();
+        public CarViewModel? car { get; set; }
+        public ClientViewModel? client { get; set; }
     }
 }

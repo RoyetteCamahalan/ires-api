@@ -3,6 +3,7 @@ using ires.Domain.Contracts;
 using ires.Domain.Enumerations;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
+using Newtonsoft.Json;
 
 namespace ires.Infrastructure.Repositories
 {
@@ -28,6 +29,11 @@ namespace ires.Infrastructure.Repositories
             };
             _dataContext.logs.Add(log);
             await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task SaveLogAsync(AppModule moduleID, string title, dynamic data, int withadmin = 0)
+        {
+            await SaveLogAsync(_currentUserService.companyid, _currentUserService.employeeid, moduleID, title, JsonConvert.SerializeObject(data), withadmin);
         }
     }
 }
