@@ -250,8 +250,9 @@ namespace ires.Infrastructure.Data
         public DbSet<RentalContractDetail> rentalContractDetails { get; set; }
         public DbSet<RentalCharge> rentalCharges { get; set; }
         public DbSet<Survey> surveys { get; set; }
+        public DbSet<SurveyType> surveyTypes { get; set; }
         public DbSet<SubscriptionPlan> subscriptionPlans { get; set; }
-        public DbSet<UserPrivilege> userPrivileges { get; set; }
+        public DbSet<UserPrivilege> userPrivileges { get; set; }    
         public DbSet<Vendor> vendors { get; set; }
 
 

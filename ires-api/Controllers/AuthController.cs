@@ -98,8 +98,8 @@ namespace ires_api.Controllers
                 new Claim(ClaimTypes.Surname, employee.lastname ?? ""),
                 new Claim(ClaimTypes.Role, (employee.isappsysadmin) ? "Admin" : "User")
             };
-            var token = new JwtSecurityToken(_configuration["Jwt.Issuer"],
-                _configuration["Jwt.Audience"],
+            var token = new JwtSecurityToken(_configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"],
                 claims,
                 expires: DateTime.Now.AddHours(3),
                 signingCredentials: credentials);
