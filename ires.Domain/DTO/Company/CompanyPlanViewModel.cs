@@ -8,7 +8,7 @@
         public int surveylimit { get; set; }
         public int billingcycle { get; set; }
         public decimal amount { get; set; }
-        public bool isexpired { get => subscriptionexpiry < Utility.GetServerTime().AddDays(amount == 0 ? -1 : (Constants.BillExtension)); }
+        public bool isexpired { get => subscriptionexpiry < Utility.GetServerTime().AddDays(amount == 0 ? -1 : -(Constants.BillExtension + 1)); }
         public SubscriptionPlanViewModel? subscriptionPlan { get; set; }
     }
 }
