@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250429065527_create_agents_table")]
+    partial class create_agents_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -148,12 +151,7 @@ namespace ires.Infrastructure.Migrations
                     b.Property<long?>("updatedbyid")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("upline_id")
-                        .HasColumnType("bigint");
-
                     b.HasKey("id");
-
-                    b.HasIndex("upline_id");
 
                     b.ToTable("agents");
                 });
@@ -2401,15 +2399,6 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("expenseType");
 
                     b.Navigation("vendor");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.Agent", b =>
-                {
-                    b.HasOne("ires.Infrastructure.Entities.Agent", "upline")
-                        .WithMany()
-                        .HasForeignKey("upline_id");
-
-                    b.Navigation("upline");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.BankAccount", b =>

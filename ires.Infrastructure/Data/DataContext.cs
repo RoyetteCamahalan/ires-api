@@ -20,6 +20,11 @@ namespace ires.Infrastructure.Data
 
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Agent>()
+                .HasOne(e => e.upline)
+                .WithMany()
+                .HasForeignKey(x => x.upline_id);
+
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.company)
                 .WithMany(c => c.employees)
@@ -214,6 +219,7 @@ namespace ires.Infrastructure.Data
                 );
         }
         public DbSet<AccountPayable> accountPayables { get; set; }
+        public DbSet<Agent> agents { get; set; }
         public DbSet<AppPreference> appPreferences { get; set; }
         public DbSet<Attachment> attachments { get; set; }
         public DbSet<Bank> banks { get; set; }
@@ -252,6 +258,7 @@ namespace ires.Infrastructure.Data
         public DbSet<Survey> surveys { get; set; }
         public DbSet<SurveyType> surveyTypes { get; set; }
         public DbSet<SubscriptionPlan> subscriptionPlans { get; set; }
+
         public DbSet<UserPrivilege> userPrivileges { get; set; }    
         public DbSet<Vendor> vendors { get; set; }
 

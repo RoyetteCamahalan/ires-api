@@ -1,13 +1,16 @@
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using ires.AppService;
+using ires.Core;
 using ires.Domain.Contracts;
 using ires.Infrastructure;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Repositories;
+using ires.Infrastructure.Services;
 using ires_api.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -44,14 +47,22 @@ builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(build
     })
 );
 
-builder.Services.AddControllers()
+builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+})
     .AddNewtonsoftJson(options =>
     {
         options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
         //options.SerializerSettings.DateFormatString = "yyyy-MM-dd hh:mm tt";
     });
 
-builder.Services.AddAutoMapper(typeof(_ForAppServiceAssembyLoadOnly).Assembly);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddAppService();
+builder.Services.AddCore();
+
+
+builder.Services.AddScoped<IAgentService, AgentRepository>();
 builder.Services.AddScoped<IAppService, AppRepository>();
 builder.Services.AddScoped<ICompanyService, CompanyRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeRepository>();
@@ -71,6 +82,8 @@ builder.Services.AddScoped<IOtherChargeService, OtherChargeRepository>();
 builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
 builder.Services.AddScoped<IProjectService, ProjectRepository>();
 builder.Services.AddScoped<IRentalService, RentalRepository>();
+
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddInfrastructure();

@@ -54,6 +54,9 @@ dotnet_diagnostic.IDE0230.severity = none
 # CA1850: Prefer static 'HashData' method over 'ComputeHash'
 dotnet_diagnostic.CA1850.severity = none
 
+# CS8619: Nullability of reference types in value doesn't match target type.
+dotnet_diagnostic.CS8619.severity = none
+
 [*.vb]
 #### Naming styles ####
 

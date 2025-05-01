@@ -1,6 +1,7 @@
 ﻿
 
 using AutoMapper;
+using ires.Domain.Common;
 using ires.Domain.DTO;
 using ires.Domain.DTO.AccountPayable;
 using ires.Domain.DTO.Attachment;
@@ -35,6 +36,8 @@ namespace ires.AppService
     {
         public AutoMapperProfile()
         {
+            CreateMap(typeof(PaginatedResult<>), typeof(PaginatedResult<>));
+
             CreateMap<Attachment, AttachmentViewModel>();
 
             CreateMap<AccountPayableRequestDto, AccountPayable>();
