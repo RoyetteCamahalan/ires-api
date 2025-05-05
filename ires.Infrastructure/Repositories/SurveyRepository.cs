@@ -75,6 +75,7 @@ namespace ires.Infrastructure.Repositories
                 survey.details = requestDto.details;
                 survey.balance += requestDto.contractprice - survey.contractprice;
                 survey.contractprice = requestDto.contractprice;
+                survey.landarea = requestDto.landarea;
                 survey.updatedbyid = requestDto.updatedbyid;
                 survey.dateupdated = Utility.GetServerTime();
                 if (survey.balance > 0 && survey.status == SurveyStatus.completed)

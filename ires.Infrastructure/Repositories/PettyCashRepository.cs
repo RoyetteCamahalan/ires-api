@@ -76,7 +76,7 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<bool> VoidDisbursement(long id, bool isRefDisbursement, long employeeid)
         {
-            var data = await GetDisbursementByID(id);
+            var data = await GetDisbursement(id);
             if (data != null)
             {
                 data.status = DisbursementStatus.@void;
@@ -96,14 +96,17 @@ namespace ires.Infrastructure.Repositories
 
         public async Task ReComputePettyCash(long accountID)
         {
-            var parameter = new List<SqlParameter>
-            {
-                new SqlParameter("@operation", 2),
-                new SqlParameter("@soperation", 0),
-                new SqlParameter("@search", accountID.ToString())
-            };
-            await Task.Run(() =>
-                _dataContext.Database.ExecuteSqlRawAsync("exec spPettyCash @operation, @soperation, @search", parameter));
+            var cashIns = await _dataContext.cashDisbursements.Where(x => x.accountid == accountID
+                && (x.transtype == DisbursementTransType.cashin || x.transtype == DisbursementTransType.transferin) && x.status == DisbursementStatus.approved)
+                .SumAsync(x => x.amount);
+            var cashOuts = await _dataContext.cashDisbursements.Where(x => x.accountid == accountID
+                && x.transtype == DisbursementTransType.transferout && x.status == DisbursementStatus.approved)
+                .SumAsync(x => x.amount);
+            var expenses = await _dataContext.expenses.Where(x => x.accountid == accountID
+                && x.status == ExpenseStatus.approved).SumAsync(x => x.amount);
+            var entity = await _dataContext.offices.FindAsync(accountID);
+            entity.pettycashbalance = cashIns - cashOuts - expenses;
+            await _dataContext.SaveChangesAsync();
         }
 
         public async Task<decimal> TotalPettyCashBalance(int companyID)

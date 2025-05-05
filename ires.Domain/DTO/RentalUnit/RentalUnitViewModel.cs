@@ -13,6 +13,7 @@ namespace ires.Domain.DTO.RentalUnit
         public decimal monthlyrent { get; set; } = 0;
         public RentalPropertyStatus status { get; set; }
         public string tenant { get; set; } = string.Empty;
+        public long contract_id { get; set; }
 
         public RentalProjectViewModel? project { get; set; }
     }

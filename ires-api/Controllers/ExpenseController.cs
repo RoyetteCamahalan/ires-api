@@ -251,7 +251,7 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<VendorViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetVendorByName(requestDto.companyid, requestDto.vendorname);
+            var result = await _expenseService.GetVendorByName(identity.companyid ?? 0, requestDto.vendorname);
             if (result != null)
             {
                 serverResponse.Success = false;

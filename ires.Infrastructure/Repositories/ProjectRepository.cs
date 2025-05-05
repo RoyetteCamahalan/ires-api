@@ -125,6 +125,7 @@ namespace ires.Infrastructure.Repositories
                 {
                     var contract = await GetContractByUnit(item.propertyid);
                     item.tenant = contract.client.fullname;
+                    item.contract_id = contract.contractid;
                 }
             }
             return data;

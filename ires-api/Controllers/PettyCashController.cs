@@ -99,5 +99,12 @@ namespace ires_api.Controllers
             }
             return Ok(serverResponse);
         }
+        [HttpPost("recompute/{id}")]
+        public async Task<IActionResult> Recompute(long id)
+        {
+            var serverResponse = new ServerResponse<bool>();
+            await _pettyCashService.ReComputePettyCash(id);
+            return Ok(serverResponse);
+        }
     }
 }

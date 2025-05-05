@@ -46,7 +46,7 @@ namespace ires.Infrastructure.Repositories
             entity.contractid = 0;
             entity.status = RentStatus.Active;
             entity.datecreated = Utility.GetServerTime();
-            entity.contractno = (_dataContext.rentalContracts.Max(x => (long?)x.contractno) ?? 0) + 1;
+            entity.contractno = (_dataContext.rentalContracts.Where(x => x.companyid == requestDto.companyid).Max(x => (long?)x.contractno) ?? 0) + 1;
             entity.advancerent = entity.noofmonthadvance * entity.montlyrent;
             entity.rentalContractDetails = new List<RentalContractDetail>();
             foreach (var item in requestDto.rentalContractDetails)
