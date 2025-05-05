@@ -1,9 +1,17 @@
 ﻿using AutoMapper;
+using ires.AppService.DTO.Project;
+using ires.AppService.DTO.RentalUnit;
+using ires.Core.Commands.Project;
+using ires.Core.Queries.Agent;
+using ires.Core.Queries.Project;
+using ires.Core.ViewModels;
+using ires.Domain.Common;
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
-using ires.Domain.DTO.Project;
-using ires.Domain.DTO.RentalUnit;
 using ires.Domain.Enumerations;
+using ires.Domain.Models;
+using ires_api.Common;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,19 +19,29 @@ namespace ires_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProjectController : ControllerBase
+    public class ProjectController(IMediator _mediator, IMapper mapper, IProjectService _projectService, IRentalService _rentalService, IBillService _billService) 
+        : BaseController(_mediator, mapper)
     {
-        private readonly IMapper _mapper;
-        private readonly IProjectService _projectService;
-        private readonly IRentalService _rentalService;
-        private readonly IBillService _billService;
-
-        public ProjectController(IMapper mapper, IProjectService projectService, IRentalService rentalService, IBillService billService)
+        [HttpGet]
+        public async Task<IActionResult> Get([FromQuery] PaginationRequest request)
         {
-            _mapper = mapper;
-            _projectService = projectService;
-            _rentalService = rentalService;
-            _billService = billService;
+            return await Handle<PaginatedResult<ProjectViewModel>>(new GetProjectsQuery(request));
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(long id)
+        {
+            return await Handle<ProjectViewModel>(new GetProjectbyIdQuery(id));
+        }
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] CreateProjectRequestDto request)
+        {
+            return await Handle<CreateProjectRequestDto, CreateProjectCommand, ProjectViewModel>(request);
+        }
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] UpdateProjectRequestDto request)
+        {
+            return await Handle<UpdateProjectRequestDto, UpdateProjectCommand, object>(request);
         }
 
         [HttpGet("getrentalproperties")]
@@ -31,9 +49,15 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<PaginatorDto<RentalProjectViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _projectService.GetRentalProperties(identity.companyid ?? 0, search ?? "");
+            var result = await _projectService.GetRentalProperties(search ?? "");
             var paginator = new PaginatorDto<RentalProjectViewModel>(currentPage);
-            paginator.Paginate(result);
+            paginator.Paginate(_mapper.Map<IEnumerable<RentalProjectViewModel>>(result));
+            foreach (var item in paginator.data)
+            {
+                var property = result.Where(x => x.propertyid == item.propertyid).First();
+                item.noofunits = property.rentalProperties.Count;
+                item.noofoccupiedunits = property.rentalProperties.Where(x => x.status == RentalPropertyStatus.Occupied).Count();
+            }
             serverResponse.Data = paginator;
             return Ok(serverResponse);
 
@@ -44,11 +68,6 @@ namespace ires_api.Controllers
         {
             var serverResponse = new ServerResponse<RentalProjectViewModel>();
             var result = await _projectService.GetProjectByIdAsync(id);
-            if (result == null)
-            {
-                serverResponse.Success = false;
-                return BadRequest(serverResponse);
-            }
             serverResponse.Data = _mapper.Map<RentalProjectViewModel>(result);
             return Ok(serverResponse);
         }
@@ -56,11 +75,8 @@ namespace ires_api.Controllers
         public async Task<IActionResult> CreateRentalProperty([FromBody] RentalProjectRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<RentalProjectViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.companyid = identity.companyid ?? 0;
             requestDto.projectypeid = ProjectType.Rental;
-            requestDto.createdbyid = identity.employeeid;
-            var result = await _projectService.Create(_mapper.Map<ProjectRequestDto>(requestDto));
+            var result = await _projectService.Create(_mapper.Map<Project>(requestDto));
             if (result == null)
             {
                 serverResponse.Success = false;
@@ -74,15 +90,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> UpdateRentalProperty([FromBody] RentalProjectRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<RentalProjectViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.updatedbyid = identity.employeeid;
-            var data = await _projectService.Update(_mapper.Map<ProjectRequestDto>(requestDto));
-            if (data == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
+            await _projectService.Update(_mapper.Map<Project>(requestDto));
             return Ok(serverResponse);
         }
 
@@ -92,11 +100,18 @@ namespace ires_api.Controllers
         [HttpGet("getrentalunits")]
         public async Task<IActionResult> GetRentalUnits(long projectID, int currentPage, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<RentalUnitViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _projectService.GetRentalUnits(identity.companyid ?? 0, projectID, search ?? "");
-            var paginator = new PaginatorDto<RentalUnitViewModel>(currentPage);
-            paginator.Paginate(result);
+            var serverResponse = new ServerResponse<PaginatorDto<ires.Core.ViewModels.RentalUnitViewModel>>();
+            var result = await _projectService.GetRentalUnits(projectID, search ?? "");
+            var paginator = new PaginatorDto<ires.Core.ViewModels.RentalUnitViewModel>(currentPage);
+            paginator.Paginate(_mapper.Map<IEnumerable<ires.Core.ViewModels.RentalUnitViewModel>>(result));
+            foreach (var item in paginator.data)
+            {
+                if (item.status == RentalPropertyStatus.Occupied)
+                {
+                    var contract = await _rentalService.GetContractByUnit(item.propertyid);
+                    item.tenant = contract.client.fullname;
+                }
+            }
             serverResponse.Data = paginator;
             return Ok(serverResponse);
         }
@@ -104,11 +119,11 @@ namespace ires_api.Controllers
         [HttpGet("getavailablerentalunits")]
         public async Task<IActionResult> GetAvailableRentalUnits(int currentPage, string? search = "")
         {
-            var serverResponse = new ServerResponse<PaginatorDto<RentalUnitViewModel>>();
+            var serverResponse = new ServerResponse<PaginatorDto<ires.Core.ViewModels.RentalUnitViewModel>>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _projectService.GetAvailableRentalUnits(identity.companyid ?? 0, search ?? "");
-            var paginator = new PaginatorDto<RentalUnitViewModel>(currentPage);
-            paginator.Paginate(result);
+            var result = await _projectService.GetAvailableRentalUnits(search ?? "");
+            var paginator = new PaginatorDto<ires.Core.ViewModels.RentalUnitViewModel>(currentPage);
+            paginator.Paginate(_mapper.Map<IEnumerable<ires.Core.ViewModels.RentalUnitViewModel>>(result));
             serverResponse.Data = paginator;
             return Ok(serverResponse);
         }
@@ -117,27 +132,25 @@ namespace ires_api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetRentalUnit(long id)
         {
-            var serverResponse = new ServerResponse<RentalUnitViewModel>();
+            var serverResponse = new ServerResponse<ires.Core.ViewModels.RentalUnitViewModel>();
             var result = await _projectService.GetRentalUnitByIdAsync(id);
             if (result == null)
             {
                 serverResponse.Success = false;
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<RentalUnitViewModel>(result);
+            serverResponse.Data = _mapper.Map<ires.Core.ViewModels.RentalUnitViewModel>(result);
             return Ok(serverResponse);
         }
         [HttpPost("createrentalunit")]
         public async Task<IActionResult> CreateRentalUnit([FromBody] RentalUnitRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<RentalUnitViewModel>();
+            var serverResponse = new ServerResponse<ires.Core.ViewModels.RentalUnitViewModel>();
             var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdbyid = identity.employeeid;
-            var companyPlan = await _billService.GetSubscriptionPlans(requestDto.companyid);
+            var companyPlan = await _billService.GetSubscriptionPlans(identity.companyid ?? 0);
             if (companyPlan.surveylimit > 0)
             {
-                var rentalUnitCount = await _rentalService.CountActiveUnits(requestDto.companyid);
+                var rentalUnitCount = await _rentalService.CountActiveUnits(identity.companyid ?? 0);
                 if (rentalUnitCount >= companyPlan.surveylimit)
                 {
                     serverResponse.Success = false;
@@ -146,29 +159,28 @@ namespace ires_api.Controllers
                     return BadRequest(serverResponse);
                 }
             }
-            var result = await _projectService.CreateRentalUnit(requestDto);
+            var unit = _mapper.Map<RentalUnit>(requestDto);
+            if (requestDto.isactive)
+                unit.status = RentalPropertyStatus.Vacant;
+            else
+                unit.status = RentalPropertyStatus.Inactive;
+            var result = await _projectService.CreateRentalUnit(unit);
             if (result == null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Unable to process request";
                 return BadRequest(serverResponse);
             }
-            serverResponse.Data = _mapper.Map<RentalUnitViewModel>(result);
+            serverResponse.Data = _mapper.Map<ires.Core.ViewModels.RentalUnitViewModel>(result);
             return Ok(serverResponse);
         }
         [HttpPut("updaterentalunit")]
         public async Task<IActionResult> UpdateRentalUnit([FromBody] RentalUnitRequestDto requestDto)
         {
-            var serverResponse = new ServerResponse<RentalUnitViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.updatedbyid = identity.employeeid;
-            if (!(await _projectService.UpdateRentalUnit(requestDto)))
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
+            var serverResponse = new ServerResponse<ires.Core.ViewModels.RentalUnitViewModel>();
+            var unit = _mapper.Map<RentalUnit>(requestDto);
+            unit.status = requestDto.isactive ? RentalPropertyStatus.Vacant : RentalPropertyStatus.Inactive;
+            await _projectService.UpdateRentalUnit(unit);
             return Ok(serverResponse);
         }
     }

@@ -1,12 +1,12 @@
-﻿using ires.Domain.Enumerations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace ires.Domain.DTO.Project
+namespace ires.AppService.DTO.Project
 {
-    public class ProjectRequestDto
+    public class CreateProjectRequestDto
     {
-        public long propertyid { get; set; }
-        public int companyid { get; set; }
+        [Required]
         public string propertyname { get; set; } = string.Empty;
+        [Required]
         public string address { get; set; } = string.Empty;
         public string alias { get; set; } = string.Empty;
         public decimal area { get; set; }
@@ -18,12 +18,9 @@ namespace ires.Domain.DTO.Project
         public decimal interest { get; set; }
         public int commissionterm { get; set; }
         public int paymentextension { get; set; }
-        public int allow_straight_monthly { get; set; }
+        public int allow_straight_monthly { get; set; } = 1;
         public decimal withholding { get; set; }
         public int interesttype { get; set; }
         public decimal addoninterestpermonth { get; set; }
-        public ProjectType projectypeid { get; set; }
-        public long createdbyid { get; set; }
-        public long updatedbyid { get; set; }
     }
 }

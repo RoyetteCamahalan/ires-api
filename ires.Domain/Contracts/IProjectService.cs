@@ -1,24 +1,26 @@
-﻿using ires.Domain.DTO.Project;
-using ires.Domain.DTO.RentalUnit;
+﻿using ires.Domain.Common;
 using ires.Domain.Enumerations;
+using ires.Domain.Models;
 
 namespace ires.Domain.Contracts
 {
     public interface IProjectService
     {
-        public Task<RentalProjectViewModel> Create(ProjectRequestDto projectRequest);
+        public Task<Project> Create(Project request);
 
-        public Task<RentalProjectViewModel> Update(ProjectRequestDto projectRequest);
-        public Task<RentalProjectViewModel> GetProjectByIdAsync(long id);
-        public Task<ICollection<RentalProjectViewModel>> GetRentalProperties(int companyID, string search);
+        public Task Update(Project request);
+        public Task<Project> GetProjectByIdAsync(long id);
+        public Task<PaginatedResult<Project>> GetProjects(PaginationRequest request);
+        public Task<ICollection<Project>> GetRentalProperties(string search);
+        public Task<bool> IsNameUnique(string propertyName, ProjectType projectType);
 
 
 
-        public Task<RentalUnitViewModel> CreateRentalUnit(RentalUnitRequestDto request);
-        public Task<bool> UpdateRentalUnit(RentalUnitRequestDto request);
+        public Task<RentalUnit> CreateRentalUnit(RentalUnit request);
+        public Task UpdateRentalUnit(RentalUnit request);
         public Task UpdateRentalUnitStatus(long id, RentalPropertyStatus status);
-        public Task<RentalUnitViewModel> GetRentalUnitByIdAsync(long id);
-        public Task<ICollection<RentalUnitViewModel>> GetRentalUnits(int companyID, long projectID, string search);
-        public Task<ICollection<RentalUnitViewModel>> GetAvailableRentalUnits(int companyID, string search);
+        public Task<RentalUnit> GetRentalUnitByIdAsync(long id);
+        public Task<ICollection<RentalUnit>> GetRentalUnits(long projectID, string search);
+        public Task<ICollection<RentalUnit>> GetAvailableRentalUnits(string search);
     }
 }

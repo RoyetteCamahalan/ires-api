@@ -1,4 +1,7 @@
-﻿namespace ires.Domain.DTO.Project
+﻿
+using ires.Domain.DTO.RentalUnit;
+
+namespace ires.Core.ViewModels
 {
     public class RentalProjectViewModel
     {
@@ -9,5 +12,6 @@
         public int projectypeid { get; set; }
         public int noofunits { get; set; }
         public int noofoccupiedunits { get; set; }
+        public List<RentalUnitViewModel> rentalProperties { get; set; } = [];
     }
 }

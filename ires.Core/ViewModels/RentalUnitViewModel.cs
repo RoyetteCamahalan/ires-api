@@ -1,6 +1,6 @@
 ﻿using ires.Domain.Enumerations;
 
-namespace ires.Domain.DTO.RentalUnit
+namespace ires.Core.ViewModels
 {
     public class RentalUnitViewModel
     {
@@ -13,5 +13,6 @@ namespace ires.Domain.DTO.RentalUnit
         public RentalPropertyStatus status { get; set; }
         public string tenant { get; set; } = string.Empty;
 
+        public RentalProjectViewModel? project { get; set; }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using ires.Domain.Enumerations;
 
-namespace ires.Domain.DTO.RentalUnit
+namespace ires.Domain.Models
 {
-    public class RentalUnitViewModel
+    public class RentalUnit
     {
         public long propertyid { get; set; }
 
@@ -10,8 +10,9 @@ namespace ires.Domain.DTO.RentalUnit
         public string propertyname { get; set; } = string.Empty;
         public string area { get; set; } = string.Empty;
         public decimal monthlyrent { get; set; } = 0;
+        public string alias { get; set; } = string.Empty;
         public RentalPropertyStatus status { get; set; }
-        public string tenant { get; set; } = string.Empty;
 
+        public Project? project { get; set; }
     }
 }
