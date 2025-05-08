@@ -78,6 +78,8 @@ builder.Services.AddScoped<IBankService, BankRepository>();
 builder.Services.AddScoped<IExpenseService, ExpenseRepository>();
 builder.Services.AddScoped<IFileService, FileRepository>();
 builder.Services.AddScoped<ILogService, LogRepository>();
+builder.Services.AddScoped<ILotService, LotRepository>();
+builder.Services.AddScoped<ILotModelService, LotModelRepository>();
 builder.Services.AddScoped<IOtherChargeService, OtherChargeRepository>();
 builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
 builder.Services.AddScoped<IProjectService, ProjectRepository>();

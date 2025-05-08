@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250507072804_add_lot_project_foriegnkey")]
+    partial class add_lot_project_foriegnkey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1165,9 +1168,6 @@ namespace ires.Infrastructure.Migrations
                     b.Property<decimal>("min_down")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<long>("model_id")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1185,43 +1185,14 @@ namespace ires.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("type")
+                        .HasColumnType("int");
+
                     b.HasKey("lot_id");
 
                     b.HasIndex("propertyid");
 
                     b.ToTable("lot");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.LotModel", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<long>("createdbyid")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("datecreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("dateupdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("project_id")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("updatedbyid")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("id");
-
-                    b.ToTable("lot_models");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.MaintenanceType", b =>
@@ -1742,9 +1713,6 @@ namespace ires.Infrastructure.Migrations
 
                     b.Property<decimal>("defaultcommission")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<Guid>("guid")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("interest")
                         .HasColumnType("decimal(18,2)");
@@ -2618,19 +2586,11 @@ namespace ires.Infrastructure.Migrations
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Lot", b =>
                 {
-                    b.HasOne("ires.Infrastructure.Entities.LotModel", "lotModel")
-                        .WithMany()
-                        .HasForeignKey("propertyid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ires.Infrastructure.Entities.Project", "project")
                         .WithMany()
                         .HasForeignKey("propertyid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("lotModel");
 
                     b.Navigation("project");
                 });

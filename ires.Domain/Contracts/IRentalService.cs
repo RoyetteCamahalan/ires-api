@@ -15,6 +15,7 @@ namespace ires.Domain.Contracts
         public Task<RentalContractViewModel> Get(int companyID, long contractID);
         public Task<ICollection<RentalContractDetailViewModel>> GetDetails(long contractID);
         public Task<ICollection<RentalContractViewModel>> GetAll(int companyID, string search, int filterByID);
+        public Task<RentalContractViewModel> GetContractByUnit(long propertyID);
         public Task<ICollection<RentalUnitViewModel>> GetProperties(long contractID);
         public Task<string> GetPropertiesAsString(long contractID);
         public Task RecomputeContract(long contractID);

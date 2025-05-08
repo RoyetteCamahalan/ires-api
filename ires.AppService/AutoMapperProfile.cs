@@ -19,11 +19,9 @@ using ires.Domain.DTO.OtherCharge;
 using ires.Domain.DTO.OtherFee;
 using ires.Domain.DTO.Payment;
 using ires.Domain.DTO.PettyCash;
-using ires.Domain.DTO.Project;
 using ires.Domain.DTO.RentalCharge;
 using ires.Domain.DTO.RentalContract;
 using ires.Domain.DTO.RentalContractDetail;
-using ires.Domain.DTO.RentalUnit;
 using ires.Domain.DTO.Survey;
 using ires.Domain.DTO.User;
 using ires.Domain.DTO.Vendor;
@@ -92,15 +90,6 @@ namespace ires.AppService
             CreateMap<OtherFee, OtherFeeViewModel>();
 
             CreateMap<PettyCashAccountHistory, PettyCashAccountHistoryViewModel>();
-
-            CreateMap<RentalProjectRequestDto, ProjectRequestDto>();
-            CreateMap<Project, RentalProjectViewModel>();
-            CreateMap<ProjectRequestDto, Project>();
-
-
-
-            CreateMap<RentalUnitRequestDto, RentalProperty>().ForMember(x => x.status, opt => opt.Ignore());
-            CreateMap<RentalProperty, RentalUnitViewModel>();
 
             CreateMap<RentalContractRequestDto, RentalContract>()
                 .ForMember(x => x.rentalContractDetails, opt => opt.Ignore())

@@ -1,22 +1,17 @@
 ﻿using ires.Domain.Enumerations;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ires.Infrastructure.Entities
+namespace ires.AppService.DTO.Project
 {
-    [Table("property")]
-    public class Project
+    public class UpdateProjectRequestDto
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Required]
         public long propertyid { get; set; }
-        public Guid guid { get; set; }
-        public int companyid { get; set; }
+        [Required]
         public string propertyname { get; set; } = string.Empty;
         public string address { get; set; } = string.Empty;
         public string alias { get; set; } = string.Empty;
         public decimal area { get; set; }
-        public Boolean isjointventure { get; set; }
         public int computationtype { get; set; }
         public decimal defaultcommission { get; set; }
         public decimal com_percentage { get; set; }
@@ -30,7 +25,5 @@ namespace ires.Infrastructure.Entities
         public int interesttype { get; set; }
         public decimal addoninterestpermonth { get; set; }
         public ProjectType projectypeid { get; set; }
-        public List<RentalProperty> rentalProperties { get; set; } = new List<RentalProperty>();
-
     }
 }

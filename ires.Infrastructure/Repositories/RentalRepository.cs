@@ -101,12 +101,18 @@ namespace ires.Infrastructure.Repositories
                 .Select(x => x.rentalProperty).OrderBy(x => x.project.propertyname).ToListAsync();
             return _mapper.Map<ICollection<RentalUnitViewModel>>(result);
         }
+        public async Task<ICollection<RentalProperty>> GetRentedProperties(long contractID)
+        {
+            var result = await _dataContext.rentalContractDetails.Include(x => x.rentalProperty).ThenInclude(x => x.project).Where(x => x.contractid == contractID)
+                .Select(x => x.rentalProperty).OrderBy(x => x.project.propertyname).ToListAsync();
+            return result;
+        }
 
         public async Task<string> GetPropertiesAsString(long contractID)
         {
             long lastProjectID = 0;
             var strings = new List<string>();
-            var details = await GetProperties(contractID);
+            var details = await GetRentedProperties(contractID);
             foreach (var property in details)
             {
                 if (lastProjectID != property.projectid)
@@ -395,6 +401,14 @@ namespace ires.Infrastructure.Repositories
             }
             catch (Exception) { }
             return false;
+        }
+
+        public async Task<RentalContractViewModel> GetContractByUnit(long propertyID)
+        {
+            var result = await _dataContext.rentalContractDetails.Include(x => x.rentalContract).ThenInclude(x => x.client)
+                .Where(x => x.rentalContract.status == RentStatus.Active && x.propertyid == propertyID)
+                .Select(x => x.rentalContract).FirstOrDefaultAsync();
+            return _mapper.Map<RentalContractViewModel>(result);
         }
     }
 }

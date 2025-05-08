@@ -130,6 +130,16 @@ namespace ires.Infrastructure.Data
                 .WithMany(c => c.expenseTypes)
                 .HasForeignKey(e => e.expensetypecat);
 
+            modelBuilder.Entity<Lot>()
+                .HasOne(r => r.project)
+                .WithMany()
+                .HasForeignKey(r => r.propertyid);
+
+            modelBuilder.Entity<Lot>()
+                .HasOne(r => r.lotModel)
+                .WithMany()
+                .HasForeignKey(r => r.propertyid);
+
             modelBuilder.Entity<MaintenanceType>().HasData(
                     new MaintenanceType { id = 1, name = "Repair and Maintenance", isactive = true },
                     new MaintenanceType { id = 2, name = "Registration Renewal", isactive = true },
@@ -240,6 +250,7 @@ namespace ires.Infrastructure.Data
         public DbSet<ExpenseTypeCategory> expenseTypeCategories { get; set; }
         public DbSet<Log> logs { get; set; }
         public DbSet<Lot> lots { get; set; }
+        public DbSet<LotModel> lotModels { get; set; }
         public DbSet<MaintenanceType> maintenanceTypes { get; set; }
         public DbSet<Module> modules { get; set; }
         public DbSet<Notification> notifications { get; set; }

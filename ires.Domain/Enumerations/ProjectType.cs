@@ -3,6 +3,7 @@
     public enum ProjectType
     {
         Subdivision,
-        Rental
+        Rental,
+        RawLot
     }
 }

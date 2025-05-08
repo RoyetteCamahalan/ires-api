@@ -1,17 +1,16 @@
 ﻿using ires.Domain.Enumerations;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ires.Infrastructure.Entities
+namespace ires.Core.ViewModels
 {
-    [Table("property")]
-    public class Project
+    public class ProjectViewModel
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long propertyid { get; set; }
         public Guid guid { get; set; }
-        public int companyid { get; set; }
         public string propertyname { get; set; } = string.Empty;
         public string address { get; set; } = string.Empty;
         public string alias { get; set; } = string.Empty;
@@ -29,8 +28,7 @@ namespace ires.Infrastructure.Entities
         public decimal withholding { get; set; }
         public int interesttype { get; set; }
         public decimal addoninterestpermonth { get; set; }
+        public int nooflots { get; set; }
         public ProjectType projectypeid { get; set; }
-        public List<RentalProperty> rentalProperties { get; set; } = new List<RentalProperty>();
-
     }
 }

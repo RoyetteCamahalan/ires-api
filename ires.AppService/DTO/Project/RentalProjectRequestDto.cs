@@ -1,15 +1,12 @@
 ﻿using ires.Domain.Enumerations;
 
-namespace ires.Domain.DTO.Project
+namespace ires.AppService.DTO.Project
 {
     public class RentalProjectRequestDto
     {
         public long propertyid { get; set; }
-        public int companyid { get; set; }
         public string propertyname { get; set; } = string.Empty;
         public string address { get; set; } = string.Empty;
         public ProjectType projectypeid { get; set; }
-        public long createdbyid { get; set; }
-        public long updatedbyid { get; set; }
     }
 }

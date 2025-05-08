@@ -1,13 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ires.Infrastructure.Entities
+namespace ires.Domain.Models
 {
-    [Table("lot")]
     public class Lot
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long lot_id { get; set; }
         public long propertyid { get; set; }
         public string blockno { get; set; } = string.Empty;
@@ -17,7 +17,7 @@ namespace ires.Infrastructure.Entities
         public decimal pricepersquare { get; set; }
         public decimal default_price { get; set; }
         public decimal min_down { get; set; }
-        public long model_id { get; set; }
+        public int type { get; set; }
         public decimal compercentage { get; set; }
         public decimal commissionableamount { get; set; }
         public decimal housearea { get; set; }
@@ -27,8 +27,5 @@ namespace ires.Infrastructure.Entities
         public int lotnoint { get; set; }
         public string titleno { get; set; } = string.Empty;
         public bool isactive { get; set; }
-
-        public Project? project { get; set; }
-        public LotModel? lotModel { get; set; }
     }
 }

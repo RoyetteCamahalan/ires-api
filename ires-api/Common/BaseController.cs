@@ -8,10 +8,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace ires_api.Common
 {
     [Route("api/[controller]")]
-    public class BaseController(IMediator mediator, IMapper mapper) : Controller
+    public class BaseController : Controller
     {
-        protected readonly IMediator _mediator = mediator;
-        private readonly IMapper _mapper = mapper;
+        protected readonly IMediator _mediator;
+        public readonly IMapper _mapper;
+
+        public BaseController(IMediator mediator, IMapper mapper)
+        {
+            _mediator = mediator;
+            _mapper = mapper;
+        }
 
         protected async Task<IActionResult> Handle<T1, T2, T3>(dynamic dto)
         {
@@ -41,6 +47,7 @@ namespace ires_api.Common
             }
             else
             {
+                result.Success = false;
                 result.Message = ModelState.Values.SelectMany(m => m.Errors)
                     .Select(e => e.ErrorMessage).FirstOrDefault("");
             }
