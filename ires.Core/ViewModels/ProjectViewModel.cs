@@ -1,4 +1,11 @@
 ﻿using ires.Domain.Enumerations;
+<<<<<<<< HEAD:ires.AppService/DTO/Project/UpdateProjectRequestDto.cs
+using System.ComponentModel.DataAnnotations;
+
+namespace ires.AppService.DTO.Project
+{
+    public class UpdateProjectRequestDto
+========
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +15,9 @@ using System.Threading.Tasks;
 namespace ires.Core.ViewModels
 {
     public class ProjectViewModel
+>>>>>>>> 090e3d99a96e33c05fd96f785e67690f1e519b23:ires.Core/ViewModels/ProjectViewModel.cs
     {
+        [Required]
         public long propertyid { get; set; }
         public Guid guid { get; set; }
         public string propertyname { get; set; } = string.Empty;

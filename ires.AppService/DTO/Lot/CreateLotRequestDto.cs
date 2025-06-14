@@ -18,10 +18,15 @@ namespace ires.AppService.DTO.Lot
         public decimal area { get; set; }
         public decimal pricepersquare { get; set; }
         public decimal default_price { get; set; }
+        public decimal min_down { get; set; }
+        public int type { get; set; }
         public decimal compercentage { get; set; }
         public decimal commissionableamount { get; set; }
+        public decimal housearea { get; set; }
+        public decimal parkingarea { get; set; }
         public decimal comatdown { get; set; }
         public long model_id { get; set; }
         public string titleno { get; set; } = string.Empty;
+        public bool isactive { get; set; }
     }
 }

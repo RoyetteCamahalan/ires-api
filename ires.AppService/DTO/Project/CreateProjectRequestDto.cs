@@ -7,6 +7,7 @@ namespace ires.AppService.DTO.Project
     {
         [Required]
         public string propertyname { get; set; } = string.Empty;
+        [Required]
         public string address { get; set; } = string.Empty;
         public string alias { get; set; } = string.Empty;
         public decimal area { get; set; }
