@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250524045426_create_contract_table")]
+    partial class create_contract_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -771,48 +774,6 @@ namespace ires.Infrastructure.Migrations
                     b.ToTable("customer");
                 });
 
-            modelBuilder.Entity("ires.Infrastructure.Entities.CommissionDetail", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<long>("agentid")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("compercentage")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("contractid")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("createdbyid")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("datecreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("dateupdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("isagent")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("referralpercentage")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long?>("updatedbyid")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("agentid");
-
-                    b.ToTable("commissiondetails");
-                });
-
             modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>
                 {
                     b.Property<int>("id")
@@ -931,110 +892,6 @@ namespace ires.Infrastructure.Migrations
                     b.HasIndex("custid");
 
                     b.ToTable("contracts");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.ContractDetail", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<decimal>("adcom")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("amortization")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("commissionableprice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("commissionpercentage")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("contractid")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("createdbyid")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("datecreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("dateforfeited")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("dateupdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("forfeitedbyid")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("forfeitreason")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("guid")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("hasrealtytax")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("istitlereleased")
-                        .HasColumnType("bit");
-
-                    b.Property<long>("lotid")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("referralfee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("titlereceivedby")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("titlereleasedate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("titlereleasedby")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("totalarrears")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("totalcapitalgains")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("totaldownpayment")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("totallotbalance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("totalotherfees")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("totaltaxes")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long?>("updatedbyid")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("contractid");
-
-                    b.HasIndex("lotid");
-
-                    b.ToTable("contractdetails");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.CreditMemoType", b =>
@@ -2765,17 +2622,6 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("refOffice");
                 });
 
-            modelBuilder.Entity("ires.Infrastructure.Entities.CommissionDetail", b =>
-                {
-                    b.HasOne("ires.Infrastructure.Entities.Agent", "agent")
-                        .WithMany()
-                        .HasForeignKey("agentid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("agent");
-                });
-
             modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>
                 {
                     b.HasOne("ires.Infrastructure.Entities.SubscriptionPlan", "subscriptionPlan")
@@ -2796,25 +2642,6 @@ namespace ires.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("client");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.ContractDetail", b =>
-                {
-                    b.HasOne("ires.Infrastructure.Entities.Contract", "contract")
-                        .WithMany("contractDetails")
-                        .HasForeignKey("contractid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ires.Infrastructure.Entities.Lot", "lot")
-                        .WithMany()
-                        .HasForeignKey("lotid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("contract");
-
-                    b.Navigation("lot");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Employee", b =>
@@ -3069,11 +2896,6 @@ namespace ires.Infrastructure.Migrations
             modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>
                 {
                     b.Navigation("employees");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.Contract", b =>
-                {
-                    b.Navigation("contractDetails");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.ExpenseTypeCategory", b =>

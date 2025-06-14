@@ -25,7 +25,7 @@ namespace ires.Core.QueryHandlers
             var data = _mapper.Map<PaginatedResult<ProjectViewModel>>(await _projectService.GetProjects(request.data));
             foreach (var item in data.data) 
             {
-                var lots = await _lotService.GetLotsByProject(item.propertyid, new PaginationRequest { PageNumber = 0 });
+                var lots = await _lotService.GetLotsByProjectId(item.propertyid, new PaginationRequest { PageNumber = 0 });
                 item.nooflots = lots.totalRecord;
             }
             return data;

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ires.Domain.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ires.Infrastructure.Entities
@@ -26,7 +27,7 @@ namespace ires.Infrastructure.Entities
         public int blocknoint { get; set; }
         public int lotnoint { get; set; }
         public string titleno { get; set; } = string.Empty;
-        public bool isactive { get; set; }
+        public LotStatus status { get; set; }
 
         public Project? project { get; set; }
         public LotModel? lotModel { get; set; }

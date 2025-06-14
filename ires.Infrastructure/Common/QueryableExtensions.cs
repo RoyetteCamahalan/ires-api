@@ -18,6 +18,8 @@ namespace ires.Infrastructure.Common
             IPaginationInfo info
             )
         {
+            if (info.PageNumber == 0)
+                return source;
             return source.Skip((info.PageNumber - 1) * info.PageSize).Take(info.PageSize);
         }
         public static async Task<PaginatedResult<T>> AsPaginatedResult<T>(

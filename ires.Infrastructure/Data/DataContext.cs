@@ -105,10 +105,30 @@ namespace ires.Infrastructure.Data
             modelBuilder.Entity<CashDisbursement>()
                 .HasOne(c => c.refOffice).WithMany().HasForeignKey(c => c.refaccountid).IsRequired(false);
 
+            modelBuilder.Entity<CommissionDetail>()
+                .HasOne(r => r.agent)
+                .WithMany()
+                .HasForeignKey(r => r.agentid);
+
             modelBuilder.Entity<Company>()
                 .HasOne(s => s.subscriptionPlan)
                 .WithMany(c => c.companies)
                 .HasForeignKey(e => e.planid);
+
+            modelBuilder.Entity<Contract>()
+                .HasOne(r => r.client)
+                .WithMany()
+                .HasForeignKey(r => r.custid);
+
+            modelBuilder.Entity<ContractDetail>()
+                .HasOne(r => r.contract)
+                .WithMany(s => s.contractDetails)
+                .HasForeignKey(r => r.contractid);
+
+            modelBuilder.Entity<ContractDetail>()
+                .HasOne(r => r.lot)
+                .WithMany()
+                .HasForeignKey(r => r.lotid);
 
             modelBuilder.Entity<Expense>()
                 .HasOne(s => s.office)
@@ -138,7 +158,7 @@ namespace ires.Infrastructure.Data
             modelBuilder.Entity<Lot>()
                 .HasOne(r => r.lotModel)
                 .WithMany()
-                .HasForeignKey(r => r.propertyid);
+                .HasForeignKey(r => r.model_id);
 
             modelBuilder.Entity<MaintenanceType>().HasData(
                     new MaintenanceType { id = 1, name = "Repair and Maintenance", isactive = true },
@@ -242,7 +262,10 @@ namespace ires.Infrastructure.Data
         public DbSet<CarMaintenance> carMaintenances { get; set; }
         public DbSet<CarType> carTypes { get; set; }
         public DbSet<Client> clients { get; set; }
+        public DbSet<CommissionDetail> commissionDetails { get; set; }
         public DbSet<Company> companies { get; set; }
+        public DbSet<Contract> contracts { get; set; }
+        public DbSet<ContractDetail> contractDetails { get; set; }
         public DbSet<CreditMemoType> creditMemoTypes { get; set; }
         public DbSet<Employee> employees { get; set; }
         public DbSet<Expense> expenses { get; set; }

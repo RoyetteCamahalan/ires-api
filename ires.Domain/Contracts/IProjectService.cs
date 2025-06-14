@@ -16,7 +16,6 @@ namespace ires.Domain.Contracts
         public Task<bool> IsNameUnique(string propertyName);
 
 
-
         public Task<RentalUnit> CreateRentalUnit(RentalUnit request);
         public Task UpdateRentalUnit(RentalUnit request);
         public Task UpdateRentalUnitStatus(long id, RentalPropertyStatus status);

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250524051126_create_contractdetail_table")]
+    partial class create_contractdetail_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -769,48 +772,6 @@ namespace ires.Infrastructure.Migrations
                     b.HasKey("custid");
 
                     b.ToTable("customer");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.CommissionDetail", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<long>("agentid")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("compercentage")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("contractid")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("createdbyid")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("datecreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("dateupdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("isagent")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("referralpercentage")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long?>("updatedbyid")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("agentid");
-
-                    b.ToTable("commissiondetails");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>
@@ -2763,17 +2724,6 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("office");
 
                     b.Navigation("refOffice");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.CommissionDetail", b =>
-                {
-                    b.HasOne("ires.Infrastructure.Entities.Agent", "agent")
-                        .WithMany()
-                        .HasForeignKey("agentid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("agent");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Company", b =>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ires.Domain.Enumerations;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,15 +18,13 @@ namespace ires.Core.ViewModels
         public decimal pricepersquare { get; set; }
         public decimal default_price { get; set; }
         public decimal min_down { get; set; }
-        public int type { get; set; }
         public decimal compercentage { get; set; }
         public decimal commissionableamount { get; set; }
-        public decimal housearea { get; set; }
-        public decimal parkingarea { get; set; }
         public decimal comatdown { get; set; }
         public int blocknoint { get; set; }
         public int lotnoint { get; set; }
         public string titleno { get; set; } = string.Empty;
-        public bool isactive { get; set; }
+        public LotStatus status { get; set; }
+        public LotModelViewModel? lotModel { get; set; }
     }
 }
