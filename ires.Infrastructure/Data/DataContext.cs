@@ -227,6 +227,7 @@ namespace ires.Infrastructure.Data
         public DbSet<CarType> carTypes { get; set; }
         public DbSet<Client> clients { get; set; }
         public DbSet<Company> companies { get; set; }
+        public DbSet<CompanySetting> companySettings { get; set; }
         public DbSet<CreditMemoType> creditMemoTypes { get; set; }
         public DbSet<Employee> employees { get; set; }
         public DbSet<Expense> expenses { get; set; }

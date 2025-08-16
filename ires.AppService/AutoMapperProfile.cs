@@ -9,6 +9,7 @@ using ires.Domain.DTO.BankAccount;
 using ires.Domain.DTO.CashDisbursement;
 using ires.Domain.DTO.Client;
 using ires.Domain.DTO.Company;
+using ires.Domain.DTO.CompanySetting;
 using ires.Domain.DTO.CreditNote;
 using ires.Domain.DTO.Employee;
 using ires.Domain.DTO.Expense;
@@ -58,6 +59,8 @@ namespace ires.AppService
             CreateMap<Client, ClientViewModel>();
             CreateMap<Company, CompanyViewModel>();
             CreateMap<Company, CompanyPlanViewModel>();
+
+            CreateMap<CompanySetting, CompanySettingViewModel>();
 
             CreateMap<CreditMemoTypeRequestDto, CreditMemoType>();
             CreateMap<CreditMemoType, CreditMemoTypeViewModel>();

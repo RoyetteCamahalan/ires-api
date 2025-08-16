@@ -1,4 +1,5 @@
 ﻿using ires.Domain.DTO.Company;
+using ires.Domain.DTO.CompanySetting;
 
 namespace ires.Domain.Contracts
 {
@@ -11,5 +12,8 @@ namespace ires.Domain.Contracts
         public Task<bool> Update(UpdateCompanyRequestDto requestDto);
         public Task<bool> Verify(int id);
         public Task<bool> CompleteTour(int id);
+
+        public Task<bool> UpdateSettings(CompanySettingDto requestDto);
+        public Task<CompanySettingViewModel> GetSettings();
     }
 }

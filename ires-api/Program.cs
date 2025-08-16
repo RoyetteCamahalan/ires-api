@@ -5,6 +5,7 @@ using ires.Domain.Contracts;
 using ires.Infrastructure;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Repositories;
+using ires.Infrastructure.Services;
 using ires_api.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,8 @@ builder.Services.AddControllers()
         //options.SerializerSettings.DateFormatString = "yyyy-MM-dd hh:mm tt";
     });
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddAutoMapper(typeof(_ForAppServiceAssembyLoadOnly).Assembly);
 builder.Services.AddScoped<IAppService, AppRepository>();
 builder.Services.AddScoped<ICompanyService, CompanyRepository>();
@@ -72,6 +75,8 @@ builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
 builder.Services.AddScoped<IProjectService, ProjectRepository>();
 builder.Services.AddScoped<IRentalService, RentalRepository>();
 
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddInfrastructure();
 var context = new CustomAssemblyLoadContext();
@@ -82,6 +87,17 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+using var scope = app.Services.CreateScope();
+try
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+    var pendingMigrations = dbContext.Database.GetPendingMigrations();
+    if (pendingMigrations.Any())
+    {
+        dbContext.Database.Migrate();
+    }
+}
+catch (Exception){}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

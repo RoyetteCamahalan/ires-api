@@ -2,6 +2,7 @@
 using ires.Domain;
 using ires.Domain.Contracts;
 using ires.Domain.DTO.Company;
+using ires.Domain.DTO.CompanySetting;
 using ires.Infrastructure.Data;
 using ires.Infrastructure.Entities;
 using ires.Infrastructure.Seeders;
@@ -13,12 +14,15 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
         private readonly ILogService _logService;
 
-        public CompanyRepository(DataContext dataContext, IMapper mapper, ILogService logService)
+        public CompanyRepository(DataContext dataContext, IMapper mapper, 
+            ICurrentUserService currentUserService, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
+            _currentUserService = currentUserService;
             _logService = logService;
         }
         public async Task<ICollection<CompanyViewModel>> GetCompanies()
@@ -115,6 +119,34 @@ namespace ires.Infrastructure.Repositories
                 return true;
             }
             return false;
+        }
+
+        public async Task<bool> UpdateSettings(CompanySettingDto requestDto)
+        {
+            var settings = await _dataContext.companySettings.Where(x => x.companyid == _currentUserService.companyid).FirstOrDefaultAsync();
+            if (settings != null)
+            {
+                settings.autocashinaccountid_survey = requestDto.autocashinaccountid_survey;
+                await _dataContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<CompanySettingViewModel> GetSettings()
+        {
+            var settings = await _dataContext.companySettings.Where(x => x.companyid == _currentUserService.companyid).FirstOrDefaultAsync();
+            if(settings == null)
+            {
+                settings = new CompanySetting
+                {
+                    companyid = _currentUserService.companyid,
+                    autocashinaccountid_survey = null
+                };
+                _dataContext.companySettings.Add(settings);
+                await _dataContext.SaveChangesAsync();
+            }
+            return _mapper.Map<CompanySettingViewModel>(settings);
         }
     }
 }

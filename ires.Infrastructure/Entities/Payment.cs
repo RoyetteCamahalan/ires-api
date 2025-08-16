@@ -31,6 +31,8 @@ namespace ires.Infrastructure.Entities
         public DateTime? datecreated { get; set; }
         public long? creditmemotypeid { get; set; }
 
+        public long? autocashinaccountid { get; set; }
+
         public Client? client { get; set; }
         public PaymentCheck? paymentCheck { get; set; }
         public BankTransfer? bankTransfer { get; set; }

@@ -2,6 +2,7 @@
 using ires.Domain.Contracts;
 using ires.Domain.DTO;
 using ires.Domain.DTO.Company;
+using ires.Domain.DTO.CompanySetting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -129,6 +130,24 @@ namespace ires_api.Controllers
                 return BadRequest(serverResponse);
             }
             return Ok(serverResponse);
+        }
+
+        [HttpGet("settings")]
+        public async Task<IActionResult> GetSettings()
+        {
+            var serverResponse = new ServerResponse<CompanySettingViewModel>();
+            serverResponse.Data = await _companyService.GetSettings();
+            return Ok(serverResponse);
+        }
+
+        [HttpPost("settings")]
+        public async Task<IActionResult> UpdateSettings(CompanySettingDto requestDto)
+        {
+            if (await _companyService.UpdateSettings(requestDto))
+            {
+                return Ok(new ServerResponse<Boolean> { Data = true });
+            }
+            return BadRequest(new ServerResponse<Boolean> { Data = false });
         }
     }
 }

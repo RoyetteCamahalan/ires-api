@@ -23,6 +23,7 @@ namespace ires.Domain.DTO.Payment
         public string remarks { get; set; } = string.Empty;
         public decimal payablebalance { get; set; }
         public long? creditmemotypeid { get; set; }
+        public long? autocashinaccountid { get; set; }
         public ClientViewModel? client { get; set; }
         public ICollection<PayableViewModel>? payables { get; set; }
         public EmployeeViewModel? createdBy { get; set; }

@@ -24,6 +24,7 @@ namespace ires.Infrastructure.Entities
         public DateTime? datecreated { get; set; }
         public long updatedbyid { get; set; }
         public DateTime? dateupdated { get; set; }
+        public long? refpaymentid { get; set; }
         public Office? office { get; set; }
         public Office? refOffice { get; set; }
     }

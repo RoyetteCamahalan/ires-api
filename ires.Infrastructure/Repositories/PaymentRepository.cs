@@ -14,13 +14,15 @@ namespace ires.Infrastructure.Repositories
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
         private readonly IRentalService _rentalService;
+        private readonly IAccountService _accountService;
         private readonly ILogService _logService;
 
-        public PaymentRepository(DataContext dataContext, IMapper mapper, IRentalService rentalService, ILogService logService)
+        public PaymentRepository(DataContext dataContext, IMapper mapper, IRentalService rentalService, IAccountService accountService, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;
             _rentalService = rentalService;
+            _accountService = accountService;
             _logService = logService;
         }
 
@@ -100,6 +102,28 @@ namespace ires.Infrastructure.Repositories
                     rentalCharge.balance = payable.balance - payable.paymentAmount;
                     await _rentalService.RecomputeContract(rentalCharge.contractid);
                 }
+            }
+
+            if(payment.autocashinaccountid != null && payment.autocashinaccountid > 0)
+            {
+                var cashDisbursement = new CashDisbursement
+                {
+                    companyid = payment.companyid,
+                    accountid = payment.autocashinaccountid ?? 0,
+                    refdate = payment.paymentdate,
+                    refno = payment.receiptno,
+                    amount = payment.totalamount,
+                    remarks = "Auto cash-in from payment",
+                    transtype = DisbursementTransType.cashin,
+                    refdisbursementid = 0,
+                    status = DisbursementStatus.approved,
+                    createdbyid = payment.encodedby,
+                    datecreated = payment.datecreated,
+                    refpaymentid = payment.paymentid
+                };
+                _dataContext.cashDisbursements.Add(cashDisbursement);
+                await _dataContext.SaveChangesAsync();
+                await _accountService.UpdateOfficeBalanceAsync(cashDisbursement.accountid, cashDisbursement.amount);
             }
             await _logService.SaveLogAsync(payment.companyid, payment.encodedby, AppModule.Payments, "New Payment", "New Payment ID: " + payment.paymentid, 0);
             return _mapper.Map<PaymentViewModel>(payment);
@@ -195,6 +219,15 @@ namespace ires.Infrastructure.Repositories
                     }
                     else if (detail.payableType == AppModule.Rentals)
                         await _rentalService.RecomputeContract(detail.rentalid);
+                }
+                if (entity.autocashinaccountid != null && entity.autocashinaccountid > 0)
+                {
+                    var cashIn = await _dataContext.cashDisbursements.Where(x => x.refpaymentid == paymentID).FirstOrDefaultAsync();
+                    if (cashIn != null)
+                    {
+                        cashIn.status = DisbursementStatus.@void;
+                        await _accountService.UpdateOfficeBalanceAsync(entity.autocashinaccountid ?? 0, entity.totalamount * -1);
+                    }
                 }
                 await _dataContext.SaveChangesAsync();
                 await _logService.SaveLogAsync(entity.companyid, employeeid, AppModule.Payments, "Void Payment", "Void Payment ID: " + paymentID, 0);

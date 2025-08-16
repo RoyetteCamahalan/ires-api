@@ -480,3 +480,4 @@ $RECYCLE.BIN/
 *.lnk
 /ires-api/appsettings.Development.json
 /ires-api/appsettings.json
+/ires-api/appsettings.Development.json

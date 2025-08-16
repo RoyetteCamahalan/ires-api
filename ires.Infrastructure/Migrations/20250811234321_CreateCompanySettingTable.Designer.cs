@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250811234321_CreateCompanySettingTable")]
+    partial class CreateCompanySettingTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -620,9 +623,6 @@ namespace ires.Infrastructure.Migrations
                     b.Property<string>("refno")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("refpaymentid")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("remarks")
                         .IsRequired()
@@ -1391,9 +1391,6 @@ namespace ires.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("paymentid"));
-
-                    b.Property<long?>("autocashinaccountid")
-                        .HasColumnType("bigint");
 
                     b.Property<decimal>("change")
                         .HasColumnType("decimal(18,2)");
