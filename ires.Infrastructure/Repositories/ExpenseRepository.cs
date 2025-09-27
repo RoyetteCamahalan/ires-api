@@ -58,7 +58,7 @@ namespace ires.Infrastructure.Repositories
         {
             var result = await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor)
                 .Where(x => x.companyid == companyID && x.refdate >= startDate.Date && x.refdate <= endDate.Date &&
-                    (x.office.accountname.Contains(search) || x.expenseType.expensetypedesc.Contains(search) || x.vendor.vendorname.Contains(search)))
+                    (x.office.accountname.Contains(search) || x.expenseType.expensetypedesc.Contains(search) || x.vendor.vendorname.Contains(search) || x.refno.Contains(search)))
                 .OrderByDescending(x => x.transdate).ToListAsync();
             return _mapper.Map<ICollection<ExpenseViewModel>>(result);
         }
