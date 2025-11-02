@@ -28,5 +28,8 @@ namespace ires.Infrastructure.Entities
         public string passwordresettoken { get; set; } = string.Empty;
 
         public Company? company { get; set; }
+
+        public virtual ICollection<UserPermission>? UserPermissions { get; set; }
+        public virtual ICollection<UserRole>? UserRoles { get; set; }
     }
 }

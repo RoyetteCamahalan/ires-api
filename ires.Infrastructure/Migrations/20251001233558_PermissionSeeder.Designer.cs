@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ires.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ires.Infrastructure.Data;
 namespace ires.Infrastructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20251001233558_PermissionSeeder")]
+    partial class PermissionSeeder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -345,164 +348,6 @@ namespace ires.Infrastructure.Migrations
                     b.HasIndex("companyid");
 
                     b.ToTable("bill");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.BillingAccount", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("CreatedById")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DueDayOfMonth")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DueDayOfWeek")
-                        .HasColumnType("int");
-
-                    b.Property<long>("ExpenseTypeId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Frequency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("HasFixedAmount")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastNotified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Memo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("NextDueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("NotifyDaysBefore")
-                        .HasColumnType("int");
-
-                    b.Property<string>("NotifyOption")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("OfficeId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UpdatedById")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("VendorId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("IX_BillingAccount_CompanyId");
-
-                    b.HasIndex("ExpenseTypeId");
-
-                    b.HasIndex("OfficeId");
-
-                    b.HasIndex("VendorId");
-
-                    b.ToTable("billing_accounts");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.BillingPayment", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("BillingAccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("CreatedById")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("ExpenseId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("NextDueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PaymentMode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("PeriodFrom")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PeriodTo")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RefNo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("UpdatedById")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BillingAccountId");
-
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("IX_BillingPayment_CompanyId");
-
-                    b.HasIndex("ExpenseId");
-
-                    b.ToTable("billing_payments");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Booking", b =>
@@ -2680,50 +2525,6 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("company");
                 });
 
-            modelBuilder.Entity("ires.Infrastructure.Entities.BillingAccount", b =>
-                {
-                    b.HasOne("ires.Infrastructure.Entities.ExpenseType", "ExpenseType")
-                        .WithMany()
-                        .HasForeignKey("ExpenseTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ires.Infrastructure.Entities.Office", "Office")
-                        .WithMany()
-                        .HasForeignKey("OfficeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ires.Infrastructure.Entities.Vendor", "Vendor")
-                        .WithMany()
-                        .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ExpenseType");
-
-                    b.Navigation("Office");
-
-                    b.Navigation("Vendor");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.BillingPayment", b =>
-                {
-                    b.HasOne("ires.Infrastructure.Entities.BillingAccount", "BillingAccount")
-                        .WithMany("BillingPayments")
-                        .HasForeignKey("BillingAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ires.Infrastructure.Entities.Expense", "Expense")
-                        .WithMany()
-                        .HasForeignKey("ExpenseId");
-
-                    b.Navigation("BillingAccount");
-
-                    b.Navigation("Expense");
-                });
-
             modelBuilder.Entity("ires.Infrastructure.Entities.Booking", b =>
                 {
                     b.HasOne("ires.Infrastructure.Entities.Car", "car")
@@ -3118,11 +2919,6 @@ namespace ires.Infrastructure.Migrations
                     b.Navigation("bankTransfers");
 
                     b.Navigation("checks");
-                });
-
-            modelBuilder.Entity("ires.Infrastructure.Entities.BillingAccount", b =>
-                {
-                    b.Navigation("BillingPayments");
                 });
 
             modelBuilder.Entity("ires.Infrastructure.Entities.Client", b =>
