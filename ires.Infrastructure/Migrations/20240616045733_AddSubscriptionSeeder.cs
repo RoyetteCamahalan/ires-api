@@ -24,7 +24,8 @@ namespace ires.Infrastructure.Migrations
                     { 5, "", true, 10, 500m, "Finance Enterprise", 5000m, 0 },
                     { 6, "", true, 14, 0m, "60 Day Trial", 1000m, 0 },
                     { 7, "", true, 14, 800m, "Rental Pro", 1000m, 20 },
-                    { 8, "", true, 14, 1000m, "Rental Enterprise", 5000m, 0 }
+                    { 8, "", true, 14, 1000m, "Rental Enterprise", 5000m, 0 },
+                    { 9, "", true, 14, 800m, "Rental Pro + Surveying Pro", 1000m, 0 }
                 });
         }
 

@@ -157,6 +157,19 @@ namespace ires.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(e => e.moduleid);
 
+            modelBuilder.Entity<PlanPermission>(entity =>
+            {
+                entity.HasKey(e => new { e.PlanId, e.PermissionGroupId }).HasName("PRIMARY");
+                entity.HasOne(e => e.SubscriptionPlan)
+                    .WithMany(e => e.PlanPermissions)
+                    .HasForeignKey(e => e.PlanId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.PermissionGroup)
+                    .WithMany()
+                    .HasForeignKey(e => e.PermissionGroupId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<RentalProperty>()
                 .HasOne(r => r.project)
                 .WithMany(p => p.rentalProperties)
@@ -187,10 +200,52 @@ namespace ires.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(r => r.contractid);
 
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.HasKey(e => new { e.RoleId, e.PermissionId }).HasName("PRIMARY");
+
+                entity.HasOne(e => e.Role)
+                    .WithMany(r => r.RolePermissions)
+                    .HasForeignKey(e => e.RoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Permission)
+                    .WithMany()
+                    .HasForeignKey(e => e.PermissionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<UserPermission>(entity =>
+            {
+                entity.HasKey(e => new { e.EmployeeId, e.PermissionId }).HasName("PRIMARY");
+
+                entity.HasOne(e => e.Employee)
+                    .WithMany(e => e.UserPermissions)
+                    .HasForeignKey(e => e.EmployeeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Permission)
+                    .WithMany()
+                    .HasForeignKey(e => e.PermissionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<UserPrivilege>()
                 .HasOne(s => s.module)
                 .WithMany()
                 .HasForeignKey(e => e.moduleid);
+
+            modelBuilder.Entity<UserRole>(entity =>
+            {
+                entity.HasKey(e => new { e.EmployeeId, e.RoleId }).HasName("PRIMARY");
+                entity.HasOne(e => e.Employee)
+                    .WithMany(e => e.UserRoles)
+                    .HasForeignKey(e => e.EmployeeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Role)
+                    .WithMany(e => e.UserRoles)
+                    .HasForeignKey(e => e.RoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.Entity<AppPreference>().HasData(
                 new AppPreference { id = AppPrefKey.cron_reload_subscription, name = "CRON Reload Subsrciption", value = "1990/01/01" },
@@ -244,16 +299,23 @@ namespace ires.Infrastructure.Data
         public DbSet<Payment> payments { get; set; }
         public DbSet<PaymentCheck> paymentChecks { get; set; }
         public DbSet<PaymentDetail> paymentDetails { get; set; }
+        public DbSet<Permission> permissions { get; set; }
+        public DbSet<PermissionGroup> permissionGroups { get; set; }
         public DbSet<PlanModule> planModules { get; set; }
+        public DbSet<PlanPermission> planPermissions { get; set; }
         public DbSet<Project> projects { get; set; }
         public DbSet<RentalProperty> rentalProperties { get; set; }
         public DbSet<RentalContract> rentalContracts { get; set; }
         public DbSet<RentalContractDetail> rentalContractDetails { get; set; }
         public DbSet<RentalCharge> rentalCharges { get; set; }
+        public DbSet<Role> role { get; set; }
+        public DbSet<RolePermission> rolePermissions { get; set; }
         public DbSet<Survey> surveys { get; set; }
         public DbSet<SurveyType> surveyTypes { get; set; }
         public DbSet<SubscriptionPlan> subscriptionPlans { get; set; }
-        public DbSet<UserPrivilege> userPrivileges { get; set; }    
+        public DbSet<UserPrivilege> userPrivileges { get; set; }
+        public DbSet<UserRole> userRoles { get; set; }
+        public DbSet<UserPermission> userPermissions { get; set; }
         public DbSet<Vendor> vendors { get; set; }
 
 

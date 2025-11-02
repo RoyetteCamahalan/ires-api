@@ -17,5 +17,6 @@ namespace ires.Infrastructure.Entities
         public int surveylimit { get; set; }
         public decimal monthlysubscription { get; set; }
         public List<Company> companies { get; set; } = new List<Company>();
+        public virtual ICollection<PlanPermission>? PlanPermissions { get; set; }
     }
 }
