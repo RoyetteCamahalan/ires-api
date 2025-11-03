@@ -106,6 +106,7 @@ namespace ires.Infrastructure.Repositories
 
             if(payment.autocashinaccountid != null && payment.autocashinaccountid > 0)
             {
+                var client = await _dataContext.clients.FindAsync(payment.custid);
                 var cashDisbursement = new CashDisbursement
                 {
                     companyid = payment.companyid,
@@ -113,7 +114,7 @@ namespace ires.Infrastructure.Repositories
                     refdate = payment.paymentdate,
                     refno = payment.receiptno,
                     amount = payment.totalamount,
-                    remarks = "Auto cash-in from payment",
+                    remarks = payment.remarks.Length > 0 ? payment.remarks : $"Auto cash-in payment from {client.fname + " " + client.lname}",
                     transtype = DisbursementTransType.cashin,
                     refdisbursementid = 0,
                     status = DisbursementStatus.approved,
