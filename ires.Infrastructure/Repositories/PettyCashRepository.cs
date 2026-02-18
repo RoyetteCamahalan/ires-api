@@ -103,7 +103,7 @@ namespace ires.Infrastructure.Repositories
                 && x.transtype == DisbursementTransType.transferout && x.status == DisbursementStatus.approved)
                 .SumAsync(x => x.amount);
             var expenses = await _dataContext.expenses.Where(x => x.accountid == accountID
-                && x.status == ExpenseStatus.approved).SumAsync(x => x.amount);
+                && x.status == ExpenseStatus.approved && x.usepettycash).SumAsync(x => x.amount);
             var entity = await _dataContext.offices.FindAsync(accountID);
             entity.pettycashbalance = cashIns - cashOuts - expenses;
             await _dataContext.SaveChangesAsync();
