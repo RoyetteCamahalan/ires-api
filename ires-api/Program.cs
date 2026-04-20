@@ -75,7 +75,7 @@ builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
 builder.Services.AddScoped<IProjectService, ProjectRepository>();
 builder.Services.AddScoped<IRentalService, RentalRepository>();
 
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddInfrastructure();

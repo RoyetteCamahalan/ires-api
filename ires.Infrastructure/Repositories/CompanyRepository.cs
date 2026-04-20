@@ -14,11 +14,11 @@ namespace ires.Infrastructure.Repositories
     {
         private readonly DataContext _dataContext;
         private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
+        private readonly ICurrentUserContext _currentUserService;
         private readonly ILogService _logService;
 
         public CompanyRepository(DataContext dataContext, IMapper mapper, 
-            ICurrentUserService currentUserService, ILogService logService)
+            ICurrentUserContext currentUserService, ILogService logService)
         {
             _dataContext = dataContext;
             _mapper = mapper;

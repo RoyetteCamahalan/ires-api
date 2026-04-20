@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace ires.Infrastructure.Services
 {
-    public class CurrentUserService(IHttpContextAccessor _httpContextAccessor) : ICurrentUserService
+    public class CurrentUserContext(IHttpContextAccessor _httpContextAccessor) : ICurrentUserContext
     {
         public long employeeid => Convert.ToInt64(_httpContextAccessor?.HttpContext?.User?.Claims?.Single(x => x.Type == ClaimTypes.PrimarySid).Value);
 

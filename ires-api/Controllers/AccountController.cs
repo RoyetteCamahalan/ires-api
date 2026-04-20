@@ -22,14 +22,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetBankAccounts(int currentPage, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<BankAccountViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            if (identity == null)
-            {
-                serverResponse.Success = false;
-                serverResponse.Message = "Unable to process request";
-                return BadRequest(serverResponse);
-            }
-            var bankAccounts = await _accountService.GetBankAccounts(identity.companyid ?? 0, search ?? "");
+            var bankAccounts = await _accountService.GetBankAccounts(search ?? "");
             var paginator = new PaginatorDto<BankAccountViewModel>(currentPage);
             paginator.Paginate(bankAccounts);
             serverResponse.Data = paginator;
@@ -114,8 +107,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetOffices(int currentPage, bool viewAll, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<OfficeViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _accountService.GetOffices(identity.companyid ?? 0, search ?? "", viewAll);
+            var result = await _accountService.GetOffices(search ?? "", viewAll);
             var paginator = new PaginatorDto<OfficeViewModel>(currentPage);
             paginator.Paginate(result);
             serverResponse.Data = paginator;
@@ -126,16 +118,13 @@ namespace ires_api.Controllers
         public async Task<IActionResult> CreateOffice([FromBody] OfficeRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<OfficeViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _accountService.GetOfficeByName(requestDto.companyid, requestDto.accountname);
+            var result = await _accountService.GetOfficeByName(requestDto.accountname);
             if (result != null)
             {
                 serverResponse.Success = false;
                 serverResponse.Message = "Bank already registered.";
                 return BadRequest(serverResponse);
             }
-            requestDto.companyid = identity.companyid ?? 0;
-            requestDto.createdbyid = identity.employeeid;
             result = await _accountService.CreateOfficeAsync(requestDto);
             if (result == null)
             {
@@ -151,8 +140,6 @@ namespace ires_api.Controllers
         public async Task<IActionResult> UpdateOffice([FromBody] OfficeRequestDto requestDto)
         {
             var serverResponse = new ServerResponse<OfficeViewModel>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            requestDto.updatedbyid = identity.employeeid;
             if (!await _accountService.UpdateOfficeAsync(requestDto))
             {
                 serverResponse.Success = false;
