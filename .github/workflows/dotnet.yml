@@ -1,0 +1,36 @@
+name: MASTER - CI/CD → SmarterASP.NET
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ires-api/ires-api.csproj
+
+      - name: Build
+        run: dotnet build ires-api/ires-api.csproj --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish ires-api/ires-api.csproj --configuration Release --no-build --output ./publish
+        
+      - name: Deploy to Via Web deploy
+        uses: talunzhang/auto-web-deploy@v1.0.1
+        with:
+          website-name: hexabytadmin-001-subsite2
+          server-computer-name: https://win8224.site4now.net:8172
+          server-username: hexabytadmin-001
+          server-password: ${{ secrets.SMARTER_PASSWORD }}
+          source-path: publish\
