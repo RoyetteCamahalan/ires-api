@@ -19,6 +19,7 @@ namespace ires.Infrastructure
             });
             services.ConfigureOptions<RentalContractComputationJobSetup>();
             services.ConfigureOptions<BillingGenerationJobSetup>();
+            services.ConfigureOptions<BillingNotificationJobSetup>();
         }
     }
 }

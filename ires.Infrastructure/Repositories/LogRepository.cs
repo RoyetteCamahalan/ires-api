@@ -30,5 +30,21 @@ namespace ires.Infrastructure.Repositories
             _dataContext.logs.Add(log);
             await _dataContext.SaveChangesAsync();
         }
+
+        public async Task SaveLogAsync(ICurrentUserContext currentUserContext, AppModule moduleID, string title, string action, int withadmin)
+        {
+            Log log = new Log
+            {
+                companyid = currentUserContext.companyid,
+                employeeid = currentUserContext.employeeid,
+                moduleid = moduleID,
+                logtitle = title,
+                logAction = action,
+                logdate = Utility.GetServerTime(),
+                withadmin = withadmin
+            };
+            _dataContext.logs.Add(log);
+            await _dataContext.SaveChangesAsync();
+        }
     }
 }

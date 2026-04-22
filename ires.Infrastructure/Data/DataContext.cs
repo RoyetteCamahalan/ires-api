@@ -1,17 +1,17 @@
 ﻿
+using ires.Domain.Contracts;
 using ires.Domain.Enumerations;
+using ires.Infrastructure.Common;
 using ires.Infrastructure.Entities;
 using ires.Infrastructure.Keyless;
 using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Data
 {
-    public class DataContext : DbContext
+    public class DataContext(DbContextOptions<DataContext> options, ICurrentUserContext userContext) : DbContext(options)
     {
-        public DataContext(DbContextOptions<DataContext> options) : base(options)
-        {
+        private readonly ICurrentUserContext _userContext = userContext;
 
-        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RentalAccountHistory>().HasNoKey();
@@ -19,6 +19,19 @@ namespace ires.Infrastructure.Data
             modelBuilder.Entity<PettyCashAccountHistory>().HasNoKey();
 
             base.OnModelCreating(modelBuilder);
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (entityType.ClrType.GetProperty("CompanyId") != null)
+                {
+                    modelBuilder.Entity(entityType.ClrType).BelongsToCompany(entityType.ClrType, _userContext);
+                }
+
+                if (entityType.ClrType.GetProperty("Guid") != null)
+                {
+                    modelBuilder.Entity(entityType.ClrType).HasIndex("Guid").IsUnique().HasDatabaseName($"IX_{entityType.ClrType.Name}_Guid");
+                }
+            }
+
 
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.company)
@@ -69,6 +82,21 @@ namespace ires.Infrastructure.Data
             modelBuilder.Entity<Bill>()
                 .HasOne(c => c.company)
                 .WithMany().HasForeignKey(c => c.companyid);
+
+            modelBuilder.Entity<BillingAccount>()
+                .HasOne(b => b.Vendor).WithMany().HasForeignKey(b => b.VendorId);
+
+            modelBuilder.Entity<BillingAccount>()
+                .HasOne(b => b.Office).WithMany().HasForeignKey(b => b.OfficeId);
+
+            modelBuilder.Entity<BillingAccount>()
+                .HasOne(b => b.ExpenseType).WithMany().HasForeignKey(b => b.ExpenseTypeId);
+
+            modelBuilder.Entity<BillingPayment>()
+                .HasOne(p => p.BillingAccount).WithMany(a => a.BillingPayments).HasForeignKey(p => p.BillingAccountId);
+
+            modelBuilder.Entity<BillingPayment>()
+                .HasOne(p => p.Expense).WithMany().HasForeignKey(p => p.ExpenseId).IsRequired(false);
 
             modelBuilder.Entity<Booking>()
                 .HasOne(c => c.car).WithMany().HasForeignKey(c => c.carid);
@@ -220,6 +248,8 @@ namespace ires.Infrastructure.Data
         public DbSet<BankAccount> bankAccounts { get; set; }
         public DbSet<BankTransfer> bankTransfers { get; set; }
         public DbSet<Bill> bills { get; set; }
+        public DbSet<BillingAccount> billingAccounts { get; set; }
+        public DbSet<BillingPayment> billingPayments { get; set; }
         public DbSet<Booking> bookings { get; set; }
         public DbSet<CashDisbursement> cashDisbursements { get; set; }
         public DbSet<Car> cars { get; set; }

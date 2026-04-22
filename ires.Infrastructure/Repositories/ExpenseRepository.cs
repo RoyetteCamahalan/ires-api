@@ -13,54 +13,47 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ires.Infrastructure.Repositories
 {
-    public class ExpenseRepository : IExpenseService
+    public class ExpenseRepository(
+        DataContext dataContext, 
+        IAccountService accountService, 
+        ICurrentUserContext currentUserContext,
+        IMapper mapper, 
+        ILogService logService) : IExpenseService
     {
-        private readonly DataContext _dataContext;
-        private readonly IAccountService _accountService;
-        private readonly IMapper _mapper;
-        private readonly ILogService _logService;
-
-        public ExpenseRepository(DataContext dataContext, IAccountService accountService, IMapper mapper, ILogService logService)
-        {
-            _dataContext = dataContext;
-            _accountService = accountService;
-            _mapper = mapper;
-            _logService = logService;
-        }
         public async Task<ExpenseViewModel> Create(ExpenseRequestDto requestDto)
         {
-            var entity = _mapper.Map<Expense>(requestDto);
+            var entity = mapper.Map<Expense>(requestDto);
             entity.expenseid = 0;
-            entity.transno = (await _dataContext.expenses.MaxAsync(x => (long?)x.transno) ?? 0) + 1;
+            entity.transno = (await dataContext.expenses.MaxAsync(x => (long?)x.transno) ?? 0) + 1;
             entity.transdate = Utility.GetServerTime();
             entity.status = ExpenseStatus.approved;
-            _dataContext.expenses.Add(entity);
-            await _dataContext.SaveChangesAsync();
-            await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Expenses, "Expense", "Create New Record : " + entity.expenseid, 0);
+            dataContext.expenses.Add(entity);
+            await dataContext.SaveChangesAsync();
+            await logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Expenses, "Expense", "Create New Record : " + entity.expenseid, 0);
             if (entity.usepettycash)
-                await _accountService.UpdateOfficeBalanceAsync(entity.accountid, entity.amount * -1);
+                await accountService.UpdateOfficeBalanceAsync(entity.accountid, entity.amount * -1);
             await this.ReComputeAPAsync(entity.payeeid);
-            return _mapper.Map<ExpenseViewModel>(entity);
+            return mapper.Map<ExpenseViewModel>(entity);
         }
 
         private async Task<Expense> GetExpenseByIDAsync(long ID)
         {
-            return await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor).FirstOrDefaultAsync(x => x.expenseid == ID);
+            return await dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor).FirstOrDefaultAsync(x => x.expenseid == ID);
         }
 
         public async Task<ExpenseViewModel> GetExpenseByID(long ID)
         {
             var result = await GetExpenseByIDAsync(ID);
-            return _mapper.Map<ExpenseViewModel>(result);
+            return mapper.Map<ExpenseViewModel>(result);
         }
 
         public async Task<ICollection<ExpenseViewModel>> GetExpenses(int companyID, string search, DateTime startDate, DateTime endDate)
         {
-            var result = await _dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor)
+            var result = await dataContext.expenses.Include(x => x.office).Include(x => x.expenseType).Include(x => x.vendor)
                 .Where(x => x.companyid == companyID && x.refdate >= startDate.Date && x.refdate <= endDate.Date &&
                     (x.office.accountname.Contains(search) || x.expenseType.expensetypedesc.Contains(search) || x.vendor.vendorname.Contains(search) || x.refno.Contains(search)))
                 .OrderByDescending(x => x.transdate).ToListAsync();
-            return _mapper.Map<ICollection<ExpenseViewModel>>(result);
+            return mapper.Map<ICollection<ExpenseViewModel>>(result);
         }
 
         public async Task<bool> Update(ExpenseRequestDto requestDto)
@@ -82,22 +75,22 @@ namespace ires.Infrastructure.Repositories
                 data.usepettycash = requestDto.usepettycash;
                 data.updatedbyid = requestDto.updatedbyid;
                 data.dateupdated = Utility.GetServerTime();
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(data.companyid, data.updatedbyid, AppModule.Expenses, "Expense", "Update Record ID : " + requestDto.expenseid, 0);
+                await dataContext.SaveChangesAsync();
+                await logService.SaveLogAsync(data.companyid, data.updatedbyid, AppModule.Expenses, "Expense", "Update Record ID : " + requestDto.expenseid, 0);
                 if (oldAccountID != requestDto.accountid && oldUsePettyCash)
-                    await _accountService.UpdateOfficeBalanceAsync(oldAccountID, oldAmount);
+                    await accountService.UpdateOfficeBalanceAsync(oldAccountID, oldAmount);
 
                 if (oldVendorID != requestDto.payeeid)
                     await ReComputeAPAsync(oldVendorID);
 
                 if (oldAccountID == requestDto.accountid && oldUsePettyCash && !requestDto.usepettycash)
-                    await _accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount);
+                    await accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount);
                 else if (oldAccountID == requestDto.accountid && !oldUsePettyCash && requestDto.usepettycash)
-                    await _accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount * -1);
+                    await accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount * -1);
                 else if (oldAccountID == requestDto.accountid && oldUsePettyCash && requestDto.usepettycash)
-                    await _accountService.UpdateOfficeBalanceAsync(requestDto.accountid, oldAmount - requestDto.amount);
+                    await accountService.UpdateOfficeBalanceAsync(requestDto.accountid, oldAmount - requestDto.amount);
                 else if (oldAccountID != requestDto.accountid && requestDto.usepettycash)
-                    await _accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount * -1);
+                    await accountService.UpdateOfficeBalanceAsync(requestDto.accountid, requestDto.amount * -1);
                 return true;
             }
             return false;
@@ -110,63 +103,65 @@ namespace ires.Infrastructure.Repositories
                 data.status = ExpenseStatus.@void;
                 data.balance = 0;
                 data.runningbalance = 0;
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(data.companyid, employeeid, AppModule.Expenses, "Expense", "Void Record : " + id, 0);
+                await dataContext.SaveChangesAsync();
+                await logService.SaveLogAsync(data.companyid, employeeid, AppModule.Expenses, "Expense", "Void Record : " + id, 0);
                 if (data.usepettycash)
-                    await _accountService.UpdateOfficeBalanceAsync(data.accountid, data.amount);
+                    await accountService.UpdateOfficeBalanceAsync(data.accountid, data.amount);
 
                 await ReComputeAPAsync(data.payeeid);
                 return true;
             }
             return false;
         }
+
         public async Task ReComputeAPAsync(long vendorID)
         {
             await Task.Run(() =>
-                _dataContext.Database.ExecuteSqlRawAsync("exec spComputeExpense @vendorid = {0}", vendorID));
+                dataContext.Database.ExecuteSqlRawAsync("exec spComputeExpense @vendorid = {0}", vendorID));
         }
 
 
         #region "ExpenseTypes"
         public async Task<ExpenseTypeViewModel> CreateExpenseType(ExpenseTypeRequestDto requestDto)
         {
-            var entity = _mapper.Map<ExpenseType>(requestDto);
+            var entity = mapper.Map<ExpenseType>(requestDto);
             entity.expensetypeid = 0;
             entity.datecreated = Utility.GetServerTime();
-            _dataContext.expenseTypes.Add(entity);
-            await _dataContext.SaveChangesAsync();
-            await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Expenses, "Expense Type", "Create New Expense Type : " + entity.expensetypeid + "-" + entity.expensetypedesc, 0);
-            return _mapper.Map<ExpenseTypeViewModel>(entity);
+            dataContext.expenseTypes.Add(entity);
+            await dataContext.SaveChangesAsync();
+            await logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Expenses, "Expense Type", "Create New Expense Type : " + entity.expensetypeid + "-" + entity.expensetypedesc, 0);
+            return mapper.Map<ExpenseTypeViewModel>(entity);
         }
 
         private async Task<ExpenseType> GetExpenseTypeByIDAsync(long ID)
         {
-            return await _dataContext.expenseTypes.Include(x => x.category).FirstOrDefaultAsync(x => x.expensetypeid == ID);
+            return await dataContext.expenseTypes.Include(x => x.category).FirstOrDefaultAsync(x => x.expensetypeid == ID);
         }
 
         public async Task<ExpenseTypeViewModel> GetExpenseTypeByID(long ID)
         {
             var result = await GetExpenseTypeByIDAsync(ID);
-            return _mapper.Map<ExpenseTypeViewModel>(result);
+            return mapper.Map<ExpenseTypeViewModel>(result);
         }
 
         public async Task<ExpenseTypeViewModel> GetExpenseTypeByName(int companyID, string name)
         {
-            var result = await _dataContext.expenseTypes.FirstOrDefaultAsync(x => x.companyid == companyID && x.expensetypedesc == name);
-            return _mapper.Map<ExpenseTypeViewModel>(result);
+            var result = await dataContext.expenseTypes.FirstOrDefaultAsync(x => x.companyid == companyID && x.expensetypedesc == name);
+            return mapper.Map<ExpenseTypeViewModel>(result);
         }
 
-        public async Task<ICollection<ExpenseTypeViewModel>> GetExpenseTypes(int companyID, bool viewAll, string search)
+        public async Task<ICollection<ExpenseTypeViewModel>> GetExpenseTypes(bool viewAll, string search)
         {
-            var result = await _dataContext.expenseTypes.Include(x => x.category).Where(x => x.companyid == companyID && (x.isactive || viewAll) && x.expensetypedesc.Contains(search))
+            var result = await dataContext.expenseTypes.Include(x => x.category)
+                .Where(x => x.companyid == currentUserContext.companyid && (x.isactive || viewAll) && x.expensetypedesc.Contains(search))
                 .OrderBy(x => x.expensetypedesc).ToListAsync();
             if (result.Count == 0 && search == "")
             {
-                var expenseTypeSeeder = new ExpenseTypeSeeder(_dataContext);
-                await expenseTypeSeeder.Seed(companyID);
-                return await GetExpenseTypes(companyID, viewAll, search);
+                var expenseTypeSeeder = new ExpenseTypeSeeder(dataContext);
+                await expenseTypeSeeder.Seed(currentUserContext.companyid);
+                return await GetExpenseTypes(viewAll, search);
             }
-            return _mapper.Map<ICollection<ExpenseTypeViewModel>>(result);
+            return mapper.Map<ICollection<ExpenseTypeViewModel>>(result);
         }
 
         public async Task<bool> UpdateExpenseType(ExpenseTypeRequestDto requestDto)
@@ -179,8 +174,8 @@ namespace ires.Infrastructure.Repositories
                 entity.isactive = requestDto.isactive;
                 entity.updatedbyid = requestDto.updatedbyid;
                 entity.dateupdated = Utility.GetServerTime();
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.companyid, entity.updatedbyid, AppModule.Expenses, "Expense Type", "Update Expense Type ID : " + entity.expensetypeid + "-" + entity.expensetypedesc, 0);
+                await dataContext.SaveChangesAsync();
+                await logService.SaveLogAsync(entity.companyid, entity.updatedbyid, AppModule.Expenses, "Expense Type", "Update Expense Type ID : " + entity.expensetypeid + "-" + entity.expensetypedesc, 0);
                 return true;
             }
             return false;
@@ -190,44 +185,44 @@ namespace ires.Infrastructure.Repositories
         #region "Vendor"
         public async Task<VendorViewModel> CreateVendor(VendorRequestDto requestDto)
         {
-            var entity = _mapper.Map<Vendor>(requestDto);
+            var entity = mapper.Map<Vendor>(requestDto);
             entity.vendorid = 0;
             entity.datecreated = Utility.GetServerTime();
-            _dataContext.vendors.Add(entity);
-            await _dataContext.SaveChangesAsync();
-            await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Vendors, "Vendor", "Create New Vendor : " + entity.vendorid + "-" + entity.vendorname, 0);
-            return _mapper.Map<VendorViewModel>(entity);
+            dataContext.vendors.Add(entity);
+            await dataContext.SaveChangesAsync();
+            await logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Vendors, "Vendor", "Create New Vendor : " + entity.vendorid + "-" + entity.vendorname, 0);
+            return mapper.Map<VendorViewModel>(entity);
         }
 
         private async Task<Vendor> GetVendorByIDAsync(long ID)
         {
-            return await _dataContext.vendors.FirstOrDefaultAsync(x => x.vendorid == ID);
+            return await dataContext.vendors.FirstOrDefaultAsync(x => x.vendorid == ID);
         }
 
         public async Task<VendorViewModel> GetVendorByID(long ID)
         {
-            return _mapper.Map<VendorViewModel>(await GetVendorByIDAsync(ID));
+            return mapper.Map<VendorViewModel>(await GetVendorByIDAsync(ID));
         }
 
         public async Task<VendorViewModel> GetVendorByName(int companyID, string name)
         {
-            var result = await _dataContext.vendors.FirstOrDefaultAsync(x => x.companyid == companyID && x.vendorname == name);
-            return _mapper.Map<VendorViewModel>(result);
+            var result = await dataContext.vendors.FirstOrDefaultAsync(x => x.companyid == companyID && x.vendorname == name);
+            return mapper.Map<VendorViewModel>(result);
         }
 
         public async Task<ICollection<VendorViewModel>> GetVendors(int companyID, bool viewAll, string search)
         {
-            var result = await _dataContext.vendors.Where(x => x.companyid == companyID
+            var result = await dataContext.vendors.Where(x => x.companyid == companyID
                 && (x.isactive || viewAll)
                 && (x.vendorname.Contains(search) || x.tinno.Contains(search)))
                 .OrderBy(x => x.vendorname).ToListAsync();
             if (result.Count == 0 && search == "")
             {
-                var vendorSeeder = new VendorSeeder(_dataContext);
+                var vendorSeeder = new VendorSeeder(dataContext);
                 await vendorSeeder.Seed(companyID);
                 return await GetVendors(companyID, viewAll, search);
             }
-            return _mapper.Map<ICollection<VendorViewModel>>(result);
+            return mapper.Map<ICollection<VendorViewModel>>(result);
         }
 
         public async Task<bool> UpdateVendor(VendorRequestDto requestDto)
@@ -242,8 +237,8 @@ namespace ires.Infrastructure.Repositories
                 entity.isactive = requestDto.isactive;
                 entity.updatedbyid = requestDto.updatedbyid;
                 entity.dateupdated = Utility.GetServerTime();
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Vendors, "Vendor", "Update Vendor ID : " + requestDto.vendorid + "-" + entity.vendorname, 0);
+                await dataContext.SaveChangesAsync();
+                await logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.Vendors, "Vendor", "Update Vendor ID : " + requestDto.vendorid + "-" + entity.vendorname, 0);
                 return true;
             }
             return false;
@@ -251,19 +246,19 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<int> CountVendors(int companyID)
         {
-            return await _dataContext.vendors.Where(x => x.companyid == companyID).CountAsync();
+            return await dataContext.vendors.Where(x => x.companyid == companyID).CountAsync();
         }
 
         public async Task<AccountPayableViewModel> CreateAccountPayable(AccountPayableRequestDto requestDto)
         {
-            var entity = _mapper.Map<AccountPayable>(requestDto);
+            var entity = mapper.Map<AccountPayable>(requestDto);
             entity.chargeid = 0;
             entity.datecreated = Utility.GetServerTime();
             entity.dateposted = entity.datecreated;
-            _dataContext.accountPayables.Add(entity);
-            await _dataContext.SaveChangesAsync();
-            await _logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.AccountsPayable, "Accounts Payable", "Create New Record : " + entity.chargeid, 0);
-            return _mapper.Map<AccountPayableViewModel>(entity);
+            dataContext.accountPayables.Add(entity);
+            await dataContext.SaveChangesAsync();
+            await logService.SaveLogAsync(entity.companyid, entity.createdbyid, AppModule.AccountsPayable, "Accounts Payable", "Create New Record : " + entity.chargeid, 0);
+            return mapper.Map<AccountPayableViewModel>(entity);
         }
 
         public async Task<bool> UpdateAccountPayable(AccountPayableRequestDto requestDto)
@@ -280,8 +275,8 @@ namespace ires.Infrastructure.Repositories
                 entity.amount = requestDto.amount;
                 entity.updatedbyid = requestDto.updatedbyid;
                 entity.dateupdated = Utility.GetServerTime();
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.companyid, entity.updatedbyid, AppModule.AccountsPayable, "Accounts Payable", "Update Record ID : " + requestDto.chargeid, 0);
+                await dataContext.SaveChangesAsync();
+                await logService.SaveLogAsync(entity.companyid, entity.updatedbyid, AppModule.AccountsPayable, "Accounts Payable", "Update Record ID : " + requestDto.chargeid, 0);
                 if (oldVendorID != entity.vendorid)
                     await ReComputeAPAsync(oldVendorID);
                 await ReComputeAPAsync(entity.vendorid);
@@ -292,12 +287,12 @@ namespace ires.Infrastructure.Repositories
 
         private async Task<AccountPayable> GetAccountPayable(long id)
         {
-            return await _dataContext.accountPayables.Include(x => x.expenseType).Include(x => x.vendor).FirstOrDefaultAsync(x => x.chargeid == id);
+            return await dataContext.accountPayables.Include(x => x.expenseType).Include(x => x.vendor).FirstOrDefaultAsync(x => x.chargeid == id);
         }
 
         public async Task<AccountPayableViewModel> GetAccountPayableByID(long id)
         {
-            return _mapper.Map<AccountPayableViewModel>(await GetAccountPayable(id));
+            return mapper.Map<AccountPayableViewModel>(await GetAccountPayable(id));
         }
 
         public async Task<bool> VoidAccountPayable(long id, long employeeid)
@@ -308,8 +303,8 @@ namespace ires.Infrastructure.Repositories
                 entity.status = AccountPayableStatus.@void;
                 entity.balance = 0;
                 entity.runningbalance = 0;
-                await _dataContext.SaveChangesAsync();
-                await _logService.SaveLogAsync(entity.companyid, employeeid, AppModule.AccountsPayable, "Accounts Payable", "Void Record : " + id, 0);
+                await dataContext.SaveChangesAsync();
+                await logService.SaveLogAsync(entity.companyid, employeeid, AppModule.AccountsPayable, "Accounts Payable", "Void Record : " + id, 0);
                 await ReComputeAPAsync(entity.vendorid);
                 return true;
             }
@@ -318,12 +313,12 @@ namespace ires.Infrastructure.Repositories
 
         public async Task<ICollection<AccountPayableViewModel>> GetAccountPayables(int companyID, string search, DateTime startDate, DateTime endDate)
         {
-            var result = await _dataContext.accountPayables.Include(x => x.expenseType).Include(x => x.vendor)
+            var result = await dataContext.accountPayables.Include(x => x.expenseType).Include(x => x.vendor)
                 .Where(x => x.companyid == companyID && x.actualdate >= startDate && x.actualdate <= endDate
                     && (x.vendor.vendorname.Contains(search) || x.refno.Contains(search) || x.memo.Contains(search)))
                 .OrderByDescending(x => x.datecreated)
                 .ToListAsync();
-            return _mapper.Map<ICollection<AccountPayableViewModel>>(result);
+            return mapper.Map<ICollection<AccountPayableViewModel>>(result);
         }
         #endregion
     }

@@ -3,6 +3,8 @@
 using AutoMapper;
 using ires.Domain.DTO;
 using ires.Domain.DTO.AccountPayable;
+using ires.Domain.DTO.BillingAccount;
+using ires.Domain.DTO.BillingPayment;
 using ires.Domain.DTO.Attachment;
 using ires.Domain.DTO.Bank;
 using ires.Domain.DTO.BankAccount;
@@ -136,6 +138,12 @@ namespace ires.AppService
 
             CreateMap<VendorRequestDto, Vendor>();
             CreateMap<Vendor, VendorViewModel>();
+
+            CreateMap<BillingAccountRequestDto, BillingAccount>();
+            CreateMap<BillingAccount, BillingAccountViewModel>();
+
+            CreateMap<BillingPaymentRequestDto, BillingPayment>();
+            CreateMap<BillingPayment, BillingPaymentViewModel>();
         }
     }
 }

@@ -166,8 +166,7 @@ namespace ires_api.Controllers
         public async Task<IActionResult> GetExpenseTypes(int currentPage, bool viewAll, string? search = "")
         {
             var serverResponse = new ServerResponse<PaginatorDto<ExpenseTypeViewModel>>();
-            var identity = IdentityProfile.getIdentity(this.HttpContext);
-            var result = await _expenseService.GetExpenseTypes(identity.companyid ?? 0, viewAll, search ?? "");
+            var result = await _expenseService.GetExpenseTypes(viewAll, search ?? "");
             var paginator = new PaginatorDto<ExpenseTypeViewModel>(currentPage);
             paginator.Paginate(result);
             serverResponse.Data = paginator;

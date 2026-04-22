@@ -15,6 +15,7 @@ namespace ires_api.Controllers
         ICompanyService companyService, 
         IEmployeeService employeeService, 
         IAccountService accountService,
+        IExpenseService expenseService,
         IMailService mailService) : ControllerBase
     {
         [HttpGet]
@@ -147,7 +148,11 @@ namespace ires_api.Controllers
         public async Task<IActionResult> DataPreload()
         {
             var offices = await accountService.GetOffices("", true);
-            return Ok(new { offices });
+            var expenseTypes = await expenseService.GetExpenseTypes(true, "");
+            return Ok(new { 
+                offices,
+                expenseTypes
+            });
         }
     }
 }

@@ -74,6 +74,7 @@ builder.Services.AddScoped<IOtherChargeService, OtherChargeRepository>();
 builder.Services.AddScoped<IPettyCashService, PettyCashRepository>();
 builder.Services.AddScoped<IProjectService, ProjectRepository>();
 builder.Services.AddScoped<IRentalService, RentalRepository>();
+builder.Services.AddScoped<IBillingAccountService, BillingAccountRepository>();
 
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 

@@ -18,7 +18,7 @@ namespace ires.Domain.Contracts
         public Task<bool> UpdateExpenseType(ExpenseTypeRequestDto requestDto);
         public Task<ExpenseTypeViewModel> GetExpenseTypeByID(long ID);
         public Task<ExpenseTypeViewModel> GetExpenseTypeByName(int companyID, string name);
-        public Task<ICollection<ExpenseTypeViewModel>> GetExpenseTypes(int companyID, bool viewAll, string search);
+        public Task<ICollection<ExpenseTypeViewModel>> GetExpenseTypes(bool viewAll, string search);
 
 
         public Task<VendorViewModel> CreateVendor(VendorRequestDto requestDto);
