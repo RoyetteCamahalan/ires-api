@@ -63,6 +63,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Templates\BillingAccountDueReminder.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Templates\ConfirmationEmail - Copy.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
